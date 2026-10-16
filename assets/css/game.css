@@ -156,6 +156,21 @@ button, a { font: inherit; color: inherit; }
 .pad .down { grid-area: 2 / 2; }
 .pad .right { grid-area: 2 / 3; }
 
+.swipe-surface { touch-action: none; }
+
+@media (any-pointer: coarse) {
+  .swipe-surface .pad,
+  .swipe-surface .controls,
+  .swipe-surface .steer { display: none; }
+
+  .swipe-surface.stage { display: flex; }
+
+  .swipe-surface .play-area {
+    display: flex;
+    justify-content: center;
+  }
+}
+
 .overlay {
   position: fixed;
   inset: 0;

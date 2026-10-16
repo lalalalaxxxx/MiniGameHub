@@ -34,7 +34,6 @@ let lastTs = 0;
 let cell = 0;
 let audioCtx = null;
 let soundOn = true;
-let touchStart = null;
 
 function loadBest() {
   try {
@@ -129,7 +128,7 @@ function reset() {
   lastTs = performance.now();
   pauseBtn.disabled = true;
   pauseBtn.textContent = "暂停";
-  hintEl.textContent = "按箭头，或在格子上滑动";
+  hintEl.textContent = "上下左右滑动，带小蛇吃果子";
   overlay.hidden = true;
   placeFood();
   remember();
@@ -318,19 +317,14 @@ document.querySelectorAll(".pad button").forEach((button) => {
   });
 });
 
-boardWrap.addEventListener("pointerdown", (event) => {
-  if (event.target.closest("button")) return;
-  touchStart = { x: event.clientX, y: event.clientY };
-});
-
-boardWrap.addEventListener("pointerup", (event) => {
-  if (!touchStart) return;
-  const dx = event.clientX - touchStart.x;
-  const dy = event.clientY - touchStart.y;
-  touchStart = null;
-  if (Math.hypot(dx, dy) < 24) return;
-  if (Math.abs(dx) > Math.abs(dy)) setDir(Math.sign(dx), 0);
-  else setDir(0, Math.sign(dy));
+bindSwipe(document.querySelector(".stage"), {
+  onInteract: unlock,
+  enabled: () => !paused && !over,
+  repeat: () => true,
+  onDirection: (direction) => {
+    const [x, y] = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[direction];
+    setDir(x, y);
+  },
 });
 
 window.addEventListener("keydown", (event) => {

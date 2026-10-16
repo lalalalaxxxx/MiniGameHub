@@ -42,7 +42,6 @@ let invincible = 0;
 let lastTime = 0;
 let paused = false;
 let gameOver = false;
-let dragging = false;
 let shownScore = -1;
 let newRecord = false;
 
@@ -136,7 +135,7 @@ function beep(frequency, duration, volume = 0.04, wave = "sine") {
 }
 
 function movePlayer(direction) {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   unlockAudio();
   const nearestLane = clamp(
     Math.round((player.targetX - ROAD.left) / (ROAD.width / LANES) - 0.5),
@@ -147,14 +146,6 @@ function movePlayer(direction) {
   player.targetX = laneCenter(nextLane);
   hintEl.textContent = "看准空车道，继续向前！";
   beep(420 + nextLane * 45, 0.045, 0.018);
-}
-
-function setPlayerFromPointer(clientX) {
-  const rect = canvas.getBoundingClientRect();
-  if (!rect.width) return;
-  const worldX = (clientX - rect.left) / rect.width * WORLD.width;
-  const margin = PLAYER_SIZE.width * 0.56;
-  player.targetX = clamp(worldX, ROAD.left + margin, ROAD.right - margin);
 }
 
 function chooseLane(excluded = []) {
@@ -268,14 +259,13 @@ function resetGame() {
   invincible = 0;
   paused = false;
   gameOver = false;
-  dragging = false;
   shownScore = -1;
   newRecord = false;
   lastTime = performance.now();
   overlay.hidden = true;
   pauseBtn.disabled = false;
   pauseBtn.textContent = "暂停";
-  hintEl.textContent = "左右移动，避开路上的小伙伴";
+  hintEl.textContent = "向左或向右滑动，切换车道";
   updateHearts();
   updateScore(true);
   draw();
@@ -562,30 +552,13 @@ document.querySelectorAll(".steer").forEach((button) => {
   button.addEventListener("pointerleave", release);
 });
 
-canvas.addEventListener("pointerdown", (event) => {
-  if (gameOver) return;
-  event.preventDefault();
-  unlockAudio();
-  dragging = true;
-  canvas.setPointerCapture(event.pointerId);
-  setPlayerFromPointer(event.clientX);
+bindSwipe(document.querySelector(".stage"), {
+  onInteract: unlockAudio,
+  enabled: () => !paused && !gameOver,
+  onDirection: (direction) => {
+    if (direction === "left" || direction === "right") movePlayer(direction === "left" ? -1 : 1);
+  },
 });
-
-canvas.addEventListener("pointermove", (event) => {
-  if (!dragging || gameOver) return;
-  event.preventDefault();
-  setPlayerFromPointer(event.clientX);
-});
-
-function stopDragging(event) {
-  dragging = false;
-  if (event && canvas.hasPointerCapture(event.pointerId)) {
-    canvas.releasePointerCapture(event.pointerId);
-  }
-}
-
-canvas.addEventListener("pointerup", stopDragging);
-canvas.addEventListener("pointercancel", stopDragging);
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {

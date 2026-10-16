@@ -110,6 +110,7 @@ function tone(frequency, duration, volume = 0.035, delay = 0) {
 }
 
 function resetGame() {
+  clearPointer();
   score = 0;
   lives = 3;
   elapsed = 0;
@@ -133,6 +134,7 @@ function resetGame() {
 }
 
 function finishGame() {
+  clearPointer();
   gameState = "over";
   const newRecord = score > best;
   saveBest();
@@ -149,6 +151,7 @@ function finishGame() {
 
 function setPaused(paused) {
   if (gameState === "over") return;
+  clearPointer();
   gameState = paused ? "paused" : "playing";
   pauseBtn.textContent = paused ? "\u7ee7\u7eed" : "\u6682\u505c";
   hintEl.textContent = paused
@@ -550,7 +553,9 @@ function frame(now) {
 }
 
 canvas.addEventListener("pointerdown", (event) => {
-  if (gameState !== "playing") return;
+  // Keep control with the first finger until it is released. Extra fingers
+  // must never replace its ID or move the target to their contact position.
+  if (gameState !== "playing" || pointerId !== null || !event.isPrimary || event.button !== 0) return;
   unlockAudio();
   pointerId = event.pointerId;
   canvas.setPointerCapture(pointerId);
@@ -564,12 +569,21 @@ canvas.addEventListener("pointermove", (event) => {
   event.preventDefault();
 });
 
+function clearPointer() {
+  const previousId = pointerId;
+  pointerId = null;
+  if (previousId !== null && canvas.hasPointerCapture(previousId)) {
+    canvas.releasePointerCapture(previousId);
+  }
+}
+
 function releasePointer(event) {
-  if (event.pointerId === pointerId) pointerId = null;
+  if (event.pointerId === pointerId) clearPointer();
 }
 
 canvas.addEventListener("pointerup", releasePointer);
 canvas.addEventListener("pointercancel", releasePointer);
+canvas.addEventListener("lostpointercapture", releasePointer);
 
 window.addEventListener("keydown", (event) => {
   if (event.key.startsWith("Arrow")) {
@@ -586,7 +600,10 @@ window.addEventListener("keyup", (event) => {
   keys.delete(event.key);
 });
 
-window.addEventListener("blur", () => keys.clear());
+window.addEventListener("blur", () => {
+  keys.clear();
+  clearPointer();
+});
 
 pauseBtn.addEventListener("click", () => {
   unlockAudio();

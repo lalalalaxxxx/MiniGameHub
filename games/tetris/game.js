@@ -89,7 +89,6 @@ let fallElapsed = 0;
 let boardCell = 0;
 let audioCtx = null;
 let soundOn = true;
-let pointerStart = null;
 let holdTimer = 0;
 let holdInterval = 0;
 
@@ -330,7 +329,7 @@ function setPaused(paused, message = "暂停中") {
   if (paused) stopHold();
   state = paused ? "paused" : "playing";
   pauseBtn.textContent = paused ? "继续" : "暂停";
-  hintEl.textContent = paused ? message : "把方块拼满一整行，就能消除啦";
+  hintEl.textContent = paused ? message : "左右滑动移动 · 上滑或轻点旋转 · 下滑落到底";
   if (!paused) {
     lastTime = performance.now();
     fallElapsed = 0;
@@ -357,7 +356,7 @@ function newGame() {
   lastTime = performance.now();
   pauseBtn.disabled = false;
   pauseBtn.textContent = "暂停";
-  hintEl.textContent = "把方块拼满一整行，就能消除啦";
+  hintEl.textContent = "左右滑动移动 · 上滑或轻点旋转 · 下滑落到底";
   overlay.hidden = true;
   spawnPiece();
   updateInfo();
@@ -520,27 +519,12 @@ document.querySelectorAll(".controls button").forEach((button) => {
   });
 });
 
-boardCanvas.addEventListener("pointerdown", (event) => {
-  pointerStart = { x: event.clientX, y: event.clientY };
-  boardCanvas.setPointerCapture?.(event.pointerId);
-});
-
-boardCanvas.addEventListener("pointerup", (event) => {
-  if (!pointerStart) return;
-  const dx = event.clientX - pointerStart.x;
-  const dy = event.clientY - pointerStart.y;
-  pointerStart = null;
-  if (Math.hypot(dx, dy) < 18) {
-    perform("rotate");
-  } else if (Math.abs(dx) > Math.abs(dy)) {
-    perform(dx > 0 ? "right" : "left");
-  } else if (dy > 42) {
-    perform("down");
-  }
-});
-
-boardCanvas.addEventListener("pointercancel", () => {
-  pointerStart = null;
+bindSwipe(document.querySelector(".stage"), {
+  onInteract: unlockAudio,
+  enabled: () => state === "playing",
+  repeat: (direction) => direction === "left" || direction === "right",
+  onDirection: (direction) => perform({ left: "left", right: "right", up: "rotate", down: "drop" }[direction]),
+  onTap: () => perform("rotate"),
 });
 
 window.addEventListener("keydown", (event) => {

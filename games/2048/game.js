@@ -26,7 +26,6 @@ let generation = 0;
 let tileId = 0;
 let audioCtx = null;
 let soundOn = true;
-let pointerStart = null;
 
 function loadBest() {
   try {
@@ -318,23 +317,10 @@ document.querySelectorAll(".pad button").forEach((button) => {
   });
 });
 
-boardEl.addEventListener("pointerdown", (event) => {
-  pointerStart = { x: event.clientX, y: event.clientY };
-  boardEl.setPointerCapture?.(event.pointerId);
-});
-
-boardEl.addEventListener("pointerup", (event) => {
-  if (!pointerStart) return;
-  const dx = event.clientX - pointerStart.x;
-  const dy = event.clientY - pointerStart.y;
-  pointerStart = null;
-  if (Math.hypot(dx, dy) < 24) return;
-  if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? "right" : "left");
-  else move(dy > 0 ? "down" : "up");
-});
-
-boardEl.addEventListener("pointercancel", () => {
-  pointerStart = null;
+bindSwipe(document.querySelector(".stage"), {
+  onInteract: unlock,
+  enabled: () => mode === "play",
+  onDirection: move,
 });
 
 window.addEventListener("keydown", (event) => {
