@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7fb">
+  <meta name="format-detection" content="telephone=no">
+  <title>彩虹赛车 · 软软游戏屋</title>
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../assets/css/game.css">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="../../index.html">回大厅</a>
+    <h1>彩虹赛车</h1>
+    <div class="scores">
+      <p class="score">距离 <strong id="score">0</strong><span>米</span></p>
+      <p class="score">最高 <strong id="best">0</strong><span>米</span></p>
+    </div>
+  </header>
+
+  <div class="actions">
+    <button type="button" id="pause" class="ghost">暂停</button>
+    <button type="button" id="restart" class="ghost">重来</button>
+    <button type="button" id="sound" class="ghost" aria-pressed="true">声音开</button>
+  </div>
+
+  <main class="stage">
+    <div class="status-row">
+      <p class="hint" id="hint">左右移动，避开路上的小伙伴</p>
+      <div class="hearts" id="hearts" aria-label="还有 3 颗爱心" aria-live="polite">
+        <span>&#9829;</span><span>&#9829;</span><span>&#9829;</span>
+      </div>
+    </div>
+
+    <div class="play-area">
+      <button type="button" class="steer steer-left" data-move="-1" aria-label="向左移动">
+        <span aria-hidden="true">←</span>
+        <small>向左</small>
+      </button>
+
+      <div class="road-wrap" id="roadWrap">
+        <canvas id="game" width="720" height="960" aria-label="赛车游戏画布"></canvas>
+      </div>
+
+      <button type="button" class="steer steer-right" data-move="1" aria-label="向右移动">
+        <span aria-hidden="true">→</span>
+        <small>向右</small>
+      </button>
+    </div>
+  </main>
+
+  <div id="overlay" class="overlay" hidden>
+    <div class="dialog" role="alertdialog" aria-labelledby="overlay-title" aria-describedby="overlay-text">
+      <div class="finish-flag" aria-hidden="true">&#127937;</div>
+      <h2 id="overlay-title">到达终点啦</h2>
+      <p id="overlay-text">你跑了 0 米！</p>
+      <div class="dialog-actions">
+        <a class="ghost" href="../../index.html">回大厅</a>
+        <button type="button" class="primary" id="again">再跑一次</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

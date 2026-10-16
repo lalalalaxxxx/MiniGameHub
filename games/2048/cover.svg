@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400">
+  <rect width="640" height="400" fill="#F6E9FF"/>
+  <rect x="150" y="48" width="340" height="304" rx="36" fill="#E7D4F5"/>
+  <g font-family="ui-rounded, PingFang SC, Microsoft YaHei, sans-serif" font-weight="700" text-anchor="middle">
+    <rect x="174" y="72" width="140" height="120" rx="24" fill="#fff"/>
+    <text x="244" y="148" font-size="64" fill="#5C3D6E">2</text>
+    <rect x="326" y="72" width="140" height="120" rx="24" fill="#FFE8F4"/>
+    <text x="396" y="148" font-size="64" fill="#5C3D6E">4</text>
+    <rect x="174" y="206" width="140" height="120" rx="24" fill="#FFD0E6"/>
+    <text x="244" y="282" font-size="64" fill="#5C3D6E">8</text>
+    <rect x="326" y="206" width="140" height="120" rx="24" fill="#E7D9FF"/>
+    <text x="396" y="282" font-size="52" fill="#5C3D6E">16</text>
+  </g>
+</svg>

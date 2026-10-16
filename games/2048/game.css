@@ -1,0 +1,116 @@
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px calc(12px + env(safe-area-inset-bottom));
+}
+
+.fit {
+  flex: 1;
+  width: min(540px, 100%);
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.board {
+  --gap: clamp(7px, 1.5vw, 12px);
+  width: min(92vw, 48dvh, 520px);
+  aspect-ratio: 1;
+  position: relative;
+  padding: var(--gap);
+  border-radius: 28px;
+  background: #f0dff8;
+  box-shadow: 0 14px 32px rgba(168, 120, 180, 0.16);
+  touch-action: none;
+}
+
+@supports (width: 1cqh) {
+  .fit { container-type: size; }
+  .board {
+    width: min(100cqw, 100cqh);
+    height: min(100cqw, 100cqh);
+  }
+}
+
+.grid-bg,
+.tile-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.grid-bg {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: var(--gap);
+  padding: var(--gap);
+}
+
+.grid-cell {
+  min-width: 0;
+  min-height: 0;
+  border-radius: clamp(10px, 2vw, 16px);
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.tile {
+  --unit: calc((100% - var(--gap) * 5) / 4);
+  position: absolute;
+  top: calc(var(--gap) + var(--row) * (var(--unit) + var(--gap)));
+  left: calc(var(--gap) + var(--col) * (var(--unit) + var(--gap)));
+  width: var(--unit);
+  height: var(--unit);
+  display: grid;
+  place-items: center;
+  border-radius: clamp(10px, 2vw, 16px);
+  color: #5c3d6e;
+  font-weight: 800;
+  font-size: clamp(22px, 5.5vw, 48px);
+  line-height: 1;
+  transition:
+    top 150ms cubic-bezier(.2, .85, .3, 1),
+    left 150ms cubic-bezier(.2, .85, .3, 1);
+  will-change: top, left;
+}
+
+.tile.spawn { animation: spawn 180ms cubic-bezier(.2, .9, .35, 1.3); }
+.tile.merge { animation: merge 190ms cubic-bezier(.2, .9, .35, 1.3); }
+
+.tile.dense { font-size: clamp(16px, 4vw, 32px); }
+
+.v2 { background: #fff; }
+.v4 { background: #ffe8f4; }
+.v8 { background: #ffd0e6; }
+.v16 { background: #ffb7d8; }
+.v32 { background: #e7d9ff; }
+.v64 { background: #d4c2ff; }
+.v128 { background: #c7b0ff; }
+.v256 { background: #ffd0b0; }
+.v512 { background: #ffb087; }
+.v1024 { background: #8ee0c6; }
+.v2048 { background: #ff8eb8; color: #fff; }
+.vsuper { background: #9b7cf0; color: #fff; }
+
+@keyframes spawn {
+  from { opacity: 0; transform: scale(.35); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes merge {
+  50% { transform: scale(1.13); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition-duration: 1ms;
+  }
+  .tile.spawn,
+  .tile.merge {
+    animation-duration: 1ms;
+  }
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7fb">
+  <meta name="format-detection" content="telephone=no">
+  <title>水果叠叠乐 · 软软游戏屋</title>
+  <link rel="stylesheet" href="../../assets/css/game.css">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="../../index.html">回大厅</a>
+    <h1>水果叠叠乐</h1>
+    <div class="scores">
+      <p class="score">得分 <strong id="score">0</strong></p>
+      <p class="score">最高 <strong id="best">0</strong></p>
+    </div>
+  </header>
+
+  <div class="actions">
+    <button type="button" id="pause" class="ghost">暂停</button>
+    <button type="button" id="restart" class="ghost">重来</button>
+    <button type="button" id="sound" class="ghost" aria-pressed="true">声音</button>
+  </div>
+
+  <main class="stage">
+    <div class="game-info">
+      <p class="hint" id="hint">在果篮顶部点击或拖动，松手投放</p>
+      <div class="next-card" aria-label="下一个水果">
+        <span>下一个</span>
+        <canvas id="next" width="64" height="64" aria-hidden="true"></canvas>
+        <strong id="nextName">莓莓果</strong>
+      </div>
+    </div>
+    <div class="fit">
+      <div class="board-wrap" id="boardWrap">
+        <canvas id="board" width="420" height="620" aria-label="水果合成游戏区"></canvas>
+      </div>
+    </div>
+  </main>
+
+  <div id="overlay" class="overlay" hidden>
+    <div class="dialog" role="alertdialog" aria-labelledby="overlay-title" aria-describedby="overlay-text">
+      <h2 id="overlay-title">果篮装满啦</h2>
+      <p id="overlay-text">这次得到 0 分，再来叠得更高吧！</p>
+      <button type="button" class="primary" id="again">再玩一次</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

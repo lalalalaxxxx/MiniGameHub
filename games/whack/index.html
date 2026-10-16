@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7fb">
+  <meta name="format-detection" content="telephone=no">
+  <title>打地鼠 · 软软游戏屋</title>
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../assets/css/game.css">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="../../index.html">回大厅</a>
+    <h1>打地鼠</h1>
+    <div class="scores">
+      <p class="score">得分 <strong id="score">0</strong></p>
+      <p class="score">最高 <strong id="best">0</strong></p>
+    </div>
+  </header>
+
+  <div class="actions">
+    <p class="time-pill" aria-label="剩余时间"><span aria-hidden="true">&#9201;</span> <strong id="time">45</strong> 秒</p>
+    <button type="button" id="pause" class="ghost" disabled>暂停</button>
+    <button type="button" id="restart" class="ghost">重开</button>
+    <button type="button" id="sound" class="ghost" aria-pressed="true">声音</button>
+  </div>
+
+  <main class="stage">
+    <div class="message-row" aria-live="polite">
+      <p class="hint" id="hint">只点圆脸小地鼠，粉色刺球和炸弹不要点</p>
+      <p class="combo" id="combo" hidden>连击 × <strong>2</strong></p>
+    </div>
+    <div class="fit">
+      <div class="garden" id="garden" aria-label="九个地鼠洞">
+        <button type="button" class="hole" data-hole="0" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="1" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="2" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="3" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="4" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="5" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="6" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="7" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+        <button type="button" class="hole" data-hole="8" aria-label="空洞"><span class="target" aria-hidden="true"><span class="mole-face"><i class="ear left"></i><i class="ear right"></i><i class="eye left"></i><i class="eye right"></i><i class="nose"></i><i class="cheek left"></i><i class="cheek right"></i><i class="tooth"></i></span><span class="spike-face"><i></i></span><span class="bomb-face"><i class="fuse"></i><i class="eye left"></i><i class="eye right"></i><i class="smile"></i></span></span><span class="dirt" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </main>
+
+  <div id="overlay" class="overlay">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="overlay-title" aria-describedby="overlay-text">
+      <div class="mascot" aria-hidden="true">&#9679;&#8255;&#9679;</div>
+      <h2 id="overlay-title">地鼠探头啦</h2>
+      <p id="overlay-text">45 秒内点圆脸小地鼠得分，粉色刺球和炸弹会扣 2 分哦！</p>
+      <button type="button" class="primary" id="mainAction">开始游戏</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

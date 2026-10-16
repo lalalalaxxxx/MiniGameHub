@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-labelledby="title desc">
+  <title id="title">水果叠叠乐封面</title>
+  <desc id="desc">一篮带笑脸的原创粉彩水果正叠在一起</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff2f7"/><stop offset="1" stop-color="#eee7ff"/></linearGradient>
+    <radialGradient id="melon" cx=".3" cy=".22"><stop stop-color="#d7f5d1"/><stop offset=".45" stop-color="#83d5a4"/><stop offset="1" stop-color="#55b586"/></radialGradient>
+    <radialGradient id="peach" cx=".3" cy=".2"><stop stop-color="#ffe6dc"/><stop offset=".42" stop-color="#ffb4b0"/><stop offset="1" stop-color="#f07f91"/></radialGradient>
+    <radialGradient id="berry" cx=".3" cy=".2"><stop stop-color="#ffe1eb"/><stop offset=".45" stop-color="#ff8fb1"/><stop offset="1" stop-color="#f45d8a"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="14" stdDeviation="13" flood-color="#8e5d9a" flood-opacity=".2"/></filter>
+  </defs>
+  <rect width="800" height="520" rx="54" fill="url(#bg)"/>
+  <circle cx="105" cy="82" r="44" fill="#fff" opacity=".5"/><circle cx="710" cy="118" r="70" fill="#fff" opacity=".4"/>
+  <path d="M116 430C204 476 596 476 684 430" fill="none" stroke="#d8badc" stroke-width="18" stroke-linecap="round" opacity=".46"/>
+  <g filter="url(#shadow)">
+    <circle cx="400" cy="355" r="126" fill="url(#melon)"/><path d="M400 229c-22-43-54-57-81-47 8 35 35 58 81 47z" fill="#4d9e70"/>
+    <path d="M318 333c25-43 24-85 4-121M365 244c-18 49-11 91 12 126M482 333c-25-43-24-85-4-121M435 244c18 49 11 91-12 126" fill="none" stroke="#d8f2cf" stroke-width="9" stroke-linecap="round" opacity=".72"/>
+    <circle cx="367" cy="354" r="8" fill="#5c3d6e"/><circle cx="433" cy="354" r="8" fill="#5c3d6e"/><path d="M381 379q19 22 38 0" fill="none" stroke="#5c3d6e" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="286" cy="274" r="76" fill="url(#peach)"/><path d="M286 198c-16-27-39-34-58-24 9 25 29 36 58 24z" fill="#65a76d"/>
+    <circle cx="264" cy="278" r="6" fill="#5c3d6e"/><circle cx="308" cy="278" r="6" fill="#5c3d6e"/><path d="M274 297q12 13 24 0" fill="none" stroke="#5c3d6e" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="508" cy="277" r="70" fill="#8fcbe9"/><path d="M508 207c18-24 41-27 58-15-11 23-31 31-58 15z" fill="#65a76d"/>
+    <circle cx="487" cy="282" r="6" fill="#5c3d6e"/><circle cx="529" cy="282" r="6" fill="#5c3d6e"/><path d="M497 301q11 13 22 0" fill="none" stroke="#5c3d6e" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="397" cy="185" r="51" fill="url(#berry)"/><path d="M397 134c-11-21-28-28-44-19 7 19 22 28 44 19z" fill="#65a76d"/>
+    <circle cx="382" cy="188" r="5" fill="#5c3d6e"/><circle cx="412" cy="188" r="5" fill="#5c3d6e"/><path d="M388 204q9 10 18 0" fill="none" stroke="#5c3d6e" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g fill="#5c3d6e" font-family="Microsoft YaHei, PingFang SC, sans-serif" text-anchor="middle"><text x="400" y="75" font-size="46" font-weight="800">水果叠叠乐</text><text x="400" y="112" font-size="20" font-weight="700" opacity=".65">碰一碰，长大啦！</text></g>
+</svg>

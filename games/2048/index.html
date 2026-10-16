@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7fb">
+  <meta name="format-detection" content="telephone=no">
+  <title>2048 · 软软游戏屋</title>
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../assets/css/game.css">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="../../index.html">回大厅</a>
+    <h1>2048</h1>
+    <div class="scores">
+      <p class="score">得分 <strong id="score">0</strong></p>
+      <p class="score">最高 <strong id="best">0</strong></p>
+    </div>
+  </header>
+  <div class="actions">
+    <button type="button" id="restart" class="ghost">重来</button>
+    <button type="button" id="sound" class="ghost" aria-pressed="true">声音</button>
+  </div>
+  <div class="stage">
+    <p class="hint">相同的数字碰在一起，就会变成更大的数字</p>
+    <div class="fit">
+      <div class="board" id="board" aria-label="2048 棋盘">
+        <div id="gridBg" class="grid-bg" aria-hidden="true"></div>
+        <div id="tileLayer" class="tile-layer"></div>
+      </div>
+    </div>
+    <div class="pad" aria-label="滑动方向">
+      <button type="button" class="up" data-dir="up" aria-label="向上">↑</button>
+      <button type="button" class="left" data-dir="left" aria-label="向左">←</button>
+      <button type="button" class="down" data-dir="down" aria-label="向下">↓</button>
+      <button type="button" class="right" data-dir="right" aria-label="向右">→</button>
+    </div>
+  </div>
+  <div id="overlay" class="overlay" hidden>
+    <div class="dialog" role="alertdialog" aria-labelledby="overlay-title">
+      <h2 id="overlay-title">拼出来啦</h2>
+      <p id="overlay-text"></p>
+      <div class="dialog-actions">
+        <button type="button" class="ghost" id="continue" hidden>继续玩</button>
+        <button type="button" class="primary" id="again">再来一局</button>
+      </div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

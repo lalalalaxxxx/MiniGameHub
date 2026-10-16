@@ -1,0 +1,65 @@
+[
+  {
+    "id": "snake",
+    "title": "贪吃蛇",
+    "blurb": "吃到果子就会变长，别咬到自己",
+    "category": "经典",
+    "tags": ["单人", "触摸"],
+    "cover": "games/snake/cover.svg",
+    "entry": "games/snake/index.html"
+  },
+  {
+    "id": "2048",
+    "title": "2048",
+    "blurb": "把相同的数字滑到一起，合成更大的",
+    "category": "益智",
+    "tags": ["单人", "滑动"],
+    "cover": "games/2048/cover.svg",
+    "entry": "games/2048/index.html"
+  },
+  {
+    "id": "tetris",
+    "title": "俄罗斯方块",
+    "blurb": "旋转彩色方块，拼满一整行",
+    "category": "经典",
+    "tags": ["单人", "触摸"],
+    "cover": "games/tetris/cover.svg",
+    "entry": "games/tetris/index.html"
+  },
+  {
+    "id": "whack",
+    "title": "打地鼠",
+    "blurb": "眼疾手快，找到探头的小地鼠",
+    "category": "反应",
+    "tags": ["单人", "触摸"],
+    "cover": "games/whack/cover.svg",
+    "entry": "games/whack/index.html"
+  },
+  {
+    "id": "shooter",
+    "title": "星星大战",
+    "blurb": "驾驶小飞船，发射星星保卫天空",
+    "category": "动作",
+    "tags": ["单人", "触摸"],
+    "cover": "games/shooter/cover.svg",
+    "entry": "games/shooter/index.html"
+  },
+  {
+    "id": "racing",
+    "title": "彩虹赛车",
+    "blurb": "左右换道，安全避开前方车辆",
+    "category": "动作",
+    "tags": ["单人", "触摸"],
+    "cover": "games/racing/cover.svg",
+    "entry": "games/racing/index.html"
+  },
+  {
+    "id": "watermelon",
+    "title": "水果合成",
+    "blurb": "让相同水果碰一碰，合成大水果",
+    "category": "休闲",
+    "tags": ["单人", "触摸"],
+    "cover": "games/watermelon/cover.svg",
+    "entry": "games/watermelon/index.html"
+  }
+]

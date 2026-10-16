@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7fb">
+  <meta name="format-detection" content="telephone=no">
+  <title>软软游戏屋</title>
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/lobby.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <span class="cloud c1"></span>
+    <span class="cloud c2"></span>
+    <span class="spark s1"></span>
+    <span class="spark s2"></span>
+    <span class="spark s3"></span>
+    <span class="spark s4"></span>
+    <span class="spark s5"></span>
+  </div>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="mascots" aria-hidden="true">
+        <svg class="buddy" viewBox="0 0 140 150">
+          <ellipse cx="42" cy="58" rx="18" ry="20" fill="#FFB7D5"/>
+          <ellipse cx="98" cy="58" rx="18" ry="20" fill="#FFB7D5"/>
+          <circle cx="70" cy="86" r="46" fill="#FFB7D5"/>
+          <circle cx="52" cy="84" r="6" fill="#5C3D6E"/>
+          <circle cx="88" cy="84" r="6" fill="#5C3D6E"/>
+          <circle cx="54" cy="82" r="2" fill="#fff"/>
+          <circle cx="90" cy="82" r="2" fill="#fff"/>
+          <path d="M62 98c4 6 12 6 16 0" fill="none" stroke="#5C3D6E" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="42" cy="96" rx="8" ry="5" fill="#FF8EB4" opacity=".8"/>
+          <ellipse cx="98" cy="96" rx="8" ry="5" fill="#FF8EB4" opacity=".8"/>
+          <path d="M104 42c10-16 28-14 30 2 8-6 18 2 14 12-12 2-24-2-30-8-4 8-16 8-14-6z" fill="#fff"/>
+          <circle cx="124" cy="50" r="5" fill="#FF8EB8"/>
+        </svg>
+        <svg class="buddy" viewBox="0 0 140 150">
+          <ellipse cx="48" cy="46" rx="16" ry="18" fill="#fff"/>
+          <ellipse cx="92" cy="46" rx="16" ry="18" fill="#fff"/>
+          <ellipse cx="48" cy="48" rx="8" ry="10" fill="#FFE0EE"/>
+          <ellipse cx="92" cy="48" rx="8" ry="10" fill="#FFE0EE"/>
+          <circle cx="70" cy="88" r="46" fill="#fff"/>
+          <circle cx="54" cy="86" r="6" fill="#5C3D6E"/>
+          <circle cx="86" cy="86" r="6" fill="#5C3D6E"/>
+          <circle cx="56" cy="84" r="2" fill="#fff"/>
+          <circle cx="88" cy="84" r="2" fill="#fff"/>
+          <path d="M62 100c4 6 12 6 16 0" fill="none" stroke="#5C3D6E" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="44" cy="98" rx="8" ry="5" fill="#FFD0E2"/>
+          <ellipse cx="96" cy="98" rx="8" ry="5" fill="#FFD0E2"/>
+          <path d="M108 28c2-14 16-8 12 4" fill="none" stroke="#8EE0C6" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="122" cy="24" r="6" fill="#8EE0C6"/>
+        </svg>
+      </div>
+      <div class="hero-copy">
+        <p class="eyebrow">给小朋友的小游戏</p>
+        <h1>软软游戏屋</h1>
+        <p class="lead">点一张卡片，就能开始玩</p>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div id="filters" class="filters" role="tablist" aria-label="游戏分类"></div>
+      <label class="search">
+        <span class="sr">搜索游戏</span>
+        <input id="search" type="search" placeholder="找游戏" enterkeyhint="search" autocomplete="off">
+      </label>
+    </div>
+
+    <p id="count" class="count">游戏正在赶来…</p>
+    <main id="grid" class="grid"></main>
+    <p id="empty" class="empty" hidden>没有找到这个游戏，换个词试试</p>
+    <footer class="foot">最高分记在这台 iPad 上</footer>
+  </div>
+
+  <script src="assets/js/lobby.js"></script>
+</body>
+</html>

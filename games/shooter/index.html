@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#eef8ff">
+  <meta name="format-detection" content="telephone=no">
+  <title>&#26143;&#26143;&#39134;&#34892;&#38431; &middot; &#36719;&#36719;&#28216;&#25103;&#23627;</title>
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../assets/css/game.css">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="../../index.html">&#22238;&#22823;&#21381;</a>
+    <h1>&#26143;&#26143;&#39134;&#34892;&#38431;</h1>
+    <div class="scores">
+      <p class="score">&#24471;&#20998; <strong id="score">0</strong></p>
+      <p class="score">&#26368;&#39640; <strong id="best">0</strong></p>
+    </div>
+  </header>
+
+  <div class="actions">
+    <p class="lives" aria-label="&#21097;&#20313;&#29983;&#21629;">&#29983;&#21629; <span id="lives">&#9829; &#9829; &#9829;</span></p>
+    <button type="button" id="pause" class="ghost">&#26242;&#20572;</button>
+    <button type="button" id="restart" class="ghost">&#37325;&#26469;</button>
+    <button type="button" id="sound" class="ghost" aria-pressed="true">&#22768;&#38899;</button>
+  </div>
+
+  <main class="stage">
+    <p class="hint" id="hint">&#25302;&#21160;&#23567;&#39134;&#33337;&#65292;&#33258;&#21160;&#21457;&#23556;&#26143;&#26143;</p>
+    <div class="game-shell" id="gameShell">
+      <canvas id="game" width="800" height="1000" aria-label="&#26143;&#26143;&#39134;&#34892;&#38431;&#28216;&#25103;&#30011;&#38754;"></canvas>
+    </div>
+  </main>
+
+  <div id="overlay" class="overlay" hidden>
+    <div class="dialog" role="alertdialog" aria-labelledby="overlay-title" aria-describedby="overlay-text">
+      <h2 id="overlay-title">&#39134;&#34892;&#32467;&#26463;</h2>
+      <p id="overlay-text">&#24471;&#20998; 0</p>
+      <button type="button" class="primary" id="again">&#20877;&#39134;&#19968;&#27425;</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

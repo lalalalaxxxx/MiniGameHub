@@ -1,0 +1,166 @@
+body {
+  background:
+    radial-gradient(circle at 12% 0%, #fff0f7 0, transparent 32%),
+    radial-gradient(circle at 92% 4%, #dff3ff 0, transparent 36%),
+    linear-gradient(180deg, #f8fcff, #f3edff);
+}
+
+.topbar {
+  position: relative;
+  z-index: 2;
+}
+
+.actions {
+  align-items: center;
+  padding-top: 0;
+}
+
+.lives {
+  min-height: 48px;
+  margin: 0;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.lives span {
+  min-width: 66px;
+  color: #ff668f;
+  font-size: 21px;
+  letter-spacing: 3px;
+}
+
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 calc(12px + env(safe-area-inset-right))
+    calc(10px + env(safe-area-inset-bottom))
+    calc(12px + env(safe-area-inset-left));
+}
+
+.game-shell {
+  flex: 1;
+  width: min(80vw, 64dvh, 720px);
+  max-width: 100%;
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  border-radius: clamp(22px, 4vw, 34px);
+  background: #cdefff;
+  box-shadow: 0 16px 36px rgba(83, 118, 171, 0.2);
+  touch-action: none;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+@supports (width: 1cqh) {
+  .stage {
+    container-type: size;
+  }
+
+  .game-shell {
+    flex: none;
+    width: min(100cqw, 80cqh, 720px);
+    height: min(125cqw, 100cqh, 900px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 900px) {
+  .topbar {
+    padding-top: calc(6px + env(safe-area-inset-top));
+    padding-bottom: 2px;
+  }
+
+  .topbar h1 {
+    font-size: 22px;
+  }
+
+  .back,
+  .ghost,
+  .lives,
+  .score {
+    min-height: 40px;
+  }
+
+  .actions {
+    position: absolute;
+    z-index: 3;
+    right: calc(12px + env(safe-area-inset-right));
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    width: 128px;
+    padding: 0;
+  }
+
+  .actions .ghost,
+  .lives {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .lives {
+    padding: 0 10px;
+    white-space: nowrap;
+  }
+
+  .game-shell {
+    flex: none;
+    width: min(56vw, 64dvh, 720px);
+    height: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    gap: 6px;
+    padding-left: calc(10px + env(safe-area-inset-left));
+    padding-right: calc(10px + env(safe-area-inset-right));
+  }
+
+  .topbar h1 {
+    order: -1;
+    flex-basis: 100%;
+    font-size: 23px;
+  }
+
+  .back,
+  .ghost,
+  .primary {
+    min-height: 42px;
+    padding: 0 13px;
+    font-size: 15px;
+  }
+
+  .score {
+    min-height: 42px;
+    padding: 0 10px;
+  }
+
+  .score strong {
+    font-size: 19px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .lives {
+    min-height: 42px;
+    padding: 0 12px;
+  }
+}
