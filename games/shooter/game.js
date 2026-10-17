@@ -84,8 +84,6 @@ function updateHud() {
 }
 
 function updateSoundButton() {
-  soundBtn.textContent = soundOn ? "\u58f0\u97f3" : "\u9759\u97f3";
-  soundBtn.setAttribute("aria-pressed", String(soundOn));
   gameAudio.sync();
 }
 
@@ -157,7 +155,7 @@ function moveTargetFromPointer(event) {
 
 function fireStar() {
   bullets.push({ x: player.x, y: player.y - 48, speed: 680, rotation: 0 });
-  gameAudio.effect("shoot", { volume: .24 });
+  gameAudio.effect("shoot", { volume: .55 });
 }
 
 function spawnEnemy() {
@@ -602,8 +600,8 @@ restartBtn.addEventListener("click", restart);
 againBtn.addEventListener("click", restart);
 
 soundBtn.addEventListener("click", () => {
-  unlockAudio();
-  soundOn = !soundOn;
+  soundOn = gameAudio.toggle();
+  if (soundOn) gameAudio.unlock(true);
   try {
     localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off");
   } catch (error) {

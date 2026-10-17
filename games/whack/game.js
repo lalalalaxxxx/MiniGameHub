@@ -66,8 +66,6 @@ function unlockAudio() {
 }
 
 function paintSound() {
-  soundBtn.textContent = soundOn ? "声音" : "静音";
-  soundBtn.setAttribute("aria-pressed", String(soundOn));
   gameAudio.sync();
 }
 
@@ -317,8 +315,8 @@ pauseBtn.addEventListener("click", () => {
 restartBtn.addEventListener("click", startGame);
 
 soundBtn.addEventListener("click", () => {
-  unlockAudio();
-  soundOn = !soundOn;
+  soundOn = gameAudio.toggle();
+  if (soundOn) gameAudio.unlock(true);
   saveValue(SOUND_KEY, soundOn ? "on" : "off");
   paintSound();
   if (soundOn) gameAudio.effect("start");
