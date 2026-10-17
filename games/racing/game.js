@@ -2,6 +2,12 @@
 
 const BEST_KEY = "childgame.racing.best";
 const SOUND_KEY = "childgame.sound";
+const gameAudio = createGameAudio({
+  game: "racing",
+  isEnabled: () => soundOn,
+  isPlaying: () => !paused && !gameOver,
+  isPaused: () => paused,
+});
 const WORLD = { width: 720, height: 960 };
 const ROAD = { left: 86, right: 634, width: 548 };
 const LANES = 4;
@@ -28,7 +34,6 @@ const againBtn = document.querySelector("#again");
 
 let best = loadNumber(BEST_KEY);
 let soundOn = loadSound();
-let audioCtx = null;
 let obstacles = [];
 let player = { x: laneCenter(1), targetX: laneCenter(1) };
 let distance = 0;
@@ -107,31 +112,11 @@ function updateHearts() {
 function paintSound() {
   soundBtn.textContent = soundOn ? "声音开" : "声音关";
   soundBtn.setAttribute("aria-pressed", String(soundOn));
+  gameAudio.sync();
 }
 
 function unlockAudio() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === "suspended") audioCtx.resume();
-}
-
-function beep(frequency, duration, volume = 0.04, wave = "sine") {
-  if (!soundOn || !audioCtx || audioCtx.state !== "running") return;
-  try {
-    const oscillator = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    oscillator.type = wave;
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-    oscillator.connect(gain);
-    gain.connect(audioCtx.destination);
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + duration);
-  } catch (error) {
-    /* 某些浏览器会拒绝本次声音，游戏仍可正常进行 */
-  }
+  gameAudio.unlock();
 }
 
 function movePlayer(direction) {
@@ -145,7 +130,7 @@ function movePlayer(direction) {
   const nextLane = clamp(nearestLane + direction, 0, LANES - 1);
   player.targetX = laneCenter(nextLane);
   hintEl.textContent = "看准空车道，继续向前！";
-  beep(420 + nextLane * 45, 0.045, 0.018);
+  gameAudio.effect("move", { volume: .55 });
 }
 
 function chooseLane(excluded = []) {
@@ -209,7 +194,7 @@ function hitObstacle(obstacle) {
   invincible = INVINCIBLE_TIME;
   obstacle.remove = true;
   updateHearts();
-  beep(185, 0.24, 0.055, "triangle");
+  gameAudio.effect("crash");
 
   if (hearts <= 0) {
     finishGame();
@@ -281,8 +266,7 @@ function finishGame() {
   overlayTitle.textContent = newRecord ? "新的最高纪录！" : "到达终点啦";
   overlayText.textContent = `你跑了 ${Math.floor(distance)} 米，再来挑战一次吧！`;
   overlay.hidden = false;
-  beep(330, 0.16, 0.04);
-  window.setTimeout(() => beep(440, 0.2, 0.04), 130);
+  gameAudio.effect("finish");
   againBtn.focus();
 }
 
@@ -600,7 +584,7 @@ soundBtn.addEventListener("click", () => {
     /* 无痕模式无法保存时，仅保持当前页面的设置 */
   }
   paintSound();
-  if (soundOn) beep(620, 0.08, 0.035);
+  if (soundOn) gameAudio.effect("start");
 });
 
 document.addEventListener("visibilitychange", () => {

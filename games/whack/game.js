@@ -3,6 +3,12 @@
 const GAME_LENGTH = 45000;
 const BEST_KEY = "childgame.whack.best";
 const SOUND_KEY = "childgame.sound";
+const gameAudio = createGameAudio({
+  game: "whack",
+  isEnabled: () => soundOn,
+  isPlaying: () => state === "running",
+  isPaused: () => state === "paused",
+});
 
 const scoreEl = document.querySelector("#score");
 const bestEl = document.querySelector("#best");
@@ -28,7 +34,6 @@ let shownSecond = 45;
 let spawnTimer = 0;
 let active = null;
 let previousHole = -1;
-let audioContext = null;
 let soundOn = loadSound();
 
 function loadNumber(key) {
@@ -57,34 +62,13 @@ function saveValue(key, value) {
 }
 
 function unlockAudio() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  if (!audioContext) audioContext = new AudioContext();
-  if (audioContext.state === "suspended") audioContext.resume();
-}
-
-function beep(frequency, duration = 0.09, volume = 0.045, delay = 0) {
-  if (!soundOn || !audioContext || audioContext.state !== "running") return;
-  try {
-    const start = audioContext.currentTime + delay;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(frequency, start);
-    gain.gain.setValueAtTime(volume, start);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start(start);
-    oscillator.stop(start + duration);
-  } catch (error) {
-    /* 浏览器拒绝发声时，游戏继续运行 */
-  }
+  gameAudio.unlock();
 }
 
 function paintSound() {
   soundBtn.textContent = soundOn ? "声音" : "静音";
   soundBtn.setAttribute("aria-pressed", String(soundOn));
+  gameAudio.sync();
 }
 
 function paintScore() {
@@ -215,8 +199,8 @@ function hitTarget(index) {
     paintCombo();
     markHit(hole, "hit-good");
     setHint(combo >= 2 ? `漂亮！${combo} 连击` : "打中啦！");
-    beep(620 + Math.min(combo, 8) * 35, 0.08);
-    if (combo > 0 && combo % 5 === 0) beep(920, 0.1, 0.04, 0.07);
+    gameAudio.effect("hit", { rate: 1 + Math.min(combo, 8) * .04 });
+    if (combo > 0 && combo % 5 === 0) gameAudio.effect("collect");
   } else {
     const lost = Math.min(2, score);
     score -= lost;
@@ -225,7 +209,7 @@ function hitTarget(index) {
     paintCombo();
     markHit(hole, "hit-bad");
     setHint(lost ? `这个不能点，扣 ${lost} 分` : "这个不能点哦");
-    beep(210, 0.18, 0.04);
+    gameAudio.effect("crash");
   }
 
   scheduleSpawn(Math.round(145 - difficulty() * 65));
@@ -249,8 +233,7 @@ function startGame() {
   overlay.hidden = true;
   setHint("只点圆脸小地鼠，粉色刺球和炸弹不要点");
   scheduleSpawn(300);
-  beep(520, 0.08);
-  beep(720, 0.1, 0.04, 0.09);
+  gameAudio.effect("start");
 }
 
 function pauseGame(automatic = false) {
@@ -277,7 +260,7 @@ function resumeGame() {
   overlay.hidden = true;
   setHint("继续！找圆脸小地鼠");
   scheduleSpawn(220);
-  beep(660, 0.08);
+  gameAudio.effect("start");
 }
 
 function finishGame() {
@@ -298,8 +281,7 @@ function finishGame() {
       ? `你拿到 ${score} 分，再来一局会更快！`
       : `你拿到 ${score} 分，眼睛和小手配合得真棒！`;
   showOverlay("时间到啦", message, "再玩一局");
-  beep(520, 0.12);
-  beep(390, 0.2, 0.04, 0.12);
+  gameAudio.effect("finish");
 }
 
 function updateClock(now) {
@@ -339,7 +321,7 @@ soundBtn.addEventListener("click", () => {
   soundOn = !soundOn;
   saveValue(SOUND_KEY, soundOn ? "on" : "off");
   paintSound();
-  if (soundOn) beep(700, 0.1);
+  if (soundOn) gameAudio.effect("start");
 });
 
 document.addEventListener("visibilitychange", () => {

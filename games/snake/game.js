@@ -1,6 +1,12 @@
 const COLS = 12;
 const BEST_KEY = "childgame.snake.best";
 const SOUND_KEY = "childgame.sound";
+const gameAudio = createGameAudio({
+  game: "snake",
+  isEnabled: () => soundOn,
+  isPlaying: () => running && !paused && !over,
+  isPaused: () => paused,
+});
 const HEAD_RADIUS = 0.34;
 const FOOD_RADIUS = 0.26;
 const EAT_PADDING = 0.08;
@@ -32,7 +38,6 @@ let paused = false;
 let over = false;
 let lastTs = 0;
 let cell = 0;
-let audioCtx = null;
 let soundOn = true;
 
 function loadBest() {
@@ -54,31 +59,11 @@ function loadSound() {
 function paintSound() {
   soundBtn.textContent = soundOn ? "声音" : "静音";
   soundBtn.setAttribute("aria-pressed", String(soundOn));
+  gameAudio.sync();
 }
 
 function unlock() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === "suspended") audioCtx.resume();
-}
-
-function beep(freq, dur) {
-  if (!soundOn || !audioCtx || audioCtx.state !== "running") return;
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.04;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-    osc.stop(audioCtx.currentTime + dur);
-  } catch (error) {
-    /* 个别浏览器会拒绝这次发声，游戏继续 */
-  }
+  gameAudio.unlock();
 }
 
 function remember() {
@@ -141,7 +126,7 @@ function finish(title, text) {
   pauseBtn.disabled = true;
   hintEl.textContent = title;
   remember();
-  beep(220, 0.22);
+  gameAudio.effect("over");
   overlayTitle.textContent = title;
   overlayText.textContent = text;
   overlay.hidden = false;
@@ -212,7 +197,7 @@ function update(dt) {
     snake.push({ x: tail.x, y: tail.y });
     score += 1;
     remember();
-    beep(660, 0.1);
+    gameAudio.effect("collect");
     placeFood();
     speed = Math.min(6.2, 3.5 + score * 0.12);
   }

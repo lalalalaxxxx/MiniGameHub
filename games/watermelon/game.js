@@ -7,6 +7,12 @@ const DANGER_Y = 116;
 const FIXED_STEP = 1 / 120;
 const BEST_KEY = "childgame.watermelon.best";
 const SOUND_KEY = "childgame.sound";
+const gameAudio = createGameAudio({
+  game: "watermelon",
+  isEnabled: () => soundOn,
+  isPlaying: () => !paused && !gameOver,
+  isPaused: () => paused,
+});
 
 const FRUITS = [
   { name: "莓莓果", radius: 17, color: "#ff8fb1", shade: "#f45d8a", points: 2 },
@@ -47,7 +53,6 @@ let best = 0;
 let paused = false;
 let gameOver = false;
 let soundOn = true;
-let audioCtx = null;
 let lastTime = 0;
 let accumulator = 0;
 let dangerTime = 0;
@@ -90,32 +95,11 @@ function saveScore() {
 function paintSoundButton() {
   soundBtn.textContent = soundOn ? "声音" : "静音";
   soundBtn.setAttribute("aria-pressed", String(soundOn));
+  gameAudio.sync();
 }
 
 function unlockAudio() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === "suspended") audioCtx.resume();
-}
-
-function beep(frequency, duration, volume = 0.035) {
-  if (!soundOn || !audioCtx || audioCtx.state !== "running") return;
-  try {
-    const oscillator = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.12, audioCtx.currentTime + duration);
-    gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-    oscillator.connect(gain);
-    gain.connect(audioCtx.destination);
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + duration);
-  } catch (error) {
-    /* 发声失败不影响游戏 */
-  }
+  gameAudio.unlock();
 }
 
 function randomStarterLevel() {
@@ -183,7 +167,7 @@ function dropFruit() {
   nextLevel = randomStarterLevel();
   aimX = clampAim(x);
   hintEl.textContent = "相同水果碰在一起，会长成更大的水果";
-  beep(380 + level * 45, 0.07, 0.025);
+  gameAudio.effect("drop", { rate: 1 + level * .05 });
   updateNext();
 }
 
@@ -276,7 +260,7 @@ function mergeBodies(mergePairs, reserved) {
     const vy = Math.max(-220, Math.min(180, (a.vy + b.vy) * 0.38 - 28));
     merged.push(makeBody(level, x, y, vx, vy));
     score += FRUITS[level].points;
-    beep(470 + level * 65, 0.11, 0.03);
+    gameAudio.effect("merge", { rate: 1 + level * .06 });
   });
 
   bodies = bodies.filter((body) => !reserved.has(body.id));
@@ -329,7 +313,7 @@ function finishGame() {
   pointerId = null;
   pauseBtn.disabled = true;
   saveScore();
-  beep(185, 0.28, 0.045);
+  gameAudio.effect("over");
   hintEl.textContent = "果篮装满啦";
   overlayTitle.textContent = "果篮装满啦";
   overlayText.textContent = `这次得到 ${score} 分，最高纪录 ${best} 分。`;
@@ -599,7 +583,7 @@ soundBtn.addEventListener("click", () => {
     /* 本局仍可使用声音开关 */
   }
   paintSoundButton();
-  if (soundOn) beep(620, 0.08);
+  if (soundOn) gameAudio.effect("start");
 });
 
 document.addEventListener("visibilitychange", () => {

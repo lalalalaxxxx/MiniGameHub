@@ -1,5 +1,11 @@
 const BEST_KEY = "childgame.2048.best";
 const SOUND_KEY = "childgame.sound";
+const gameAudio = createGameAudio({
+  game: "2048",
+  isEnabled: () => soundOn,
+  isPlaying: () => mode === "play",
+  isPaused: () => false,
+});
 const MOVE_MS = 150;
 
 const boardEl = document.querySelector("#board");
@@ -24,7 +30,6 @@ let animating = false;
 let queuedDirection = null;
 let generation = 0;
 let tileId = 0;
-let audioCtx = null;
 let soundOn = true;
 
 function loadBest() {
@@ -46,31 +51,11 @@ function loadSound() {
 function paintSound() {
   soundBtn.textContent = soundOn ? "声音" : "静音";
   soundBtn.setAttribute("aria-pressed", String(soundOn));
+  gameAudio.sync();
 }
 
 function unlock() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === "suspended") audioCtx.resume();
-}
-
-function beep(freq, dur) {
-  if (!soundOn || !audioCtx || audioCtx.state !== "running") return;
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.04;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-    osc.stop(audioCtx.currentTime + dur);
-  } catch (error) {
-    /* 个别浏览器会拒绝这次发声，游戏继续 */
-  }
+  gameAudio.unlock();
 }
 
 function setScore(value) {
@@ -243,14 +228,16 @@ function finishMove(plan, token) {
   setScore(score + plan.gained);
   spawn();
   animating = false;
-  if (plan.gained) beep(560, 0.08);
+  if (plan.gained) gameAudio.effect("merge");
 
   if (!celebrated && has2048()) {
     celebrated = true;
     mode = "win";
+    gameAudio.effect("clear");
     showOverlay("拼出来啦", "你已经得到 2048，还可以继续拼更大的数字。", true);
   } else if (!canMove()) {
     mode = "over";
+    gameAudio.effect("over");
     showOverlay("没有空格啦", "再来一局，试试不同的顺序。", false);
   }
 
@@ -271,6 +258,7 @@ function move(direction) {
   const plan = planMove(direction);
   if (!plan.changed) return false;
 
+  gameAudio.effect("move", { volume: .4 });
   animating = true;
   const token = generation;
   // 先保留旧位置一帧，再同时移动所有方块。
@@ -351,6 +339,7 @@ continueBtn.addEventListener("click", () => {
   mode = "play";
   if (!canMove()) {
     mode = "over";
+    gameAudio.effect("over");
     showOverlay("没有空格啦", "再来一局，试试不同的顺序。", false);
   }
 });

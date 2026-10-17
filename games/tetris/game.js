@@ -2,6 +2,12 @@ const COLS = 10;
 const ROWS = 20;
 const BEST_KEY = "childgame.tetris.best";
 const SOUND_KEY = "childgame.sound";
+const gameAudio = createGameAudio({
+  game: "tetris",
+  isEnabled: () => soundOn,
+  isPlaying: () => state === "playing",
+  isPaused: () => state === "paused",
+});
 
 const COLORS = {
   I: "#79dce5",
@@ -87,7 +93,6 @@ let state = "playing";
 let lastTime = 0;
 let fallElapsed = 0;
 let boardCell = 0;
-let audioCtx = null;
 let soundOn = true;
 let holdTimer = 0;
 let holdInterval = 0;
@@ -129,32 +134,11 @@ function updateInfo() {
 function paintSound() {
   soundBtn.textContent = soundOn ? "声音" : "静音";
   soundBtn.setAttribute("aria-pressed", String(soundOn));
+  gameAudio.sync();
 }
 
 function unlockAudio() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === "suspended") audioCtx.resume();
-}
-
-function beep(frequency, duration = 0.08, delay = 0) {
-  if (!soundOn || !audioCtx || audioCtx.state !== "running") return;
-  try {
-    const start = audioCtx.currentTime + delay;
-    const oscillator = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.045, start);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-    oscillator.connect(gain);
-    gain.connect(audioCtx.destination);
-    oscillator.start(start);
-    oscillator.stop(start + duration);
-  } catch (error) {
-    /* 浏览器拒绝声音时不影响游戏。 */
-  }
+  gameAudio.unlock();
 }
 
 function shuffledBag() {
@@ -223,7 +207,7 @@ function moveHorizontal(amount) {
   active.slideFromX = visualX();
   active.slideStartedAt = performance.now();
   active.x += amount;
-  beep(360, 0.035);
+  gameAudio.effect("move", { volume: .45 });
   return true;
 }
 
@@ -253,7 +237,7 @@ function rotatePiece() {
       active.rotation = nextRotation;
       active.x = x;
       active.y = y;
-      beep(520, 0.05);
+      gameAudio.effect("rotate");
       drawBoard();
       return;
     }
@@ -272,7 +256,7 @@ function hardDrop() {
   const distance = landingY - active.y;
   active.y = landingY;
   score += distance * 2;
-  beep(250, 0.07);
+  gameAudio.effect("drop");
   lockPiece();
 }
 
@@ -292,8 +276,7 @@ function clearLines() {
   lines += cleared;
   level = Math.floor(lines / 10) + 1;
   hintEl.textContent = cleared === 4 ? "太厉害啦！一次消掉四行！" : `消掉 ${cleared} 行，继续加油！`;
-  beep(620, 0.08);
-  beep(760, 0.1, 0.08);
+  gameAudio.effect("clear");
 }
 
 function lockPiece() {
@@ -317,7 +300,7 @@ function finishGame() {
   pauseBtn.disabled = true;
   hintEl.textContent = "方块装满啦";
   updateInfo();
-  beep(210, 0.25);
+  gameAudio.effect("over");
   overlayTitle.textContent = "方块装满啦";
   overlayText.textContent = `这次得到 ${score} 分，已经很棒啦！`;
   overlay.hidden = false;
@@ -568,7 +551,7 @@ soundBtn.addEventListener("click", () => {
     /* 无法保存时只维持当前页面设置。 */
   }
   paintSound();
-  if (soundOn) beep(660, 0.08);
+  if (soundOn) gameAudio.effect("start");
 });
 
 document.addEventListener("visibilitychange", () => {

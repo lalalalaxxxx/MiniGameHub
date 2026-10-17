@@ -3,6 +3,12 @@
 const WORLD = { width: 800, height: 1000 };
 const BEST_KEY = "childgame.shooter.best";
 const SOUND_KEY = "childgame.sound";
+const gameAudio = createGameAudio({
+  game: "shooter",
+  isEnabled: () => soundOn,
+  isPlaying: () => gameState === "playing",
+  isPaused: () => gameState === "paused",
+});
 const PLAYER_RADIUS = 39;
 
 const canvas = document.querySelector("#game");
@@ -42,7 +48,6 @@ let fireTimer = 0;
 let spawnTimer = 0.65;
 let lastTime = performance.now();
 let pointerId = null;
-let audioContext = null;
 let soundOn = loadSound();
 
 function loadNumber(key) {
@@ -81,32 +86,11 @@ function updateHud() {
 function updateSoundButton() {
   soundBtn.textContent = soundOn ? "\u58f0\u97f3" : "\u9759\u97f3";
   soundBtn.setAttribute("aria-pressed", String(soundOn));
+  gameAudio.sync();
 }
 
 function unlockAudio() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  if (!audioContext) audioContext = new AudioContext();
-  if (audioContext.state === "suspended") audioContext.resume();
-}
-
-function tone(frequency, duration, volume = 0.035, delay = 0) {
-  if (!soundOn || !audioContext || audioContext.state !== "running") return;
-  try {
-    const start = audioContext.currentTime + delay;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(frequency, start);
-    gain.gain.setValueAtTime(volume, start);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start(start);
-    oscillator.stop(start + duration);
-  } catch (error) {
-    /* Continue silently if the browser declines audio. */
-  }
+  gameAudio.unlock();
 }
 
 function resetGame() {
@@ -144,8 +128,7 @@ function finishGame() {
   overlayTitle.textContent = newRecord ? "\u65b0\u7eaa\u5f55\uff01" : "\u98de\u884c\u7ed3\u675f";
   overlayText.textContent = `\u8fd9\u6b21\u6536\u96c6\u4e86 ${score} \u5206\uff0c\u518d\u98de\u4e00\u6b21\u4f1a\u66f4\u68d2\uff01`;
   overlay.hidden = false;
-  tone(260, 0.22, 0.045);
-  tone(190, 0.3, 0.04, 0.18);
+  gameAudio.effect("over");
   againBtn.focus();
 }
 
@@ -174,7 +157,7 @@ function moveTargetFromPointer(event) {
 
 function fireStar() {
   bullets.push({ x: player.x, y: player.y - 48, speed: 680, rotation: 0 });
-  tone(820, 0.045, 0.012);
+  gameAudio.effect("shoot", { volume: .24 });
 }
 
 function spawnEnemy() {
@@ -217,7 +200,7 @@ function hitPlayer(enemy) {
   lives -= 1;
   player.invincible = 1.8;
   burst(player.x, player.y, "#ff7da8", 18);
-  tone(170, 0.18, 0.055);
+  gameAudio.effect("crash");
   if (lives <= 0) {
     finishGame();
   } else {
@@ -288,7 +271,7 @@ function update(dt) {
         saveBest();
         updateHud();
         burst(enemy.x, enemy.y, enemy.sturdy ? "#cdb7ff" : "#82dcff", 12);
-        tone(enemy.sturdy ? 520 : 620, 0.07, 0.025);
+        gameAudio.effect("hit", { rate: enemy.sturdy ? .9 : 1.1, volume: .65 });
       }
       break;
     }
@@ -627,7 +610,7 @@ soundBtn.addEventListener("click", () => {
     /* Ignore storage errors in private browsing. */
   }
   updateSoundButton();
-  if (soundOn) tone(700, 0.08, 0.03);
+  if (soundOn) gameAudio.effect("start");
 });
 
 document.addEventListener("visibilitychange", () => {
