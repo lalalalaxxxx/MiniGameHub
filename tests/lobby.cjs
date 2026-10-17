@@ -20,7 +20,7 @@ test('Lobby: discovery, recent navigation, storage resilience and tablet layouts
     await page.goto(url);await page.waitForSelector('.card');
     assert.equal(await page.locator('.card').count(),games.length);
     assert(await page.locator('#recent').isHidden());
-    for(const [query,id] of [['飞机','shooter'],['换装','quietbook'],['七巧板','tangram'],['2048','2048']]) {
+    for(const [query,id] of [['飞机','shooter'],['换装','quietbook'],['七巧板','tangram'],['2048','2048'],['拼字','wordbuilder'],['平均分','fairshare'],['时间','bearclock']]) {
       await page.locator('#search').fill(query);assert.equal(await page.locator('.card').count(),1);
       assert.equal(await page.locator('.card').getAttribute('data-game'),id);
     }

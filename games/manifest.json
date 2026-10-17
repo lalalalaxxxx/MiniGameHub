@@ -51,6 +51,94 @@
     "entry": "games/englishisland/index.html"
   },
   {
+    "id": "wordbuilder",
+    "title": "汉字拼装屋",
+    "blurb": "装好部件，发现汉字的结构 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "识字",
+      "汉字",
+      "拼字",
+      "偏旁",
+      "部首",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/wordbuilder/cover.svg",
+    "entry": "games/wordbuilder/index.html"
+  },
+  {
+    "id": "sentencepost",
+    "title": "句子小邮差",
+    "blurb": "把词语排好，送出一封小信 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "语文",
+      "句子",
+      "连词成句",
+      "排序",
+      "标点",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/sentencepost/cover.svg",
+    "entry": "games/sentencepost/index.html"
+  },
+  {
+    "id": "bearclock",
+    "title": "小熊的一天",
+    "blurb": "拨一拨时钟，安排小熊的生活 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "数学",
+      "时间",
+      "时钟",
+      "整点",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/bearclock/cover.svg",
+    "entry": "games/bearclock/index.html"
+  },
+  {
+    "id": "fairshare",
+    "title": "公平分蛋糕",
+    "blurb": "一人一份，大家分得一样多 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "数学",
+      "除法",
+      "平均分",
+      "分蛋糕",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/fairshare/cover.svg",
+    "entry": "games/fairshare/index.html"
+  },
+  {
+    "id": "englishshop",
+    "title": "英语小商店",
+    "blurb": "听懂购物愿望，装好小小购物袋 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "英语",
+      "English",
+      "购物",
+      "数量",
+      "单词",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/englishshop/cover.svg",
+    "entry": "games/englishshop/index.html"
+  },
+  {
     "id": "sudoku",
     "title": "小小数独",
     "blurb": "从 4×4 开始，和数字一起练习观察与推理",

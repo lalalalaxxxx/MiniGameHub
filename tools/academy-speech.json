@@ -1588,5 +1588,1805 @@
     "id": "eg11-explain",
     "lang": "zh-CN",
     "text": "找到4本绿色的书。"
+  },
+  {
+    "id": "bk0-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼明字。日和月在一起，组成明，表示明亮。"
+  },
+  {
+    "id": "bk0-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。日和月在一起，组成明，表示明亮。"
+  },
+  {
+    "id": "bk0-explain",
+    "lang": "zh-CN",
+    "text": "日和月在一起，组成明，表示明亮。"
+  },
+  {
+    "id": "bk1-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼林字。两个木并排站，组成树林的林。"
+  },
+  {
+    "id": "bk1-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。两个木并排站，组成树林的林。"
+  },
+  {
+    "id": "bk1-explain",
+    "lang": "zh-CN",
+    "text": "两个木并排站，组成树林的林。"
+  },
+  {
+    "id": "bk2-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼好字。女在左，子在右，组成美好的好。"
+  },
+  {
+    "id": "bk2-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。女在左，子在右，组成美好的好。"
+  },
+  {
+    "id": "bk2-explain",
+    "lang": "zh-CN",
+    "text": "女在左，子在右，组成美好的好。"
+  },
+  {
+    "id": "bk3-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼妈字。女在左，马在右，组成妈妈的妈。"
+  },
+  {
+    "id": "bk3-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。女在左，马在右，组成妈妈的妈。"
+  },
+  {
+    "id": "bk3-explain",
+    "lang": "zh-CN",
+    "text": "女在左，马在右，组成妈妈的妈。"
+  },
+  {
+    "id": "bk4-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼休字。单人旁在左，木在右，组成休息的休。"
+  },
+  {
+    "id": "bk4-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。单人旁在左，木在右，组成休息的休。"
+  },
+  {
+    "id": "bk4-explain",
+    "lang": "zh-CN",
+    "text": "单人旁在左，木在右，组成休息的休。"
+  },
+  {
+    "id": "bk5-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼从字。两个人一前一后，组成跟从的从。"
+  },
+  {
+    "id": "bk5-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。两个人一前一后，组成跟从的从。"
+  },
+  {
+    "id": "bk5-explain",
+    "lang": "zh-CN",
+    "text": "两个人一前一后，组成跟从的从。"
+  },
+  {
+    "id": "bk6-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼朋字。两个月并排站，组成朋友的朋。"
+  },
+  {
+    "id": "bk6-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。两个月并排站，组成朋友的朋。"
+  },
+  {
+    "id": "bk6-explain",
+    "lang": "zh-CN",
+    "text": "两个月并排站，组成朋友的朋。"
+  },
+  {
+    "id": "bk7-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼鸣字。口在左，鸟在右，组成鸣叫的鸣。"
+  },
+  {
+    "id": "bk7-hint",
+    "lang": "zh-CN",
+    "text": "按从左到右的顺序，点选部件。口在左，鸟在右，组成鸣叫的鸣。"
+  },
+  {
+    "id": "bk7-explain",
+    "lang": "zh-CN",
+    "text": "口在左，鸟在右，组成鸣叫的鸣。"
+  },
+  {
+    "id": "bk8-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼问字。门在外，口在里，组成提问的问。"
+  },
+  {
+    "id": "bk8-hint",
+    "lang": "zh-CN",
+    "text": "按先外后内的顺序，点选部件。门在外，口在里，组成提问的问。"
+  },
+  {
+    "id": "bk8-explain",
+    "lang": "zh-CN",
+    "text": "门在外，口在里，组成提问的问。"
+  },
+  {
+    "id": "bk9-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼闪字。门在外，人在里，组成闪亮的闪。"
+  },
+  {
+    "id": "bk9-hint",
+    "lang": "zh-CN",
+    "text": "按先外后内的顺序，点选部件。门在外，人在里，组成闪亮的闪。"
+  },
+  {
+    "id": "bk9-explain",
+    "lang": "zh-CN",
+    "text": "门在外，人在里，组成闪亮的闪。"
+  },
+  {
+    "id": "bk10-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼尖字。小在上，大在下，组成笔尖的尖。"
+  },
+  {
+    "id": "bk10-hint",
+    "lang": "zh-CN",
+    "text": "按从上到下的顺序，点选部件。小在上，大在下，组成笔尖的尖。"
+  },
+  {
+    "id": "bk10-explain",
+    "lang": "zh-CN",
+    "text": "小在上，大在下，组成笔尖的尖。"
+  },
+  {
+    "id": "bk11-prompt",
+    "lang": "zh-CN",
+    "text": "我们来拼男字。田在上，力在下，组成男孩的男。"
+  },
+  {
+    "id": "bk11-hint",
+    "lang": "zh-CN",
+    "text": "按从上到下的顺序，点选部件。田在上，力在下，组成男孩的男。"
+  },
+  {
+    "id": "bk11-explain",
+    "lang": "zh-CN",
+    "text": "田在上，力在下，组成男孩的男。"
+  },
+  {
+    "id": "bg0-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出清水中的清字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg0-hint",
+    "lang": "zh-CN",
+    "text": "三点水和青组成清，清水的清和水有关。"
+  },
+  {
+    "id": "bg0-explain",
+    "lang": "zh-CN",
+    "text": "三点水和青组成清，清水的清和水有关。"
+  },
+  {
+    "id": "bg1-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出晴天中的晴字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg1-hint",
+    "lang": "zh-CN",
+    "text": "日字旁和青组成晴，晴天有太阳。"
+  },
+  {
+    "id": "bg1-explain",
+    "lang": "zh-CN",
+    "text": "日字旁和青组成晴，晴天有太阳。"
+  },
+  {
+    "id": "bg2-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出心情中的情字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg2-hint",
+    "lang": "zh-CN",
+    "text": "竖心旁和青组成情，心情和内心有关。"
+  },
+  {
+    "id": "bg2-explain",
+    "lang": "zh-CN",
+    "text": "竖心旁和青组成情，心情和内心有关。"
+  },
+  {
+    "id": "bg3-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出眼睛中的睛字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg3-hint",
+    "lang": "zh-CN",
+    "text": "目字旁和青组成睛，和眼睛有关。"
+  },
+  {
+    "id": "bg3-explain",
+    "lang": "zh-CN",
+    "text": "目字旁和青组成睛，和眼睛有关。"
+  },
+  {
+    "id": "bg4-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出拥抱中的抱字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg4-hint",
+    "lang": "zh-CN",
+    "text": "提手旁和包组成抱，用手臂拥抱。"
+  },
+  {
+    "id": "bg4-explain",
+    "lang": "zh-CN",
+    "text": "提手旁和包组成抱，用手臂拥抱。"
+  },
+  {
+    "id": "bg5-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出泡泡中的泡字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg5-hint",
+    "lang": "zh-CN",
+    "text": "三点水和包组成泡，水里可以有泡泡。"
+  },
+  {
+    "id": "bg5-explain",
+    "lang": "zh-CN",
+    "text": "三点水和包组成泡，水里可以有泡泡。"
+  },
+  {
+    "id": "bg6-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出炮火中的炮字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg6-hint",
+    "lang": "zh-CN",
+    "text": "火字旁和包组成炮，炮火的炮是火字旁。"
+  },
+  {
+    "id": "bg6-explain",
+    "lang": "zh-CN",
+    "text": "火字旁和包组成炮，炮火的炮是火字旁。"
+  },
+  {
+    "id": "bg7-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出吃饱中的饱字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg7-hint",
+    "lang": "zh-CN",
+    "text": "食字旁和包组成饱，吃饱和食物有关。"
+  },
+  {
+    "id": "bg7-explain",
+    "lang": "zh-CN",
+    "text": "食字旁和包组成饱，吃饱和食物有关。"
+  },
+  {
+    "id": "bg8-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出小河中的河字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg8-hint",
+    "lang": "zh-CN",
+    "text": "三点水和可组成河，小河里有水。"
+  },
+  {
+    "id": "bg8-explain",
+    "lang": "zh-CN",
+    "text": "三点水和可组成河，小河里有水。"
+  },
+  {
+    "id": "bg9-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出树木中的树字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg9-hint",
+    "lang": "zh-CN",
+    "text": "木字旁和对组成树，树木的树是木字旁。"
+  },
+  {
+    "id": "bg9-explain",
+    "lang": "zh-CN",
+    "text": "木字旁和对组成树，树木的树是木字旁。"
+  },
+  {
+    "id": "bg10-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出时间中的时字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg10-hint",
+    "lang": "zh-CN",
+    "text": "日字旁和寸组成时，可以组成时间。"
+  },
+  {
+    "id": "bg10-explain",
+    "lang": "zh-CN",
+    "text": "日字旁和寸组成时，可以组成时间。"
+  },
+  {
+    "id": "bg11-prompt",
+    "lang": "zh-CN",
+    "text": "请拼出红色中的红字。想想应该用什么偏旁。"
+  },
+  {
+    "id": "bg11-hint",
+    "lang": "zh-CN",
+    "text": "绞丝旁和工组成红，红是一种颜色。"
+  },
+  {
+    "id": "bg11-explain",
+    "lang": "zh-CN",
+    "text": "绞丝旁和工组成红，红是一种颜色。"
+  },
+  {
+    "id": "sp00-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小猫吃鱼。"
+  },
+  {
+    "id": "sp00-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小猫吃鱼。"
+  },
+  {
+    "id": "sp00-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小猫吃鱼。"
+  },
+  {
+    "id": "sp01-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小兔吃萝卜。"
+  },
+  {
+    "id": "sp01-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小兔吃萝卜。"
+  },
+  {
+    "id": "sp01-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小兔吃萝卜。"
+  },
+  {
+    "id": "sp02-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。我喝水。"
+  },
+  {
+    "id": "sp02-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。我喝水。"
+  },
+  {
+    "id": "sp02-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：我喝水。"
+  },
+  {
+    "id": "sp03-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小鸟在树上。"
+  },
+  {
+    "id": "sp03-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小鸟在树上。"
+  },
+  {
+    "id": "sp03-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小鸟在树上。"
+  },
+  {
+    "id": "sp04-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。太阳出来了。"
+  },
+  {
+    "id": "sp04-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。太阳出来了。"
+  },
+  {
+    "id": "sp04-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：太阳出来了。"
+  },
+  {
+    "id": "sp05-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。花儿开了。"
+  },
+  {
+    "id": "sp05-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。花儿开了。"
+  },
+  {
+    "id": "sp05-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：花儿开了。"
+  },
+  {
+    "id": "sp06-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小狗跑来了。"
+  },
+  {
+    "id": "sp06-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小狗跑来了。"
+  },
+  {
+    "id": "sp06-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小狗跑来了。"
+  },
+  {
+    "id": "sp07-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。我喜欢画画。"
+  },
+  {
+    "id": "sp07-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。我喜欢画画。"
+  },
+  {
+    "id": "sp07-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：我喜欢画画。"
+  },
+  {
+    "id": "sp08-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。妈妈在看书。"
+  },
+  {
+    "id": "sp08-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。妈妈在看书。"
+  },
+  {
+    "id": "sp08-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：妈妈在看书。"
+  },
+  {
+    "id": "sp09-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。我洗手。"
+  },
+  {
+    "id": "sp09-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。我洗手。"
+  },
+  {
+    "id": "sp09-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：我洗手。"
+  },
+  {
+    "id": "sp010-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小鱼在水里。"
+  },
+  {
+    "id": "sp010-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小鱼在水里。"
+  },
+  {
+    "id": "sp010-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小鱼在水里。"
+  },
+  {
+    "id": "sp011-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。天空下雨了。"
+  },
+  {
+    "id": "sp011-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。天空下雨了。"
+  },
+  {
+    "id": "sp011-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：天空下雨了。"
+  },
+  {
+    "id": "sp10-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小朋友在公园里种树。"
+  },
+  {
+    "id": "sp10-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小朋友在公园里种树。"
+  },
+  {
+    "id": "sp10-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小朋友在公园里种树。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp11-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小鸟在树上唱歌。"
+  },
+  {
+    "id": "sp11-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小鸟在树上唱歌。"
+  },
+  {
+    "id": "sp11-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小鸟在树上唱歌。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp12-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。我每天认真地读书。"
+  },
+  {
+    "id": "sp12-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。我每天认真地读书。"
+  },
+  {
+    "id": "sp12-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：我每天认真地读书。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp13-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。花园里开满了美丽的鲜花。"
+  },
+  {
+    "id": "sp13-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。花园里开满了美丽的鲜花。"
+  },
+  {
+    "id": "sp13-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：花园里开满了美丽的鲜花。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp14-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。一只蝴蝶飞到花丛中。"
+  },
+  {
+    "id": "sp14-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。一只蝴蝶飞到花丛中。"
+  },
+  {
+    "id": "sp14-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：一只蝴蝶飞到花丛中。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp15-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。放学后，我先写作业。"
+  },
+  {
+    "id": "sp15-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。放学后，我先写作业。"
+  },
+  {
+    "id": "sp15-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：放学后，我先写作业。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp16-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。下雨了，我们带上雨伞。"
+  },
+  {
+    "id": "sp16-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。下雨了，我们带上雨伞。"
+  },
+  {
+    "id": "sp16-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：下雨了，我们带上雨伞。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp17-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。小兔为什么跑得这么快？"
+  },
+  {
+    "id": "sp17-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。小兔为什么跑得这么快？"
+  },
+  {
+    "id": "sp17-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：小兔为什么跑得这么快？标点也是句子的一部分。"
+  },
+  {
+    "id": "sp18-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。这道彩虹真美啊！"
+  },
+  {
+    "id": "sp18-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。这道彩虹真美啊！"
+  },
+  {
+    "id": "sp18-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：这道彩虹真美啊！标点也是句子的一部分。"
+  },
+  {
+    "id": "sp19-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。洗手以后，要关好水龙头。"
+  },
+  {
+    "id": "sp19-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。洗手以后，要关好水龙头。"
+  },
+  {
+    "id": "sp19-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：洗手以后，要关好水龙头。标点也是句子的一部分。"
+  },
+  {
+    "id": "sp110-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。你喜欢哪一本书？"
+  },
+  {
+    "id": "sp110-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。你喜欢哪一本书？"
+  },
+  {
+    "id": "sp110-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：你喜欢哪一本书？标点也是句子的一部分。"
+  },
+  {
+    "id": "sp111-prompt",
+    "lang": "zh-CN",
+    "text": "请把这句话装进信封。春天到了，小草变绿了。"
+  },
+  {
+    "id": "sp111-hint",
+    "lang": "zh-CN",
+    "text": "先听完整的句子，再按顺序放词语。春天到了，小草变绿了。"
+  },
+  {
+    "id": "sp111-explain",
+    "lang": "zh-CN",
+    "text": "你送出的句子是：春天到了，小草变绿了。标点也是句子的一部分。"
+  },
+  {
+    "id": "ck0-prompt",
+    "lang": "zh-CN",
+    "text": "小熊7点起床。把短短的时针拨到7，长长的分针指着十二。"
+  },
+  {
+    "id": "ck0-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 7。"
+  },
+  {
+    "id": "ck0-explain",
+    "lang": "zh-CN",
+    "text": "这是 7 点整。短时针指向 7，长分针指向十二。"
+  },
+  {
+    "id": "ck1-prompt",
+    "lang": "zh-CN",
+    "text": "小熊8点吃早饭。把短短的时针拨到8，长长的分针指着十二。"
+  },
+  {
+    "id": "ck1-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 8。"
+  },
+  {
+    "id": "ck1-explain",
+    "lang": "zh-CN",
+    "text": "这是 8 点整。短时针指向 8，长分针指向十二。"
+  },
+  {
+    "id": "ck2-prompt",
+    "lang": "zh-CN",
+    "text": "小熊9点做早操。把短短的时针拨到9，长长的分针指着十二。"
+  },
+  {
+    "id": "ck2-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 9。"
+  },
+  {
+    "id": "ck2-explain",
+    "lang": "zh-CN",
+    "text": "这是 9 点整。短时针指向 9，长分针指向十二。"
+  },
+  {
+    "id": "ck3-prompt",
+    "lang": "zh-CN",
+    "text": "小熊10点画画。把短短的时针拨到10，长长的分针指着十二。"
+  },
+  {
+    "id": "ck3-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 10。"
+  },
+  {
+    "id": "ck3-explain",
+    "lang": "zh-CN",
+    "text": "这是 10 点整。短时针指向 10，长分针指向十二。"
+  },
+  {
+    "id": "ck4-prompt",
+    "lang": "zh-CN",
+    "text": "小熊11点洗手。把短短的时针拨到11，长长的分针指着十二。"
+  },
+  {
+    "id": "ck4-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 11。"
+  },
+  {
+    "id": "ck4-explain",
+    "lang": "zh-CN",
+    "text": "这是 11 点整。短时针指向 11，长分针指向十二。"
+  },
+  {
+    "id": "ck5-prompt",
+    "lang": "zh-CN",
+    "text": "小熊12点吃午饭。把短短的时针拨到12，长长的分针指着十二。"
+  },
+  {
+    "id": "ck5-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 12。"
+  },
+  {
+    "id": "ck5-explain",
+    "lang": "zh-CN",
+    "text": "这是 12 点整。短时针指向 12，长分针指向十二。"
+  },
+  {
+    "id": "ck6-prompt",
+    "lang": "zh-CN",
+    "text": "小熊1点午休。把短短的时针拨到1，长长的分针指着十二。"
+  },
+  {
+    "id": "ck6-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 1。"
+  },
+  {
+    "id": "ck6-explain",
+    "lang": "zh-CN",
+    "text": "这是 1 点整。短时针指向 1，长分针指向十二。"
+  },
+  {
+    "id": "ck7-prompt",
+    "lang": "zh-CN",
+    "text": "小熊2点听故事。把短短的时针拨到2，长长的分针指着十二。"
+  },
+  {
+    "id": "ck7-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 2。"
+  },
+  {
+    "id": "ck7-explain",
+    "lang": "zh-CN",
+    "text": "这是 2 点整。短时针指向 2，长分针指向十二。"
+  },
+  {
+    "id": "ck8-prompt",
+    "lang": "zh-CN",
+    "text": "小熊3点做游戏。把短短的时针拨到3，长长的分针指着十二。"
+  },
+  {
+    "id": "ck8-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 3。"
+  },
+  {
+    "id": "ck8-explain",
+    "lang": "zh-CN",
+    "text": "这是 3 点整。短时针指向 3，长分针指向十二。"
+  },
+  {
+    "id": "ck9-prompt",
+    "lang": "zh-CN",
+    "text": "小熊4点回家。把短短的时针拨到4，长长的分针指着十二。"
+  },
+  {
+    "id": "ck9-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 4。"
+  },
+  {
+    "id": "ck9-explain",
+    "lang": "zh-CN",
+    "text": "这是 4 点整。短时针指向 4，长分针指向十二。"
+  },
+  {
+    "id": "ck10-prompt",
+    "lang": "zh-CN",
+    "text": "小熊6点吃晚饭。把短短的时针拨到6，长长的分针指着十二。"
+  },
+  {
+    "id": "ck10-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 6。"
+  },
+  {
+    "id": "ck10-explain",
+    "lang": "zh-CN",
+    "text": "这是 6 点整。短时针指向 6，长分针指向十二。"
+  },
+  {
+    "id": "ck11-prompt",
+    "lang": "zh-CN",
+    "text": "小熊9点睡觉。把短短的时针拨到9，长长的分针指着十二。"
+  },
+  {
+    "id": "ck11-hint",
+    "lang": "zh-CN",
+    "text": "整点的时候，长分针指向十二，短时针指向 9。"
+  },
+  {
+    "id": "ck11-explain",
+    "lang": "zh-CN",
+    "text": "这是 9 点整。短时针指向 9，长分针指向十二。"
+  },
+  {
+    "id": "cg0-prompt",
+    "lang": "zh-CN",
+    "text": "请把时钟拨到7时0分。"
+  },
+  {
+    "id": "cg0-hint",
+    "lang": "zh-CN",
+    "text": "长分针每一大格代表 5 分钟。短时针也会随着分钟慢慢移动。"
+  },
+  {
+    "id": "cg0-explain",
+    "lang": "zh-CN",
+    "text": "答案是 7 时 0 分。长分针指向 12，短时针指向 7。"
+  },
+  {
+    "id": "cg1-prompt",
+    "lang": "zh-CN",
+    "text": "请把时钟拨到8时15分。"
+  },
+  {
+    "id": "cg1-hint",
+    "lang": "zh-CN",
+    "text": "长分针每一大格代表 5 分钟。短时针也会随着分钟慢慢移动。"
+  },
+  {
+    "id": "cg1-explain",
+    "lang": "zh-CN",
+    "text": "答案是 8 时 15 分。长分针指向 3，短时针走过 8。"
+  },
+  {
+    "id": "cg2-prompt",
+    "lang": "zh-CN",
+    "text": "请把时钟拨到9时30分。"
+  },
+  {
+    "id": "cg2-hint",
+    "lang": "zh-CN",
+    "text": "长分针每一大格代表 5 分钟。短时针也会随着分钟慢慢移动。"
+  },
+  {
+    "id": "cg2-explain",
+    "lang": "zh-CN",
+    "text": "答案是 9 时 30 分。长分针指向 6，短时针走过 9。"
+  },
+  {
+    "id": "cg3-prompt",
+    "lang": "zh-CN",
+    "text": "请把时钟拨到10时45分。"
+  },
+  {
+    "id": "cg3-hint",
+    "lang": "zh-CN",
+    "text": "长分针每一大格代表 5 分钟。短时针也会随着分钟慢慢移动。"
+  },
+  {
+    "id": "cg3-explain",
+    "lang": "zh-CN",
+    "text": "答案是 10 时 45 分。长分针指向 9，短时针走过 10。"
+  },
+  {
+    "id": "cg4-prompt",
+    "lang": "zh-CN",
+    "text": "请把时钟拨到11时0分。"
+  },
+  {
+    "id": "cg4-hint",
+    "lang": "zh-CN",
+    "text": "长分针每一大格代表 5 分钟。短时针也会随着分钟慢慢移动。"
+  },
+  {
+    "id": "cg4-explain",
+    "lang": "zh-CN",
+    "text": "答案是 11 时 0 分。长分针指向 12，短时针指向 11。"
+  },
+  {
+    "id": "cg5-prompt",
+    "lang": "zh-CN",
+    "text": "请把时钟拨到7时15分。"
+  },
+  {
+    "id": "cg5-hint",
+    "lang": "zh-CN",
+    "text": "长分针每一大格代表 5 分钟。短时针也会随着分钟慢慢移动。"
+  },
+  {
+    "id": "cg5-explain",
+    "lang": "zh-CN",
+    "text": "答案是 7 时 15 分。长分针指向 3，短时针走过 7。"
+  },
+  {
+    "id": "cg6-prompt",
+    "lang": "zh-CN",
+    "text": "小熊8时30分开始读书，读15分钟以后是几点？"
+  },
+  {
+    "id": "cg6-hint",
+    "lang": "zh-CN",
+    "text": "从 8 时 30 分往后数 15 分钟。经过十二时，时针会继续走到一时。"
+  },
+  {
+    "id": "cg6-explain",
+    "lang": "zh-CN",
+    "text": "答案是 8 时 45 分。长分针指向 9，短时针走过 8。"
+  },
+  {
+    "id": "cg7-prompt",
+    "lang": "zh-CN",
+    "text": "小熊9时45分开始读书，读20分钟以后是几点？"
+  },
+  {
+    "id": "cg7-hint",
+    "lang": "zh-CN",
+    "text": "从 9 时 45 分往后数 20 分钟。经过十二时，时针会继续走到一时。"
+  },
+  {
+    "id": "cg7-explain",
+    "lang": "zh-CN",
+    "text": "答案是 10 时 5 分。长分针指向 1，短时针走过 10。"
+  },
+  {
+    "id": "cg8-prompt",
+    "lang": "zh-CN",
+    "text": "小熊10时0分开始读书，读30分钟以后是几点？"
+  },
+  {
+    "id": "cg8-hint",
+    "lang": "zh-CN",
+    "text": "从 10 时 0 分往后数 30 分钟。经过十二时，时针会继续走到一时。"
+  },
+  {
+    "id": "cg8-explain",
+    "lang": "zh-CN",
+    "text": "答案是 10 时 30 分。长分针指向 6，短时针走过 10。"
+  },
+  {
+    "id": "cg9-prompt",
+    "lang": "zh-CN",
+    "text": "小熊11时15分开始读书，读15分钟以后是几点？"
+  },
+  {
+    "id": "cg9-hint",
+    "lang": "zh-CN",
+    "text": "从 11 时 15 分往后数 15 分钟。经过十二时，时针会继续走到一时。"
+  },
+  {
+    "id": "cg9-explain",
+    "lang": "zh-CN",
+    "text": "答案是 11 时 30 分。长分针指向 6，短时针走过 11。"
+  },
+  {
+    "id": "cg10-prompt",
+    "lang": "zh-CN",
+    "text": "小熊7时30分开始读书，读20分钟以后是几点？"
+  },
+  {
+    "id": "cg10-hint",
+    "lang": "zh-CN",
+    "text": "从 7 时 30 分往后数 20 分钟。经过十二时，时针会继续走到一时。"
+  },
+  {
+    "id": "cg10-explain",
+    "lang": "zh-CN",
+    "text": "答案是 7 时 50 分。长分针指向 10，短时针走过 7。"
+  },
+  {
+    "id": "cg11-prompt",
+    "lang": "zh-CN",
+    "text": "小熊8时45分开始读书，读30分钟以后是几点？"
+  },
+  {
+    "id": "cg11-hint",
+    "lang": "zh-CN",
+    "text": "从 8 时 45 分往后数 30 分钟。经过十二时，时针会继续走到一时。"
+  },
+  {
+    "id": "cg11-explain",
+    "lang": "zh-CN",
+    "text": "答案是 9 时 15 分。长分针指向 3，短时针走过 9。"
+  },
+  {
+    "id": "sh00-prompt",
+    "lang": "zh-CN",
+    "text": "请把2份草莓平均分给2位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh00-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh00-explain",
+    "lang": "zh-CN",
+    "text": "2 份平均分给 2 人，每人 1 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh01-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份小蛋糕平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh01-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh01-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 3 人，每人 2 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh02-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份苹果平均分给2位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh02-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh02-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 2 人，每人 3 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh03-prompt",
+    "lang": "zh-CN",
+    "text": "请把12份草莓平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh03-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh03-explain",
+    "lang": "zh-CN",
+    "text": "12 份平均分给 3 人，每人 4 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh04-prompt",
+    "lang": "zh-CN",
+    "text": "请把2份小蛋糕平均分给2位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh04-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh04-explain",
+    "lang": "zh-CN",
+    "text": "2 份平均分给 2 人，每人 1 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh05-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份苹果平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh05-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh05-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 3 人，每人 2 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh06-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份草莓平均分给2位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh06-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh06-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 2 人，每人 3 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh07-prompt",
+    "lang": "zh-CN",
+    "text": "请把12份小蛋糕平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh07-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh07-explain",
+    "lang": "zh-CN",
+    "text": "12 份平均分给 3 人，每人 4 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh08-prompt",
+    "lang": "zh-CN",
+    "text": "请把2份苹果平均分给2位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh08-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh08-explain",
+    "lang": "zh-CN",
+    "text": "2 份平均分给 2 人，每人 1 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh09-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份草莓平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh09-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh09-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 3 人，每人 2 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh010-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份小蛋糕平均分给2位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh010-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh010-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 2 人，每人 3 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh011-prompt",
+    "lang": "zh-CN",
+    "text": "请把12份苹果平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh011-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh011-explain",
+    "lang": "zh-CN",
+    "text": "12 份平均分给 3 人，每人 4 份。每人的数量一样多，这样分很公平。"
+  },
+  {
+    "id": "sh10-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份草莓平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh10-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh10-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 3 人，每人 2 份。6 除以 3 等于 2。"
+  },
+  {
+    "id": "sh11-prompt",
+    "lang": "zh-CN",
+    "text": "请把12份小蛋糕平均分给4位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh11-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh11-explain",
+    "lang": "zh-CN",
+    "text": "12 份平均分给 4 人，每人 3 份。12 除以 4 等于 3。"
+  },
+  {
+    "id": "sh12-prompt",
+    "lang": "zh-CN",
+    "text": "请把12份苹果平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh12-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh12-explain",
+    "lang": "zh-CN",
+    "text": "12 份平均分给 3 人，每人 4 份。12 除以 3 等于 4。"
+  },
+  {
+    "id": "sh13-prompt",
+    "lang": "zh-CN",
+    "text": "请把20份草莓平均分给4位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh13-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh13-explain",
+    "lang": "zh-CN",
+    "text": "20 份平均分给 4 人，每人 5 份。20 除以 4 等于 5。"
+  },
+  {
+    "id": "sh14-prompt",
+    "lang": "zh-CN",
+    "text": "请把18份小蛋糕平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh14-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh14-explain",
+    "lang": "zh-CN",
+    "text": "18 份平均分给 3 人，每人 6 份。18 除以 3 等于 6。"
+  },
+  {
+    "id": "sh15-prompt",
+    "lang": "zh-CN",
+    "text": "请把8份苹果平均分给4位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh15-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh15-explain",
+    "lang": "zh-CN",
+    "text": "8 份平均分给 4 人，每人 2 份。8 除以 4 等于 2。"
+  },
+  {
+    "id": "sh16-prompt",
+    "lang": "zh-CN",
+    "text": "请把9份草莓平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh16-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh16-explain",
+    "lang": "zh-CN",
+    "text": "9 份平均分给 3 人，每人 3 份。9 除以 3 等于 3。"
+  },
+  {
+    "id": "sh17-prompt",
+    "lang": "zh-CN",
+    "text": "请把16份小蛋糕平均分给4位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh17-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh17-explain",
+    "lang": "zh-CN",
+    "text": "16 份平均分给 4 人，每人 4 份。16 除以 4 等于 4。"
+  },
+  {
+    "id": "sh18-prompt",
+    "lang": "zh-CN",
+    "text": "请把15份苹果平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh18-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh18-explain",
+    "lang": "zh-CN",
+    "text": "15 份平均分给 3 人，每人 5 份。15 除以 3 等于 5。"
+  },
+  {
+    "id": "sh19-prompt",
+    "lang": "zh-CN",
+    "text": "请把24份草莓平均分给4位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh19-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh19-explain",
+    "lang": "zh-CN",
+    "text": "24 份平均分给 4 人，每人 6 份。24 除以 4 等于 6。"
+  },
+  {
+    "id": "sh110-prompt",
+    "lang": "zh-CN",
+    "text": "请把6份小蛋糕平均分给3位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh110-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh110-explain",
+    "lang": "zh-CN",
+    "text": "6 份平均分给 3 人，每人 2 份。6 除以 3 等于 2。"
+  },
+  {
+    "id": "sh111-prompt",
+    "lang": "zh-CN",
+    "text": "请把12份苹果平均分给4位朋友。每个人要一样多，并且全部分完。"
+  },
+  {
+    "id": "sh111-hint",
+    "lang": "zh-CN",
+    "text": "可以每次给每人一份，再重复一轮。分错了可以从盘子里拿回来。"
+  },
+  {
+    "id": "sh111-explain",
+    "lang": "zh-CN",
+    "text": "12 份平均分给 4 人，每人 3 份。12 除以 4 等于 3。"
+  },
+  {
+    "id": "es00-prompt",
+    "lang": "en-US",
+    "text": "I would like one apple, please."
+  },
+  {
+    "id": "es00-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份苹果。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es00-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份苹果，你配齐了！"
+  },
+  {
+    "id": "es01-prompt",
+    "lang": "en-US",
+    "text": "I would like two bananas, please."
+  },
+  {
+    "id": "es01-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es01-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es02-prompt",
+    "lang": "en-US",
+    "text": "I would like three oranges, please."
+  },
+  {
+    "id": "es02-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份橙子。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es02-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份橙子，你配齐了！"
+  },
+  {
+    "id": "es03-prompt",
+    "lang": "en-US",
+    "text": "I would like one pear, please."
+  },
+  {
+    "id": "es03-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es03-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份梨，你配齐了！"
+  },
+  {
+    "id": "es04-prompt",
+    "lang": "en-US",
+    "text": "I would like two apples, please."
+  },
+  {
+    "id": "es04-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份苹果。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es04-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份苹果，你配齐了！"
+  },
+  {
+    "id": "es05-prompt",
+    "lang": "en-US",
+    "text": "I would like three bananas, please."
+  },
+  {
+    "id": "es05-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es05-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es06-prompt",
+    "lang": "en-US",
+    "text": "I would like one orange, please."
+  },
+  {
+    "id": "es06-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份橙子。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es06-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份橙子，你配齐了！"
+  },
+  {
+    "id": "es07-prompt",
+    "lang": "en-US",
+    "text": "I would like two pears, please."
+  },
+  {
+    "id": "es07-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es07-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份梨，你配齐了！"
+  },
+  {
+    "id": "es08-prompt",
+    "lang": "en-US",
+    "text": "I would like three apples, please."
+  },
+  {
+    "id": "es08-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份苹果。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es08-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份苹果，你配齐了！"
+  },
+  {
+    "id": "es09-prompt",
+    "lang": "en-US",
+    "text": "I would like one banana, please."
+  },
+  {
+    "id": "es09-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es09-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es010-prompt",
+    "lang": "en-US",
+    "text": "I would like two oranges, please."
+  },
+  {
+    "id": "es010-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份橙子。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es010-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份橙子，你配齐了！"
+  },
+  {
+    "id": "es011-prompt",
+    "lang": "en-US",
+    "text": "I would like three pears, please."
+  },
+  {
+    "id": "es011-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es011-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份梨，你配齐了！"
+  },
+  {
+    "id": "es10-prompt",
+    "lang": "en-US",
+    "text": "I would like one apple and two bananas, please."
+  },
+  {
+    "id": "es10-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份苹果和 2 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es10-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份苹果和 2 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es11-prompt",
+    "lang": "en-US",
+    "text": "I would like two bananas and three pears, please."
+  },
+  {
+    "id": "es11-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份香蕉和 3 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es11-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份香蕉和 3 份梨，你配齐了！"
+  },
+  {
+    "id": "es12-prompt",
+    "lang": "en-US",
+    "text": "I would like three oranges and one pear, please."
+  },
+  {
+    "id": "es12-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份橙子和 1 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es12-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份橙子和 1 份梨，你配齐了！"
+  },
+  {
+    "id": "es13-prompt",
+    "lang": "en-US",
+    "text": "I would like one pear and two bananas, please."
+  },
+  {
+    "id": "es13-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份梨和 2 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es13-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份梨和 2 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es14-prompt",
+    "lang": "en-US",
+    "text": "I would like two apples and three bananas, please."
+  },
+  {
+    "id": "es14-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份苹果和 3 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es14-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份苹果和 3 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es15-prompt",
+    "lang": "en-US",
+    "text": "I would like three bananas and one pear, please."
+  },
+  {
+    "id": "es15-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份香蕉和 1 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es15-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份香蕉和 1 份梨，你配齐了！"
+  },
+  {
+    "id": "es16-prompt",
+    "lang": "en-US",
+    "text": "I would like one orange and two pears, please."
+  },
+  {
+    "id": "es16-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份橙子和 2 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es16-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份橙子和 2 份梨，你配齐了！"
+  },
+  {
+    "id": "es17-prompt",
+    "lang": "en-US",
+    "text": "I would like two pears and three bananas, please."
+  },
+  {
+    "id": "es17-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份梨和 3 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es17-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份梨和 3 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es18-prompt",
+    "lang": "en-US",
+    "text": "I would like three apples and one banana, please."
+  },
+  {
+    "id": "es18-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份苹果和 1 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es18-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份苹果和 1 份香蕉，你配齐了！"
+  },
+  {
+    "id": "es19-prompt",
+    "lang": "en-US",
+    "text": "I would like one banana and two pears, please."
+  },
+  {
+    "id": "es19-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份香蕉和 2 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es19-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 1 份香蕉和 2 份梨，你配齐了！"
+  },
+  {
+    "id": "es110-prompt",
+    "lang": "en-US",
+    "text": "I would like two oranges and three pears, please."
+  },
+  {
+    "id": "es110-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份橙子和 3 份梨。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es110-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 2 份橙子和 3 份梨，你配齐了！"
+  },
+  {
+    "id": "es111-prompt",
+    "lang": "en-US",
+    "text": "I would like three pears and one banana, please."
+  },
+  {
+    "id": "es111-hint",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份梨和 1 份香蕉。检查购物袋里有没有多装的商品。"
+  },
+  {
+    "id": "es111-explain",
+    "lang": "zh-CN",
+    "text": "顾客需要 3 份梨和 1 份香蕉，你配齐了！"
   }
 ]

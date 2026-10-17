@@ -65,5 +65,6 @@
     mathtrain:{title:'数学小火车',emoji:'🚂',subtitle:'数一数，让知识装满小火车',levels:['10 以内分合','加减与乘法'],banks:math,help:'听清货物任务，用“加一箱”和“减一箱”装货。二年级还可以整捆装卸，每捆十箱。装好点“发车检查”，错了可以调整。'},
     englishisland:{title:'英语寻宝岛',emoji:'🏝️',subtitle:'竖起耳朵，听英语找宝物',levels:['生活单词','数量和颜色'],banks:english,help:'点“听题目”听英语，再点对应的宝物。二年级要同时听清数量和颜色，色卡表示颜色，图案表示物品。听不懂可以重复听或看提示。'}
   };
+  Object.assign(data,typeof module!=='undefined'?require('./academy-more.js'):root.AcademyMore);
   if(typeof module!=='undefined')module.exports=data;else root.AcademyData=data;
 })(typeof window!=='undefined'?window:globalThis);

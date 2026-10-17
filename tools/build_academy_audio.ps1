@@ -1,5 +1,6 @@
 # Rebuild bundled offline narration with Windows SAPI voices and MP3 compression.
 # Requires Python imageio_ffmpeg (already available in the development environment).
+param([switch]$MissingOnly)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Speech
 $taskRoot = Split-Path -Parent $PSScriptRoot
@@ -12,6 +13,8 @@ $taskFormat = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(16000, 
 $taskWav = Join-Path ([System.IO.Path]::GetTempPath()) ('academy-voice-' + [guid]::NewGuid().ToString() + '.wav')
 try {
   foreach ($taskSegment in $taskSegments) {
+    $taskMp3 = Join-Path $taskOutput ($taskSegment.id + '.mp3')
+    if ($MissingOnly -and (Test-Path -LiteralPath $taskMp3)) { continue }
     $taskVoice = if ($taskSegment.lang -eq 'en-US') { 'Microsoft Zira Desktop' } else { 'Microsoft Huihui Desktop' }
     $taskSynth.SelectVoice($taskVoice)
     $taskSynth.Rate = -2

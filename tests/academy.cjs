@@ -5,7 +5,7 @@ const data=require('../assets/js/academy-data.js'),C=require('../assets/js/acade
 const root=path.resolve(__dirname,'..');
 test('Academy content: unambiguous choices, arithmetic, unique sessions and bundled narration',()=>{
   const ids=new Set();
-  for(const [id,config] of Object.entries(data))for(const [level,bank] of config.banks.entries()){
+  for(const [id,config] of Object.entries(data).filter(([,config])=>!config.kind))for(const [level,bank] of config.banks.entries()){
     assert(bank.length>=12);
     for(const q of bank){
       assert(!ids.has(q.id));ids.add(q.id);assert(q.hint&&q.explain&&q.speech&&q.prompt);
@@ -27,7 +27,7 @@ test('Academy touch flows: both ages, mistakes, explanations, saves, rewards, au
   try{
     const context=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,serviceWorkers:'block'}),errors=[];
     await context.addInitScript(()=>{window.__clips=[];window.__plays=[];window.__voice=null;const nativePlay=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){window.__voice=this;window.__clips.push(this.src);const p=nativePlay.call(this);p.then(()=>window.__plays.push(this.src),()=>{});return p;};});
-    for(const [id,config] of Object.entries(data)){
+    for(const [id,config] of Object.entries(data).filter(([,config])=>!config.kind)){
       const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));const url=`http://127.0.0.1:${server.address().port}/games/${id}/index.html`;
       const saved=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),`childgame.academy.${id}.v1`);
       for(const level of [0,1]){

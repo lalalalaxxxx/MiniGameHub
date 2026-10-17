@@ -10,7 +10,7 @@
     if(!raw||raw.version!==1||![0,1].includes(raw.level)||!Number.isInteger(raw.seed)||raw.seed<0||raw.seed>=1000000000||!Number.isInteger(raw.index)||raw.index<0||raw.index>6||!Number.isInteger(raw.cargo)||raw.cargo<0||raw.cargo>(raw.level?100:10)||typeof raw.solved!=='boolean'||typeof raw.started!=='boolean'||!Number.isInteger(raw.sticker)||raw.sticker<0||raw.sticker>3)return fresh();
     if(raw.index===6&&!raw.started||raw.solved&&!raw.started)return fresh();
     if(config===undefined)return fresh();
-    return {version:1,level:raw.level,seed:raw.seed,index:raw.index,cargo:raw.cargo,solved:raw.solved,started:raw.started,sticker:raw.sticker};
+    return {version:1,level:raw.level,seed:raw.seed,index:raw.index,cargo:raw.cargo,solved:raw.solved,started:raw.started,sticker:raw.sticker,...(config.kind?{work:raw.work}: {})};
   }
   const api={shuffle,questions,fresh,restore};if(typeof module!=='undefined')module.exports=api;else root.AcademyCore=api;
 })(typeof window!=='undefined'?window:globalThis);
