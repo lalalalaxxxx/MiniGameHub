@@ -1,0 +1,1592 @@
+[
+  {
+    "id": "hk0-prompt",
+    "lang": "zh-CN",
+    "text": "请找出日字。太阳出来了，日就是太阳。"
+  },
+  {
+    "id": "hk0-hint",
+    "lang": "zh-CN",
+    "text": "太阳出来了，日就是太阳。"
+  },
+  {
+    "id": "hk0-explain",
+    "lang": "zh-CN",
+    "text": "太阳出来了，日就是太阳。"
+  },
+  {
+    "id": "hk1-prompt",
+    "lang": "zh-CN",
+    "text": "请找出月字。月亮弯弯，月光照着夜晚。"
+  },
+  {
+    "id": "hk1-hint",
+    "lang": "zh-CN",
+    "text": "月亮弯弯，月光照着夜晚。"
+  },
+  {
+    "id": "hk1-explain",
+    "lang": "zh-CN",
+    "text": "月亮弯弯，月光照着夜晚。"
+  },
+  {
+    "id": "hk2-prompt",
+    "lang": "zh-CN",
+    "text": "请找出山字。高高的山，山峰一座连一座。"
+  },
+  {
+    "id": "hk2-hint",
+    "lang": "zh-CN",
+    "text": "高高的山，山峰一座连一座。"
+  },
+  {
+    "id": "hk2-explain",
+    "lang": "zh-CN",
+    "text": "高高的山，山峰一座连一座。"
+  },
+  {
+    "id": "hk3-prompt",
+    "lang": "zh-CN",
+    "text": "请找出水字。喝水、洗手，都需要水。"
+  },
+  {
+    "id": "hk3-hint",
+    "lang": "zh-CN",
+    "text": "喝水、洗手，都需要水。"
+  },
+  {
+    "id": "hk3-explain",
+    "lang": "zh-CN",
+    "text": "喝水、洗手，都需要水。"
+  },
+  {
+    "id": "hk4-prompt",
+    "lang": "zh-CN",
+    "text": "请找出火字。火能带来温暖，但小朋友不能玩火。"
+  },
+  {
+    "id": "hk4-hint",
+    "lang": "zh-CN",
+    "text": "火能带来温暖，但小朋友不能玩火。"
+  },
+  {
+    "id": "hk4-explain",
+    "lang": "zh-CN",
+    "text": "火能带来温暖，但小朋友不能玩火。"
+  },
+  {
+    "id": "hk5-prompt",
+    "lang": "zh-CN",
+    "text": "请找出木字。木和树木有关，树干像一根木头。"
+  },
+  {
+    "id": "hk5-hint",
+    "lang": "zh-CN",
+    "text": "木和树木有关，树干像一根木头。"
+  },
+  {
+    "id": "hk5-explain",
+    "lang": "zh-CN",
+    "text": "木和树木有关，树干像一根木头。"
+  },
+  {
+    "id": "hk6-prompt",
+    "lang": "zh-CN",
+    "text": "请找出口字。张开口，说说话，口就是嘴巴。"
+  },
+  {
+    "id": "hk6-hint",
+    "lang": "zh-CN",
+    "text": "张开口，说说话，口就是嘴巴。"
+  },
+  {
+    "id": "hk6-explain",
+    "lang": "zh-CN",
+    "text": "张开口，说说话，口就是嘴巴。"
+  },
+  {
+    "id": "hk7-prompt",
+    "lang": "zh-CN",
+    "text": "请找出手字。拍拍手，挥挥手，我们都有一双手。"
+  },
+  {
+    "id": "hk7-hint",
+    "lang": "zh-CN",
+    "text": "拍拍手，挥挥手，我们都有一双手。"
+  },
+  {
+    "id": "hk7-explain",
+    "lang": "zh-CN",
+    "text": "拍拍手，挥挥手，我们都有一双手。"
+  },
+  {
+    "id": "hk8-prompt",
+    "lang": "zh-CN",
+    "text": "请找出目字。目就是眼睛，眼睛帮我们看世界。"
+  },
+  {
+    "id": "hk8-hint",
+    "lang": "zh-CN",
+    "text": "目就是眼睛，眼睛帮我们看世界。"
+  },
+  {
+    "id": "hk8-explain",
+    "lang": "zh-CN",
+    "text": "目就是眼睛，眼睛帮我们看世界。"
+  },
+  {
+    "id": "hk9-prompt",
+    "lang": "zh-CN",
+    "text": "请找出耳字。耳朵听声音，耳字可以组成耳朵。"
+  },
+  {
+    "id": "hk9-hint",
+    "lang": "zh-CN",
+    "text": "耳朵听声音，耳字可以组成耳朵。"
+  },
+  {
+    "id": "hk9-explain",
+    "lang": "zh-CN",
+    "text": "耳朵听声音，耳字可以组成耳朵。"
+  },
+  {
+    "id": "hk10-prompt",
+    "lang": "zh-CN",
+    "text": "请找出人字。一个人，两个人，人字像站立的身影。"
+  },
+  {
+    "id": "hk10-hint",
+    "lang": "zh-CN",
+    "text": "一个人，两个人，人字像站立的身影。"
+  },
+  {
+    "id": "hk10-explain",
+    "lang": "zh-CN",
+    "text": "一个人，两个人，人字像站立的身影。"
+  },
+  {
+    "id": "hk11-prompt",
+    "lang": "zh-CN",
+    "text": "请找出大字。大象身体大，大和小的意思相反。"
+  },
+  {
+    "id": "hk11-hint",
+    "lang": "zh-CN",
+    "text": "大象身体大，大和小的意思相反。"
+  },
+  {
+    "id": "hk11-explain",
+    "lang": "zh-CN",
+    "text": "大象身体大，大和小的意思相反。"
+  },
+  {
+    "id": "hk12-prompt",
+    "lang": "zh-CN",
+    "text": "请找出小字。小蚂蚁身体小，小和大的意思相反。"
+  },
+  {
+    "id": "hk12-hint",
+    "lang": "zh-CN",
+    "text": "小蚂蚁身体小，小和大的意思相反。"
+  },
+  {
+    "id": "hk12-explain",
+    "lang": "zh-CN",
+    "text": "小蚂蚁身体小，小和大的意思相反。"
+  },
+  {
+    "id": "hk13-prompt",
+    "lang": "zh-CN",
+    "text": "请找出牛字。牛儿吃青草，牛奶来自奶牛。"
+  },
+  {
+    "id": "hk13-hint",
+    "lang": "zh-CN",
+    "text": "牛儿吃青草，牛奶来自奶牛。"
+  },
+  {
+    "id": "hk13-explain",
+    "lang": "zh-CN",
+    "text": "牛儿吃青草，牛奶来自奶牛。"
+  },
+  {
+    "id": "hk14-prompt",
+    "lang": "zh-CN",
+    "text": "请找出羊字。小羊咩咩叫，羊毛软绵绵。"
+  },
+  {
+    "id": "hk14-hint",
+    "lang": "zh-CN",
+    "text": "小羊咩咩叫，羊毛软绵绵。"
+  },
+  {
+    "id": "hk14-explain",
+    "lang": "zh-CN",
+    "text": "小羊咩咩叫，羊毛软绵绵。"
+  },
+  {
+    "id": "hk15-prompt",
+    "lang": "zh-CN",
+    "text": "请找出马字。小马跑得快，马有长长的尾巴。"
+  },
+  {
+    "id": "hk15-hint",
+    "lang": "zh-CN",
+    "text": "小马跑得快，马有长长的尾巴。"
+  },
+  {
+    "id": "hk15-explain",
+    "lang": "zh-CN",
+    "text": "小马跑得快，马有长长的尾巴。"
+  },
+  {
+    "id": "hk16-prompt",
+    "lang": "zh-CN",
+    "text": "请找出鸟字。小鸟有羽毛，鸟字里面的一点像眼睛。"
+  },
+  {
+    "id": "hk16-hint",
+    "lang": "zh-CN",
+    "text": "小鸟有羽毛，鸟字里面的一点像眼睛。"
+  },
+  {
+    "id": "hk16-explain",
+    "lang": "zh-CN",
+    "text": "小鸟有羽毛，鸟字里面的一点像眼睛。"
+  },
+  {
+    "id": "hk17-prompt",
+    "lang": "zh-CN",
+    "text": "请找出鱼字。小鱼水里游，鱼用鳃呼吸。"
+  },
+  {
+    "id": "hk17-hint",
+    "lang": "zh-CN",
+    "text": "小鱼水里游，鱼用鳃呼吸。"
+  },
+  {
+    "id": "hk17-explain",
+    "lang": "zh-CN",
+    "text": "小鱼水里游，鱼用鳃呼吸。"
+  },
+  {
+    "id": "hk18-prompt",
+    "lang": "zh-CN",
+    "text": "请找出花字。花儿开了，花的上面有草字头。"
+  },
+  {
+    "id": "hk18-hint",
+    "lang": "zh-CN",
+    "text": "花儿开了，花的上面有草字头。"
+  },
+  {
+    "id": "hk18-explain",
+    "lang": "zh-CN",
+    "text": "花儿开了，花的上面有草字头。"
+  },
+  {
+    "id": "hk19-prompt",
+    "lang": "zh-CN",
+    "text": "请找出雨字。雨点从天上落下来，雨字里面像小雨点。"
+  },
+  {
+    "id": "hk19-hint",
+    "lang": "zh-CN",
+    "text": "雨点从天上落下来，雨字里面像小雨点。"
+  },
+  {
+    "id": "hk19-explain",
+    "lang": "zh-CN",
+    "text": "雨点从天上落下来，雨字里面像小雨点。"
+  },
+  {
+    "id": "hk20-prompt",
+    "lang": "zh-CN",
+    "text": "请找出米字。大米可以煮成米饭，米是粮食。"
+  },
+  {
+    "id": "hk20-hint",
+    "lang": "zh-CN",
+    "text": "大米可以煮成米饭，米是粮食。"
+  },
+  {
+    "id": "hk20-explain",
+    "lang": "zh-CN",
+    "text": "大米可以煮成米饭，米是粮食。"
+  },
+  {
+    "id": "hk21-prompt",
+    "lang": "zh-CN",
+    "text": "请找出田字。田里可以种庄稼，田字像分成小块的农田。"
+  },
+  {
+    "id": "hk21-hint",
+    "lang": "zh-CN",
+    "text": "田里可以种庄稼，田字像分成小块的农田。"
+  },
+  {
+    "id": "hk21-explain",
+    "lang": "zh-CN",
+    "text": "田里可以种庄稼，田字像分成小块的农田。"
+  },
+  {
+    "id": "hk22-prompt",
+    "lang": "zh-CN",
+    "text": "请找出门字。打开门，走进屋，门字像一扇门。"
+  },
+  {
+    "id": "hk22-hint",
+    "lang": "zh-CN",
+    "text": "打开门，走进屋，门字像一扇门。"
+  },
+  {
+    "id": "hk22-explain",
+    "lang": "zh-CN",
+    "text": "打开门，走进屋，门字像一扇门。"
+  },
+  {
+    "id": "hk23-prompt",
+    "lang": "zh-CN",
+    "text": "请找出车字。小车有轮子，车能载着我们出门。"
+  },
+  {
+    "id": "hk23-hint",
+    "lang": "zh-CN",
+    "text": "小车有轮子，车能载着我们出门。"
+  },
+  {
+    "id": "hk23-explain",
+    "lang": "zh-CN",
+    "text": "小车有轮子，车能载着我们出门。"
+  },
+  {
+    "id": "hg0-prompt",
+    "lang": "zh-CN",
+    "text": "太阳出来了，今天是晴天。找出晴天的晴。"
+  },
+  {
+    "id": "hg0-hint",
+    "lang": "zh-CN",
+    "text": "晴是日字旁，表示天气晴朗。"
+  },
+  {
+    "id": "hg0-explain",
+    "lang": "zh-CN",
+    "text": "晴是日字旁，表示天气晴朗。"
+  },
+  {
+    "id": "hg1-prompt",
+    "lang": "zh-CN",
+    "text": "小河的水很清。找出清水的清。"
+  },
+  {
+    "id": "hg1-hint",
+    "lang": "zh-CN",
+    "text": "清是三点水，常用来形容水干净。"
+  },
+  {
+    "id": "hg1-explain",
+    "lang": "zh-CN",
+    "text": "清是三点水，常用来形容水干净。"
+  },
+  {
+    "id": "hg2-prompt",
+    "lang": "zh-CN",
+    "text": "我今天心情很好。找出心情的情。"
+  },
+  {
+    "id": "hg2-hint",
+    "lang": "zh-CN",
+    "text": "情是竖心旁，和心情、感情有关。"
+  },
+  {
+    "id": "hg2-explain",
+    "lang": "zh-CN",
+    "text": "情是竖心旁，和心情、感情有关。"
+  },
+  {
+    "id": "hg3-prompt",
+    "lang": "zh-CN",
+    "text": "我们要爱护眼睛。找出眼睛的睛。"
+  },
+  {
+    "id": "hg3-hint",
+    "lang": "zh-CN",
+    "text": "睛是目字旁，和眼睛有关。"
+  },
+  {
+    "id": "hg3-explain",
+    "lang": "zh-CN",
+    "text": "睛是目字旁，和眼睛有关。"
+  },
+  {
+    "id": "hg4-prompt",
+    "lang": "zh-CN",
+    "text": "运动以后要喝水。找出喝水的喝。"
+  },
+  {
+    "id": "hg4-hint",
+    "lang": "zh-CN",
+    "text": "喝是口字旁，喝水需要用嘴巴。"
+  },
+  {
+    "id": "hg4-explain",
+    "lang": "zh-CN",
+    "text": "喝是口字旁，喝水需要用嘴巴。"
+  },
+  {
+    "id": "hg5-prompt",
+    "lang": "zh-CN",
+    "text": "我口渴了，想喝水。找出口渴的渴。"
+  },
+  {
+    "id": "hg5-hint",
+    "lang": "zh-CN",
+    "text": "渴是三点水，口渴时身体需要水。"
+  },
+  {
+    "id": "hg5-explain",
+    "lang": "zh-CN",
+    "text": "渴是三点水，口渴时身体需要水。"
+  },
+  {
+    "id": "hg6-prompt",
+    "lang": "zh-CN",
+    "text": "我们一起做手工。找出做手工的做。"
+  },
+  {
+    "id": "hg6-hint",
+    "lang": "zh-CN",
+    "text": "做可以表示一个动作，例如做手工、做饭。"
+  },
+  {
+    "id": "hg6-explain",
+    "lang": "zh-CN",
+    "text": "做可以表示一个动作，例如做手工、做饭。"
+  },
+  {
+    "id": "hg7-prompt",
+    "lang": "zh-CN",
+    "text": "我认真写作业。找出作业的作。"
+  },
+  {
+    "id": "hg7-hint",
+    "lang": "zh-CN",
+    "text": "作业的作是单人旁，右边是乍。"
+  },
+  {
+    "id": "hg7-explain",
+    "lang": "zh-CN",
+    "text": "作业的作是单人旁，右边是乍。"
+  },
+  {
+    "id": "hg8-prompt",
+    "lang": "zh-CN",
+    "text": "请坐在椅子上。找出坐下的坐。"
+  },
+  {
+    "id": "hg8-hint",
+    "lang": "zh-CN",
+    "text": "坐表示动作，坐下来休息一会儿。"
+  },
+  {
+    "id": "hg8-explain",
+    "lang": "zh-CN",
+    "text": "坐表示动作，坐下来休息一会儿。"
+  },
+  {
+    "id": "hg9-prompt",
+    "lang": "zh-CN",
+    "text": "这里有一座桥。找出一座桥的座。"
+  },
+  {
+    "id": "hg9-hint",
+    "lang": "zh-CN",
+    "text": "一座桥的座是量词，也用在座位这个词里。"
+  },
+  {
+    "id": "hg9-explain",
+    "lang": "zh-CN",
+    "text": "一座桥的座是量词，也用在座位这个词里。"
+  },
+  {
+    "id": "hg10-prompt",
+    "lang": "zh-CN",
+    "text": "学校离我家很近。找出远近的近。"
+  },
+  {
+    "id": "hg10-hint",
+    "lang": "zh-CN",
+    "text": "近和远相反，表示距离短。"
+  },
+  {
+    "id": "hg10-explain",
+    "lang": "zh-CN",
+    "text": "近和远相反，表示距离短。"
+  },
+  {
+    "id": "hg11-prompt",
+    "lang": "zh-CN",
+    "text": "小朋友走进教室。找出走进的进。"
+  },
+  {
+    "id": "hg11-hint",
+    "lang": "zh-CN",
+    "text": "进和出相反，表示从外面到里面。"
+  },
+  {
+    "id": "hg11-explain",
+    "lang": "zh-CN",
+    "text": "进和出相反，表示从外面到里面。"
+  },
+  {
+    "id": "hg12-prompt",
+    "lang": "zh-CN",
+    "text": "我们明天再见。找出再见的再。"
+  },
+  {
+    "id": "hg12-hint",
+    "lang": "zh-CN",
+    "text": "再表示又一次，明天再见就是明天再次见面。"
+  },
+  {
+    "id": "hg12-explain",
+    "lang": "zh-CN",
+    "text": "再表示又一次，明天再见就是明天再次见面。"
+  },
+  {
+    "id": "hg13-prompt",
+    "lang": "zh-CN",
+    "text": "小猫在桌子下面。找出在哪里的在。"
+  },
+  {
+    "id": "hg13-hint",
+    "lang": "zh-CN",
+    "text": "在可以说明位置，小猫的位置是桌子下面。"
+  },
+  {
+    "id": "hg13-explain",
+    "lang": "zh-CN",
+    "text": "在可以说明位置，小猫的位置是桌子下面。"
+  },
+  {
+    "id": "hg14-prompt",
+    "lang": "zh-CN",
+    "text": "小兔在草地上跑步。找出跑步的跑。"
+  },
+  {
+    "id": "hg14-hint",
+    "lang": "zh-CN",
+    "text": "跑是足字旁，跑步需要用脚。"
+  },
+  {
+    "id": "hg14-explain",
+    "lang": "zh-CN",
+    "text": "跑是足字旁，跑步需要用脚。"
+  },
+  {
+    "id": "hg15-prompt",
+    "lang": "zh-CN",
+    "text": "妈妈抱着小宝宝。找出拥抱的抱。"
+  },
+  {
+    "id": "hg15-hint",
+    "lang": "zh-CN",
+    "text": "抱是提手旁，抱宝宝需要用手臂。"
+  },
+  {
+    "id": "hg15-explain",
+    "lang": "zh-CN",
+    "text": "抱是提手旁，抱宝宝需要用手臂。"
+  },
+  {
+    "id": "hg16-prompt",
+    "lang": "zh-CN",
+    "text": "肥皂能吹出泡泡。找出泡泡的泡。"
+  },
+  {
+    "id": "hg16-hint",
+    "lang": "zh-CN",
+    "text": "泡是三点水，泡泡和液体有关。"
+  },
+  {
+    "id": "hg16-explain",
+    "lang": "zh-CN",
+    "text": "泡是三点水，泡泡和液体有关。"
+  },
+  {
+    "id": "hg17-prompt",
+    "lang": "zh-CN",
+    "text": "我们去公园玩。找出公园的园。"
+  },
+  {
+    "id": "hg17-hint",
+    "lang": "zh-CN",
+    "text": "园指一个地方，比如公园、花园和校园。"
+  },
+  {
+    "id": "hg17-explain",
+    "lang": "zh-CN",
+    "text": "园指一个地方，比如公园、花园和校园。"
+  },
+  {
+    "id": "mkadd1-prompt",
+    "lang": "zh-CN",
+    "text": "先装1箱，再装2箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd1-hint",
+    "lang": "zh-CN",
+    "text": "先数 1 箱，再接着数 2 箱。"
+  },
+  {
+    "id": "mkadd1-explain",
+    "lang": "zh-CN",
+    "text": "1 加 2 等于 3，一共装 3 箱。"
+  },
+  {
+    "id": "mksub1-prompt",
+    "lang": "zh-CN",
+    "text": "有1箱，送走1箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub1-hint",
+    "lang": "zh-CN",
+    "text": "先数 1 箱，再划掉送走的 1 箱。"
+  },
+  {
+    "id": "mksub1-explain",
+    "lang": "zh-CN",
+    "text": "1 减 1 等于 0，还剩 0 箱。"
+  },
+  {
+    "id": "mkadd2-prompt",
+    "lang": "zh-CN",
+    "text": "先装2箱，再装3箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd2-hint",
+    "lang": "zh-CN",
+    "text": "先数 2 箱，再接着数 3 箱。"
+  },
+  {
+    "id": "mkadd2-explain",
+    "lang": "zh-CN",
+    "text": "2 加 3 等于 5，一共装 5 箱。"
+  },
+  {
+    "id": "mksub2-prompt",
+    "lang": "zh-CN",
+    "text": "有2箱，送走2箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub2-hint",
+    "lang": "zh-CN",
+    "text": "先数 2 箱，再划掉送走的 2 箱。"
+  },
+  {
+    "id": "mksub2-explain",
+    "lang": "zh-CN",
+    "text": "2 减 2 等于 0，还剩 0 箱。"
+  },
+  {
+    "id": "mkadd3-prompt",
+    "lang": "zh-CN",
+    "text": "先装3箱，再装1箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd3-hint",
+    "lang": "zh-CN",
+    "text": "先数 3 箱，再接着数 1 箱。"
+  },
+  {
+    "id": "mkadd3-explain",
+    "lang": "zh-CN",
+    "text": "3 加 1 等于 4，一共装 4 箱。"
+  },
+  {
+    "id": "mksub3-prompt",
+    "lang": "zh-CN",
+    "text": "有3箱，送走1箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub3-hint",
+    "lang": "zh-CN",
+    "text": "先数 3 箱，再划掉送走的 1 箱。"
+  },
+  {
+    "id": "mksub3-explain",
+    "lang": "zh-CN",
+    "text": "3 减 1 等于 2，还剩 2 箱。"
+  },
+  {
+    "id": "mkadd4-prompt",
+    "lang": "zh-CN",
+    "text": "先装4箱，再装2箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd4-hint",
+    "lang": "zh-CN",
+    "text": "先数 4 箱，再接着数 2 箱。"
+  },
+  {
+    "id": "mkadd4-explain",
+    "lang": "zh-CN",
+    "text": "4 加 2 等于 6，一共装 6 箱。"
+  },
+  {
+    "id": "mksub4-prompt",
+    "lang": "zh-CN",
+    "text": "有4箱，送走2箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub4-hint",
+    "lang": "zh-CN",
+    "text": "先数 4 箱，再划掉送走的 2 箱。"
+  },
+  {
+    "id": "mksub4-explain",
+    "lang": "zh-CN",
+    "text": "4 减 2 等于 2，还剩 2 箱。"
+  },
+  {
+    "id": "mkadd5-prompt",
+    "lang": "zh-CN",
+    "text": "先装5箱，再装3箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd5-hint",
+    "lang": "zh-CN",
+    "text": "先数 5 箱，再接着数 3 箱。"
+  },
+  {
+    "id": "mkadd5-explain",
+    "lang": "zh-CN",
+    "text": "5 加 3 等于 8，一共装 8 箱。"
+  },
+  {
+    "id": "mksub5-prompt",
+    "lang": "zh-CN",
+    "text": "有5箱，送走3箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub5-hint",
+    "lang": "zh-CN",
+    "text": "先数 5 箱，再划掉送走的 3 箱。"
+  },
+  {
+    "id": "mksub5-explain",
+    "lang": "zh-CN",
+    "text": "5 减 3 等于 2，还剩 2 箱。"
+  },
+  {
+    "id": "mkadd6-prompt",
+    "lang": "zh-CN",
+    "text": "先装6箱，再装1箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd6-hint",
+    "lang": "zh-CN",
+    "text": "先数 6 箱，再接着数 1 箱。"
+  },
+  {
+    "id": "mkadd6-explain",
+    "lang": "zh-CN",
+    "text": "6 加 1 等于 7，一共装 7 箱。"
+  },
+  {
+    "id": "mksub6-prompt",
+    "lang": "zh-CN",
+    "text": "有6箱，送走1箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub6-hint",
+    "lang": "zh-CN",
+    "text": "先数 6 箱，再划掉送走的 1 箱。"
+  },
+  {
+    "id": "mksub6-explain",
+    "lang": "zh-CN",
+    "text": "6 减 1 等于 5，还剩 5 箱。"
+  },
+  {
+    "id": "mkadd7-prompt",
+    "lang": "zh-CN",
+    "text": "先装7箱，再装2箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd7-hint",
+    "lang": "zh-CN",
+    "text": "先数 7 箱，再接着数 2 箱。"
+  },
+  {
+    "id": "mkadd7-explain",
+    "lang": "zh-CN",
+    "text": "7 加 2 等于 9，一共装 9 箱。"
+  },
+  {
+    "id": "mksub7-prompt",
+    "lang": "zh-CN",
+    "text": "有7箱，送走2箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub7-hint",
+    "lang": "zh-CN",
+    "text": "先数 7 箱，再划掉送走的 2 箱。"
+  },
+  {
+    "id": "mksub7-explain",
+    "lang": "zh-CN",
+    "text": "7 减 2 等于 5，还剩 5 箱。"
+  },
+  {
+    "id": "mkadd8-prompt",
+    "lang": "zh-CN",
+    "text": "先装8箱，再装2箱，一共几箱？请给火车装货。"
+  },
+  {
+    "id": "mkadd8-hint",
+    "lang": "zh-CN",
+    "text": "先数 8 箱，再接着数 2 箱。"
+  },
+  {
+    "id": "mkadd8-explain",
+    "lang": "zh-CN",
+    "text": "8 加 2 等于 10，一共装 10 箱。"
+  },
+  {
+    "id": "mksub8-prompt",
+    "lang": "zh-CN",
+    "text": "有8箱，送走3箱，还剩几箱？请装上剩下的货物。"
+  },
+  {
+    "id": "mksub8-hint",
+    "lang": "zh-CN",
+    "text": "先数 8 箱，再划掉送走的 3 箱。"
+  },
+  {
+    "id": "mksub8-explain",
+    "lang": "zh-CN",
+    "text": "8 减 3 等于 5，还剩 5 箱。"
+  },
+  {
+    "id": "mgadd18-prompt",
+    "lang": "zh-CN",
+    "text": "车站有18箱水果，又运来7箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd18-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd18-explain",
+    "lang": "zh-CN",
+    "text": "18 加 7 等于 25。25 箱可以装成 2 捆和 5 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub18-prompt",
+    "lang": "zh-CN",
+    "text": "车站有25箱水果，运走7箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub18-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub18-explain",
+    "lang": "zh-CN",
+    "text": "25 减 7 等于 18。还剩 1 捆和 8 个小箱。"
+  },
+  {
+    "id": "mgadd26-prompt",
+    "lang": "zh-CN",
+    "text": "车站有26箱水果，又运来9箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd26-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd26-explain",
+    "lang": "zh-CN",
+    "text": "26 加 9 等于 35。35 箱可以装成 3 捆和 5 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub26-prompt",
+    "lang": "zh-CN",
+    "text": "车站有35箱水果，运走9箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub26-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub26-explain",
+    "lang": "zh-CN",
+    "text": "35 减 9 等于 26。还剩 2 捆和 6 个小箱。"
+  },
+  {
+    "id": "mgadd37-prompt",
+    "lang": "zh-CN",
+    "text": "车站有37箱水果，又运来8箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd37-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd37-explain",
+    "lang": "zh-CN",
+    "text": "37 加 8 等于 45。45 箱可以装成 4 捆和 5 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub37-prompt",
+    "lang": "zh-CN",
+    "text": "车站有45箱水果，运走8箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub37-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub37-explain",
+    "lang": "zh-CN",
+    "text": "45 减 8 等于 37。还剩 3 捆和 7 个小箱。"
+  },
+  {
+    "id": "mgadd45-prompt",
+    "lang": "zh-CN",
+    "text": "车站有45箱水果，又运来16箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd45-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd45-explain",
+    "lang": "zh-CN",
+    "text": "45 加 16 等于 61。61 箱可以装成 6 捆和 1 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub45-prompt",
+    "lang": "zh-CN",
+    "text": "车站有61箱水果，运走16箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub45-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub45-explain",
+    "lang": "zh-CN",
+    "text": "61 减 16 等于 45。还剩 4 捆和 5 个小箱。"
+  },
+  {
+    "id": "mgadd28-prompt",
+    "lang": "zh-CN",
+    "text": "车站有28箱水果，又运来34箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd28-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd28-explain",
+    "lang": "zh-CN",
+    "text": "28 加 34 等于 62。62 箱可以装成 6 捆和 2 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub28-prompt",
+    "lang": "zh-CN",
+    "text": "车站有62箱水果，运走34箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub28-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub28-explain",
+    "lang": "zh-CN",
+    "text": "62 减 34 等于 28。还剩 2 捆和 8 个小箱。"
+  },
+  {
+    "id": "mgadd56-prompt",
+    "lang": "zh-CN",
+    "text": "车站有56箱水果，又运来17箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd56-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd56-explain",
+    "lang": "zh-CN",
+    "text": "56 加 17 等于 73。73 箱可以装成 7 捆和 3 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub56-prompt",
+    "lang": "zh-CN",
+    "text": "车站有73箱水果，运走17箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub56-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub56-explain",
+    "lang": "zh-CN",
+    "text": "73 减 17 等于 56。还剩 5 捆和 6 个小箱。"
+  },
+  {
+    "id": "mgadd39-prompt",
+    "lang": "zh-CN",
+    "text": "车站有39箱水果，又运来25箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd39-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd39-explain",
+    "lang": "zh-CN",
+    "text": "39 加 25 等于 64。64 箱可以装成 6 捆和 4 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub39-prompt",
+    "lang": "zh-CN",
+    "text": "车站有64箱水果，运走25箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub39-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub39-explain",
+    "lang": "zh-CN",
+    "text": "64 减 25 等于 39。还剩 3 捆和 9 个小箱。"
+  },
+  {
+    "id": "mgadd64-prompt",
+    "lang": "zh-CN",
+    "text": "车站有64箱水果，又运来18箱。一共有多少箱？"
+  },
+  {
+    "id": "mgadd64-hint",
+    "lang": "zh-CN",
+    "text": "把十位和个位分开算，满十个小箱可以换成一捆。"
+  },
+  {
+    "id": "mgadd64-explain",
+    "lang": "zh-CN",
+    "text": "64 加 18 等于 82。82 箱可以装成 8 捆和 2 个小箱，每捆有十箱。"
+  },
+  {
+    "id": "mgsub64-prompt",
+    "lang": "zh-CN",
+    "text": "车站有82箱水果，运走18箱，还剩多少箱？"
+  },
+  {
+    "id": "mgsub64-hint",
+    "lang": "zh-CN",
+    "text": "从原来的数量减去运走的数量。个位不够减，可以把一捆拆成十箱。"
+  },
+  {
+    "id": "mgsub64-explain",
+    "lang": "zh-CN",
+    "text": "82 减 18 等于 64。还剩 6 捆和 4 个小箱。"
+  },
+  {
+    "id": "mgmul2-prompt",
+    "lang": "zh-CN",
+    "text": "有2节车厢，每节装3箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul2-hint",
+    "lang": "zh-CN",
+    "text": "画出 2 组，每组 3 个。也可以把 3 连加 2 次。"
+  },
+  {
+    "id": "mgmul2-explain",
+    "lang": "zh-CN",
+    "text": "2 个 3 相加是 6，2 乘 3 等于 6。"
+  },
+  {
+    "id": "mgmul3-prompt",
+    "lang": "zh-CN",
+    "text": "有3节车厢，每节装4箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul3-hint",
+    "lang": "zh-CN",
+    "text": "画出 3 组，每组 4 个。也可以把 4 连加 3 次。"
+  },
+  {
+    "id": "mgmul3-explain",
+    "lang": "zh-CN",
+    "text": "3 个 4 相加是 12，3 乘 4 等于 12。"
+  },
+  {
+    "id": "mgmul4-prompt",
+    "lang": "zh-CN",
+    "text": "有4节车厢，每节装5箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul4-hint",
+    "lang": "zh-CN",
+    "text": "画出 4 组，每组 5 个。也可以把 5 连加 4 次。"
+  },
+  {
+    "id": "mgmul4-explain",
+    "lang": "zh-CN",
+    "text": "4 个 5 相加是 20，4 乘 5 等于 20。"
+  },
+  {
+    "id": "mgmul5-prompt",
+    "lang": "zh-CN",
+    "text": "有5节车厢，每节装6箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul5-hint",
+    "lang": "zh-CN",
+    "text": "画出 5 组，每组 6 个。也可以把 6 连加 5 次。"
+  },
+  {
+    "id": "mgmul5-explain",
+    "lang": "zh-CN",
+    "text": "5 个 6 相加是 30，5 乘 6 等于 30。"
+  },
+  {
+    "id": "mgmul6-prompt",
+    "lang": "zh-CN",
+    "text": "有6节车厢，每节装3箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul6-hint",
+    "lang": "zh-CN",
+    "text": "画出 6 组，每组 3 个。也可以把 3 连加 6 次。"
+  },
+  {
+    "id": "mgmul6-explain",
+    "lang": "zh-CN",
+    "text": "6 个 3 相加是 18，6 乘 3 等于 18。"
+  },
+  {
+    "id": "mgmul7-prompt",
+    "lang": "zh-CN",
+    "text": "有7节车厢，每节装4箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul7-hint",
+    "lang": "zh-CN",
+    "text": "画出 7 组，每组 4 个。也可以把 4 连加 7 次。"
+  },
+  {
+    "id": "mgmul7-explain",
+    "lang": "zh-CN",
+    "text": "7 个 4 相加是 28，7 乘 4 等于 28。"
+  },
+  {
+    "id": "mgmul8-prompt",
+    "lang": "zh-CN",
+    "text": "有8节车厢，每节装3箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul8-hint",
+    "lang": "zh-CN",
+    "text": "画出 8 组，每组 3 个。也可以把 3 连加 8 次。"
+  },
+  {
+    "id": "mgmul8-explain",
+    "lang": "zh-CN",
+    "text": "8 个 3 相加是 24，8 乘 3 等于 24。"
+  },
+  {
+    "id": "mgmul9-prompt",
+    "lang": "zh-CN",
+    "text": "有9节车厢，每节装2箱，一共装多少箱？"
+  },
+  {
+    "id": "mgmul9-hint",
+    "lang": "zh-CN",
+    "text": "画出 9 组，每组 2 个。也可以把 2 连加 9 次。"
+  },
+  {
+    "id": "mgmul9-explain",
+    "lang": "zh-CN",
+    "text": "9 个 2 相加是 18，9 乘 2 等于 18。"
+  },
+  {
+    "id": "ek0-prompt",
+    "lang": "en-US",
+    "text": "Find the apple."
+  },
+  {
+    "id": "ek0-hint",
+    "lang": "zh-CN",
+    "text": "apple 的意思是“苹果”。"
+  },
+  {
+    "id": "ek0-explain",
+    "lang": "zh-CN",
+    "text": "找到苹果。"
+  },
+  {
+    "id": "ek1-prompt",
+    "lang": "en-US",
+    "text": "Find the banana."
+  },
+  {
+    "id": "ek1-hint",
+    "lang": "zh-CN",
+    "text": "banana 的意思是“香蕉”。"
+  },
+  {
+    "id": "ek1-explain",
+    "lang": "zh-CN",
+    "text": "找到香蕉。"
+  },
+  {
+    "id": "ek2-prompt",
+    "lang": "en-US",
+    "text": "Find the cat."
+  },
+  {
+    "id": "ek2-hint",
+    "lang": "zh-CN",
+    "text": "cat 的意思是“猫”。"
+  },
+  {
+    "id": "ek2-explain",
+    "lang": "zh-CN",
+    "text": "找到猫。"
+  },
+  {
+    "id": "ek3-prompt",
+    "lang": "en-US",
+    "text": "Find the dog."
+  },
+  {
+    "id": "ek3-hint",
+    "lang": "zh-CN",
+    "text": "dog 的意思是“狗”。"
+  },
+  {
+    "id": "ek3-explain",
+    "lang": "zh-CN",
+    "text": "找到狗。"
+  },
+  {
+    "id": "ek4-prompt",
+    "lang": "en-US",
+    "text": "Find the rabbit."
+  },
+  {
+    "id": "ek4-hint",
+    "lang": "zh-CN",
+    "text": "rabbit 的意思是“兔子”。"
+  },
+  {
+    "id": "ek4-explain",
+    "lang": "zh-CN",
+    "text": "找到兔子。"
+  },
+  {
+    "id": "ek5-prompt",
+    "lang": "en-US",
+    "text": "Find the fish."
+  },
+  {
+    "id": "ek5-hint",
+    "lang": "zh-CN",
+    "text": "fish 的意思是“鱼”。"
+  },
+  {
+    "id": "ek5-explain",
+    "lang": "zh-CN",
+    "text": "找到鱼。"
+  },
+  {
+    "id": "ek6-prompt",
+    "lang": "en-US",
+    "text": "Find the bird."
+  },
+  {
+    "id": "ek6-hint",
+    "lang": "zh-CN",
+    "text": "bird 的意思是“鸟”。"
+  },
+  {
+    "id": "ek6-explain",
+    "lang": "zh-CN",
+    "text": "找到鸟。"
+  },
+  {
+    "id": "ek7-prompt",
+    "lang": "en-US",
+    "text": "Find the book."
+  },
+  {
+    "id": "ek7-hint",
+    "lang": "zh-CN",
+    "text": "book 的意思是“书”。"
+  },
+  {
+    "id": "ek7-explain",
+    "lang": "zh-CN",
+    "text": "找到书。"
+  },
+  {
+    "id": "ek8-prompt",
+    "lang": "en-US",
+    "text": "Find the pencil."
+  },
+  {
+    "id": "ek8-hint",
+    "lang": "zh-CN",
+    "text": "pencil 的意思是“铅笔”。"
+  },
+  {
+    "id": "ek8-explain",
+    "lang": "zh-CN",
+    "text": "找到铅笔。"
+  },
+  {
+    "id": "ek9-prompt",
+    "lang": "en-US",
+    "text": "Find the ball."
+  },
+  {
+    "id": "ek9-hint",
+    "lang": "zh-CN",
+    "text": "ball 的意思是“球”。"
+  },
+  {
+    "id": "ek9-explain",
+    "lang": "zh-CN",
+    "text": "找到球。"
+  },
+  {
+    "id": "ek10-prompt",
+    "lang": "en-US",
+    "text": "Find the car."
+  },
+  {
+    "id": "ek10-hint",
+    "lang": "zh-CN",
+    "text": "car 的意思是“小汽车”。"
+  },
+  {
+    "id": "ek10-explain",
+    "lang": "zh-CN",
+    "text": "找到小汽车。"
+  },
+  {
+    "id": "ek11-prompt",
+    "lang": "en-US",
+    "text": "Find the flower."
+  },
+  {
+    "id": "ek11-hint",
+    "lang": "zh-CN",
+    "text": "flower 的意思是“花”。"
+  },
+  {
+    "id": "ek11-explain",
+    "lang": "zh-CN",
+    "text": "找到花。"
+  },
+  {
+    "id": "eg0-prompt",
+    "lang": "en-US",
+    "text": "Find one red ball."
+  },
+  {
+    "id": "eg0-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 one（1），再听颜色 red（红色）。"
+  },
+  {
+    "id": "eg0-explain",
+    "lang": "zh-CN",
+    "text": "找到1个红色的球。"
+  },
+  {
+    "id": "eg1-prompt",
+    "lang": "en-US",
+    "text": "Find two red books."
+  },
+  {
+    "id": "eg1-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 two（2），再听颜色 red（红色）。"
+  },
+  {
+    "id": "eg1-explain",
+    "lang": "zh-CN",
+    "text": "找到2本红色的书。"
+  },
+  {
+    "id": "eg2-prompt",
+    "lang": "en-US",
+    "text": "Find three red balls."
+  },
+  {
+    "id": "eg2-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 three（3），再听颜色 red（红色）。"
+  },
+  {
+    "id": "eg2-explain",
+    "lang": "zh-CN",
+    "text": "找到3个红色的球。"
+  },
+  {
+    "id": "eg3-prompt",
+    "lang": "en-US",
+    "text": "Find four red books."
+  },
+  {
+    "id": "eg3-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 four（4），再听颜色 red（红色）。"
+  },
+  {
+    "id": "eg3-explain",
+    "lang": "zh-CN",
+    "text": "找到4本红色的书。"
+  },
+  {
+    "id": "eg4-prompt",
+    "lang": "en-US",
+    "text": "Find one blue ball."
+  },
+  {
+    "id": "eg4-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 one（1），再听颜色 blue（蓝色）。"
+  },
+  {
+    "id": "eg4-explain",
+    "lang": "zh-CN",
+    "text": "找到1个蓝色的球。"
+  },
+  {
+    "id": "eg5-prompt",
+    "lang": "en-US",
+    "text": "Find two blue books."
+  },
+  {
+    "id": "eg5-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 two（2），再听颜色 blue（蓝色）。"
+  },
+  {
+    "id": "eg5-explain",
+    "lang": "zh-CN",
+    "text": "找到2本蓝色的书。"
+  },
+  {
+    "id": "eg6-prompt",
+    "lang": "en-US",
+    "text": "Find three blue balls."
+  },
+  {
+    "id": "eg6-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 three（3），再听颜色 blue（蓝色）。"
+  },
+  {
+    "id": "eg6-explain",
+    "lang": "zh-CN",
+    "text": "找到3个蓝色的球。"
+  },
+  {
+    "id": "eg7-prompt",
+    "lang": "en-US",
+    "text": "Find four blue books."
+  },
+  {
+    "id": "eg7-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 four（4），再听颜色 blue（蓝色）。"
+  },
+  {
+    "id": "eg7-explain",
+    "lang": "zh-CN",
+    "text": "找到4本蓝色的书。"
+  },
+  {
+    "id": "eg8-prompt",
+    "lang": "en-US",
+    "text": "Find one green ball."
+  },
+  {
+    "id": "eg8-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 one（1），再听颜色 green（绿色）。"
+  },
+  {
+    "id": "eg8-explain",
+    "lang": "zh-CN",
+    "text": "找到1个绿色的球。"
+  },
+  {
+    "id": "eg9-prompt",
+    "lang": "en-US",
+    "text": "Find two green books."
+  },
+  {
+    "id": "eg9-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 two（2），再听颜色 green（绿色）。"
+  },
+  {
+    "id": "eg9-explain",
+    "lang": "zh-CN",
+    "text": "找到2本绿色的书。"
+  },
+  {
+    "id": "eg10-prompt",
+    "lang": "en-US",
+    "text": "Find three green balls."
+  },
+  {
+    "id": "eg10-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 three（3），再听颜色 green（绿色）。"
+  },
+  {
+    "id": "eg10-explain",
+    "lang": "zh-CN",
+    "text": "找到3个绿色的球。"
+  },
+  {
+    "id": "eg11-prompt",
+    "lang": "en-US",
+    "text": "Find four green books."
+  },
+  {
+    "id": "eg11-hint",
+    "lang": "zh-CN",
+    "text": "先听数量 four（4），再听颜色 green（绿色）。"
+  },
+  {
+    "id": "eg11-explain",
+    "lang": "zh-CN",
+    "text": "找到4本绿色的书。"
+  }
+]

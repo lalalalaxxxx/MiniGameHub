@@ -50,7 +50,7 @@ test('Lobby: discovery, recent navigation, storage resilience and tablet layouts
     await page.evaluate(()=>localStorage.setItem('childgame.lobby.recent.v1','broken'));await page.reload();await page.waitForSelector('.card');assert(await page.locator('#recent').isHidden());
     await context.addInitScript(()=>{Storage.prototype.getItem=()=>{throw Error('disabled');};Storage.prototype.setItem=()=>{throw Error('disabled');};});
     await page.reload();await page.waitForSelector('.card');assert.equal(await page.locator('.card').count(),games.length);
-    await page.locator('.card').first().click();await page.waitForURL('**/games/sudoku/index.html');await page.goBack();
+    await page.locator('.card[data-game="sudoku"]').click();await page.waitForURL('**/games/sudoku/index.html');await page.goBack();
     assert.deepEqual(errors,[]);
     await page.route('**/games/manifest.json',route=>route.fulfill({status:500,body:'error'}));await page.reload();
     assert(await page.locator('#grid .empty').isVisible());

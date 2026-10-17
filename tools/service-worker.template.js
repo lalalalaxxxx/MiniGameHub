@@ -93,6 +93,26 @@ self.addEventListener("message", event => {
   })());
 });
 
+// Safari's native audio player requests byte ranges, including while offline.
+async function cachedResponse(request, cached) {
+  const range = request.headers.get("Range");
+  if (!range || !/\.(mp3|wav)$/i.test(new URL(request.url).pathname)) return cached;
+  const bytes = await cached.arrayBuffer();
+  const size = bytes.byteLength;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
+  const start = match && match[1] ? Number(match[1]) : match && match[2] ? Math.max(0, size - Number(match[2])) : NaN;
+  const end = match && match[1] && match[2] ? Math.min(size - 1, Number(match[2])) : size - 1;
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || start >= size || end < start) {
+    return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${size}` } });
+  }
+  const headers = new Headers(cached.headers);
+  headers.delete("Content-Encoding");
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
+  headers.set("Content-Length", String(end - start + 1));
+  return new Response(bytes.slice(start, end + 1), { status: 206, headers });
+}
+
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
@@ -105,7 +125,7 @@ self.addEventListener("fetch", event => {
   if (!FILES.has(url.href)) return;
   event.respondWith((async () => {
     const cached = await (await caches.open(CACHE)).match(url.href);
-    if (cached) return cached;
+    if (cached) return cachedResponse(request, cached);
     // Cache storage can be removed by the browser. Do not cache an unverified
     // network response into this immutable release.
     try { return await fetch(request, { cache: "no-store" }); }

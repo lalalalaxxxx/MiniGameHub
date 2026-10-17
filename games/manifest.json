@@ -1,5 +1,56 @@
 [
   {
+    "id": "hanzi",
+    "title": "汉字小侦探",
+    "blurb": "听一听，发现汉字的小秘密 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "识字",
+      "汉字",
+      "形近字",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/hanzi/cover.svg",
+    "entry": "games/hanzi/index.html"
+  },
+  {
+    "id": "mathtrain",
+    "title": "数学小火车",
+    "blurb": "数一数，让知识装满小火车 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "数学",
+      "加减",
+      "乘法",
+      "装货",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/mathtrain/cover.svg",
+    "entry": "games/mathtrain/index.html"
+  },
+  {
+    "id": "englishisland",
+    "title": "英语寻宝岛",
+    "blurb": "竖起耳朵，听英语找宝物 · 幼儿园 / 二年级",
+    "category": "学习",
+    "tags": [
+      "英语",
+      "English",
+      "单词",
+      "颜色",
+      "数量",
+      "幼儿园",
+      "二年级",
+      "语音"
+    ],
+    "cover": "games/englishisland/cover.svg",
+    "entry": "games/englishisland/index.html"
+  },
+  {
     "id": "sudoku",
     "title": "小小数独",
     "blurb": "从 4×4 开始，和数字一起练习观察与推理",

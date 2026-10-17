@@ -13,7 +13,7 @@ const recentEl = document.querySelector("#recent");
 const recentList = document.querySelector("#recent-list");
 const resetEl = document.querySelector("#reset");
 const recentKey = "childgame.lobby.recent.v1";
-const icons = { 全部: "✦", 益智: "🧩", 休闲: "🌈", 经典: "🎮", 反应: "⚡", 动作: "🚀", 生活: "🍱", 观察: "🔎", 音乐: "♫" };
+const icons = { 全部: "✦", 学习: "📚", 益智: "🧩", 休闲: "🌈", 经典: "🎮", 反应: "⚡", 动作: "🚀", 生活: "🍱", 观察: "🔎", 音乐: "♫" };
 const aliases = { shooter: "飞机 打飞机 射击", quietbook: "换装 公主 娃娃", tangram: "七巧板 拼图", market: "购物 买东西 算钱 数学", robot: "编程 路线", bento: "做饭 厨房", memory: "翻牌 配对", rhythm: "乐器 音乐", sudoku: "数字 数学", pipes: "水管 接水", bridge: "搭桥 建造", patterns: "规律 排序" };
 let recents = [];
 function readRecents() {
@@ -72,7 +72,7 @@ function visibleGames() {
 function renderGrid() {
   const list = visibleGames();
   countEl.textContent = `${list.length} 个游戏`;
-  document.querySelector("#library-title").textContent = state.query ? "搜索结果" : state.category === "全部" ? "全部游戏" : `${state.category}游戏`;
+  document.querySelector("#library-title").textContent = state.query ? "搜索结果" : state.category === "全部" ? "全部游戏" : state.category === "学习" ? "学习乐园 · 幼儿园 / 二年级" : `${state.category}游戏`;
   resetEl.hidden = !state.query && state.category === "全部";
   renderRecent();
   emptyEl.hidden = list.length !== 0;

@@ -97,6 +97,19 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
       }
       return true;
     }, { base, audioFiles }));
+    // Native Safari audio needs range responses, even with the network disabled.
+    const narration = audioFiles.find(asset => asset.path.includes('/academy/'));
+    assert(narration);
+    const expected = fs.readFileSync(path.join(root, narration.path));
+    for (const [range, start, end] of [['bytes=0-1',0,1],['bytes=3-',3,expected.length-1],['bytes=-8',expected.length-8,expected.length-1]]) {
+      const result = await lobby.evaluate(async ({ url, range }) => {
+        const r = await fetch(url, { headers: { Range: range } });
+        return { status: r.status, range: r.headers.get('Content-Range'), bytes: [...new Uint8Array(await r.arrayBuffer())] };
+      }, { url: base + narration.path, range });
+      assert.equal(result.status,206); assert.equal(result.range,`bytes ${start}-${end}/${expected.length}`);
+      assert.deepEqual(result.bytes,[...expected.subarray(start,end+1)]);
+    }
+    assert.equal(await lobby.evaluate(async url => (await fetch(url,{headers:{Range:'bytes=99999999-'}})).status,base+narration.path),416);
     if (!supportsAudio) console.log('NOTE this WebKit build has no Web Audio API; verified all offline audio bytes instead of decoding');
     for (const game of games) {
       const page = await context.newPage();
