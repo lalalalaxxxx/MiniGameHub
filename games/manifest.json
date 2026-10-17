@@ -1,5 +1,14 @@
 [
   {
+    "id": "sudoku",
+    "title": "小小数独",
+    "blurb": "从 4×4 开始，和数字一起练习观察与推理",
+    "category": "益智",
+    "tags": ["单人", "触摸"],
+    "cover": "games/sudoku/cover.svg",
+    "entry": "games/sudoku/index.html"
+  },
+  {
     "id": "quietbook",
     "title": "软软生活安静书",
     "blurb": "换装、吃饭、布置小屋，搭配自己的故事",

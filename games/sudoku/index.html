@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f7f4eb"><meta name="apple-mobile-web-app-capable" content="yes"><title>小小数独 · 软软游戏屋</title><link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png"><link rel="manifest" href="../../manifest.webmanifest"><link rel="stylesheet" href="game.css"></head>
+<body>
+<header><a href="../../index.html">‹ 回大厅</a><div><span class="eyebrow">LITTLE NUMBER GARDEN</span><h1>小小数独</h1></div><button id="sound" type="button">开启声音</button></header>
+<main>
+<section class="play"><nav aria-label="选择难度"><button data-mode="first">4×4 入门</button><button data-mode="easy">6×6 练习</button><button data-mode="challenge">6×6 挑战</button></nav><div class="board-heading"><span id="level"></span><span id="progress"></span></div><div id="board" role="group" aria-label="数独棋盘"></div><p class="legend">深色数字是题目 · 蓝色数字由你填写</p><div id="success" hidden role="status"><strong>每一行、每一列、每一宫都正确！</strong><span>你完成了一次认真思考，真棒。</span><button id="next">再玩一题</button></div></section>
+<aside><div class="intro"><span class="eyebrow">一步一步，找到答案</span><h2>数字的小花园</h2><p id="rule-summary"></p></div><p id="selection">先点一个空格，再选数字。</p><div id="numbers" aria-label="填写数字"></div><div class="tools"><button id="notes" aria-pressed="false">✎ 草稿关</button><button id="erase">擦除</button><button id="undo" disabled>撤销</button><button id="check">检查一下</button></div><div class="help"><p id="message" role="status">不着急，先找空格最少的一行。</p><button id="hint">给我一点提示</button></div><div class="bottom"><button id="rules">怎么玩</button><button id="symbols" aria-pressed="true">图形辅助开</button><button id="restart">换一道题</button></div><p id="saved">进度自动保存，可以随时休息。</p></aside>
+</main>
+<dialog id="dialog"><h2 id="dialog-title"></h2><p id="dialog-text"></p><div><button id="cancel">继续这一题</button><button id="confirm">确定</button></div></dialog>
+<script src="engine.js"></script><script src="../../assets/js/audio.js"></script><script src="game.js"></script><script src="../../assets/js/offline.js"></script>
+</body></html>
