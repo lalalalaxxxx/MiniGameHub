@@ -16,7 +16,7 @@ const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function release(label) {
   const files = new Map(assets.map(({ path: file }) => {
     let bytes = fs.readFileSync(path.join(root, file));
-    if (file.endsWith('.html')) bytes = Buffer.from(bytes.toString().replace('<body>', `<body data-test-release="${label}">`));
+    if (file.endsWith('.html')) bytes = Buffer.from(bytes.toString().replace(/<body(\s[^>]*)?>/i, (_, attributes = '') => `<body data-test-release="${label}"${attributes}>`));
     return [file, bytes];
   }));
   const manifest = assets.map(({ path: file }) => ({ path: file, sha256: hash(files.get(file)) }));
@@ -101,7 +101,7 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
     for (const game of games) {
       const page = await context.newPage();
       await page.goto(base + `games/${game}/index.html?v=old-bookmark`);
-      if (supportsAudio) await page.waitForFunction(count => window.__audioDecoded === count, ['quietbook','sudoku'].includes(game) ? 12 : 13).catch(async error => {
+      if (supportsAudio) await page.waitForFunction(count => window.__audioDecoded === count, ['snake','2048','tetris','whack','shooter','racing','watermelon'].includes(game) ? 13 : 12).catch(async error => {
         console.error(game, await page.evaluate(() => ({ decoded: window.__audioDecoded, errors: window.__audioDecodeErrors,
           audio: performance.getEntriesByType('resource').filter(r => r.name.includes('/audio/')).map(r => r.name) })));
         throw error;

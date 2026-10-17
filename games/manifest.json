@@ -4,7 +4,10 @@
     "title": "小小数独",
     "blurb": "从 4×4 开始，和数字一起练习观察与推理",
     "category": "益智",
-    "tags": ["单人", "触摸"],
+    "tags": [
+      "单人",
+      "触摸"
+    ],
     "cover": "games/sudoku/cover.svg",
     "entry": "games/sudoku/index.html"
   },
@@ -13,7 +16,10 @@
     "title": "软软生活安静书",
     "blurb": "换装、吃饭、布置小屋，搭配自己的故事",
     "category": "休闲",
-    "tags": ["单人", "拖拽"],
+    "tags": [
+      "单人",
+      "拖拽"
+    ],
     "cover": "games/quietbook/cover.svg",
     "entry": "games/quietbook/index.html"
   },
@@ -22,7 +28,10 @@
     "title": "贪吃蛇",
     "blurb": "吃到果子就会变长，别咬到自己",
     "category": "经典",
-    "tags": ["单人", "触摸"],
+    "tags": [
+      "单人",
+      "触摸"
+    ],
     "cover": "games/snake/cover.svg",
     "entry": "games/snake/index.html"
   },
@@ -31,7 +40,10 @@
     "title": "2048",
     "blurb": "把相同的数字滑到一起，合成更大的",
     "category": "益智",
-    "tags": ["单人", "滑动"],
+    "tags": [
+      "单人",
+      "滑动"
+    ],
     "cover": "games/2048/cover.svg",
     "entry": "games/2048/index.html"
   },
@@ -40,7 +52,10 @@
     "title": "俄罗斯方块",
     "blurb": "旋转彩色方块，拼满一整行",
     "category": "经典",
-    "tags": ["单人", "触摸"],
+    "tags": [
+      "单人",
+      "触摸"
+    ],
     "cover": "games/tetris/cover.svg",
     "entry": "games/tetris/index.html"
   },
@@ -49,7 +64,10 @@
     "title": "打地鼠",
     "blurb": "眼疾手快，找到探头的小地鼠",
     "category": "反应",
-    "tags": ["单人", "触摸"],
+    "tags": [
+      "单人",
+      "触摸"
+    ],
     "cover": "games/whack/cover.svg",
     "entry": "games/whack/index.html"
   },
@@ -58,7 +76,10 @@
     "title": "星星大战",
     "blurb": "驾驶小飞船，发射星星保卫天空",
     "category": "动作",
-    "tags": ["单人", "触摸"],
+    "tags": [
+      "单人",
+      "触摸"
+    ],
     "cover": "games/shooter/cover.svg",
     "entry": "games/shooter/index.html"
   },
@@ -67,7 +88,10 @@
     "title": "彩虹赛车",
     "blurb": "左右换道，安全避开前方车辆",
     "category": "动作",
-    "tags": ["单人", "触摸"],
+    "tags": [
+      "单人",
+      "触摸"
+    ],
     "cover": "games/racing/cover.svg",
     "entry": "games/racing/index.html"
   },
@@ -76,8 +100,131 @@
     "title": "水果合成",
     "blurb": "让相同水果碰一碰，合成大水果",
     "category": "休闲",
-    "tags": ["单人", "触摸"],
+    "tags": [
+      "单人",
+      "触摸"
+    ],
     "cover": "games/watermelon/cover.svg",
     "entry": "games/watermelon/index.html"
+  },
+  {
+    "id": "pipes",
+    "title": "小小水管工",
+    "blurb": "转动水管，把清水送到小花园",
+    "category": "益智",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/pipes/cover.svg",
+    "entry": "games/pipes/index.html"
+  },
+  {
+    "id": "tangram",
+    "title": "图形拼拼乐",
+    "blurb": "转一转七巧板，拼出自己的小作品",
+    "category": "益智",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/tangram/cover.svg",
+    "entry": "games/tangram/index.html"
+  },
+  {
+    "id": "market",
+    "title": "小小超市",
+    "blurb": "按清单购物，学会数数、付款和找零",
+    "category": "生活",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/market/cover.svg",
+    "entry": "games/market/index.html"
+  },
+  {
+    "id": "robot",
+    "title": "小动物编程",
+    "blurb": "排好前进和转弯指令，带小兔回家",
+    "category": "益智",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/robot/cover.svg",
+    "entry": "games/robot/index.html"
+  },
+  {
+    "id": "bento",
+    "title": "便当小厨房",
+    "blurb": "照着要求搭配一份丰富的小便当",
+    "category": "生活",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/bento/cover.svg",
+    "entry": "games/bento/index.html"
+  },
+  {
+    "id": "shadow",
+    "title": "影子侦探",
+    "blurb": "从影子、局部和线索里发现答案",
+    "category": "观察",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/shadow/cover.svg",
+    "entry": "games/shadow/index.html"
+  },
+  {
+    "id": "patterns",
+    "title": "规律小火车",
+    "blurb": "找出颜色、图形与数字的重复规律",
+    "category": "益智",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/patterns/cover.svg",
+    "entry": "games/patterns/index.html"
+  },
+  {
+    "id": "memory",
+    "title": "记忆翻翻牌",
+    "blurb": "翻开卡片，找到有联系的好朋友",
+    "category": "观察",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/memory/cover.svg",
+    "entry": "games/memory/index.html"
+  },
+  {
+    "id": "bridge",
+    "title": "桥梁小工程师",
+    "blurb": "铺好桥面、加上桥墩，让小车过河",
+    "category": "益智",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/bridge/cover.svg",
+    "entry": "games/bridge/index.html"
+  },
+  {
+    "id": "rhythm",
+    "title": "节奏小乐队",
+    "blurb": "听一听、敲一敲，还能录下自己的音乐",
+    "category": "音乐",
+    "tags": [
+      "单人",
+      "触摸"
+    ],
+    "cover": "games/rhythm/cover.svg",
+    "entry": "games/rhythm/index.html"
   }
 ]
