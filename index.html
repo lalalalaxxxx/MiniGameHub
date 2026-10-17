@@ -64,20 +64,25 @@
       <div class="hero-copy">
         <p class="eyebrow">给小朋友的小游戏</p>
         <h1>软软游戏屋</h1>
-        <p class="lead">点一张卡片，就能开始玩</p>
+        <p class="lead">动动脑，玩一会儿，发现新本领</p>
       </div>
     </header>
 
     <div class="toolbar">
-      <div id="filters" class="filters" role="tablist" aria-label="游戏分类"></div>
       <label class="search">
-        <span class="sr">搜索游戏</span>
-        <input id="search" type="search" placeholder="找游戏" enterkeyhint="search" autocomplete="off">
+        <span aria-hidden="true">⌕</span><span class="sr">搜索游戏</span>
+        <input id="search" type="search" placeholder="想玩什么？搜名字、飞机、换装…" enterkeyhint="search" autocomplete="off">
       </label>
+      <div id="filters" class="filters" role="group" aria-label="游戏分类"></div>
     </div>
 
-    <p id="count" class="count">游戏正在赶来…</p>
-    <main id="grid" class="grid"></main>
+    <section id="recent" class="recent" aria-labelledby="recent-title" hidden>
+      <div class="section-heading"><h2 id="recent-title">最近玩过</h2><span>喜欢的游戏，再玩一次</span></div>
+      <div id="recent-list" class="recent-list"></div>
+    </section>
+    <div class="section-heading library-heading"><h2 id="library-title">全部游戏</h2><button id="reset" type="button" hidden>查看全部</button></div>
+    <p id="count" class="count" role="status">游戏正在赶来…</p>
+    <main id="grid" class="grid" aria-labelledby="library-title"></main>
     <p id="empty" class="empty" hidden>没有找到这个游戏，换个词试试</p>
     <footer class="foot">最高分记在这台 iPad 上</footer>
   </div>

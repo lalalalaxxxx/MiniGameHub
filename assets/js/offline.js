@@ -22,7 +22,7 @@
     button.type = "button";
     button.hidden = true;
     panel.append(text, button);
-    document.querySelector("#count").before(panel);
+    (document.querySelector(".library-heading") || document.querySelector("#count")).before(panel);
   }
 
   function render() {
