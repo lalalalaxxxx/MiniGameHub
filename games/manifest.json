@@ -1,5 +1,14 @@
 [
   {
+    "id": "quietbook",
+    "title": "软软生活安静书",
+    "blurb": "换装、吃饭、布置小屋，搭配自己的故事",
+    "category": "休闲",
+    "tags": ["单人", "拖拽"],
+    "cover": "games/quietbook/cover.svg",
+    "entry": "games/quietbook/index.html"
+  },
+  {
     "id": "snake",
     "title": "贪吃蛇",
     "blurb": "吃到果子就会变长，别咬到自己",

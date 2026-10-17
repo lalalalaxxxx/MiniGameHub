@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fbf5e9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="软软游戏屋">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="game.css">
+  <title>软软生活安静书 · 软软游戏屋</title>
+</head>
+<body>
+  <header class="book-header">
+    <a class="pill back" href="../../index.html">‹ 回大厅</a>
+    <div class="book-title"><span class="eyebrow">MY LITTLE QUIET BOOK</span><h1>软软生活安静书</h1></div>
+    <button class="pill" id="sound" type="button" aria-pressed="false">开启声音</button>
+  </header>
+  <nav class="themes" aria-label="故事主题">
+    <button type="button" data-theme="garden">🌱 植物守卫</button>
+    <button type="button" data-theme="fairy">♡ 萌系精灵</button>
+    <button type="button" data-theme="snow">❄ 冰雪公主</button>
+  </nav>
+  <main class="workspace">
+    <section class="book" aria-label="我的生活场景">
+      <nav class="pages" aria-label="生活场景">
+        <button type="button" data-scene="wardrobe">01 换装衣柜</button>
+        <button type="button" data-scene="dining">02 小小餐厅</button>
+        <button type="button" data-scene="home">03 温馨小屋</button>
+      </nav>
+      <div class="scene-wrap">
+        <svg id="scene" viewBox="0 0 1000 650" aria-label="互动场景，选择贴纸后点这里放置">
+          <defs>
+            <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="14" cy="14" r="1.5" fill="#806a56" opacity=".09"/></pattern>
+            <filter id="paper-shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="6" stdDeviation="3" flood-color="#6b5543" flood-opacity=".14"/></filter>
+          </defs>
+          <g id="backdrop"></g><g id="actor"></g><g id="stickers"></g><g id="night"></g><g id="drag-layer" pointer-events="none"></g>
+        </svg>
+        <span class="scene-note" id="scene-note">今天想穿什么呢？</span>
+      </div>
+      <div class="character-bar">
+        <div id="characters" class="small-buttons" aria-label="选择角色"></div>
+        <div class="small-buttons"><button type="button" id="hair">换发型</button><button type="button" id="face">换表情</button><button type="button" id="pose" hidden>坐一坐</button><button type="button" id="light" hidden>关灯</button></div>
+      </div>
+    </section>
+    <aside class="drawer" aria-label="贴纸盒">
+      <div class="drawer-heading"><div><span class="eyebrow">PICK & PLAY</span><h2>贴纸小抽屉</h2></div><span id="item-count"></span></div>
+      <div id="categories" class="categories" aria-label="贴纸分类"></div>
+      <div id="tray" class="tray"></div>
+      <div class="examples"><span>试试这样玩</span><div><button type="button" data-preset="day">去出门</button><button type="button" data-preset="picnic">吃点心</button><button type="button" data-preset="night">说晚安</button></div></div>
+    </aside>
+  </main>
+  <footer class="tools">
+    <p id="hint" role="status">拖一拖贴纸，或者先点贴纸，再点场景。</p>
+    <div class="tool-buttons"><button type="button" id="undo" disabled>↶ 撤销</button><button type="button" id="remove" disabled>收回选中</button><button type="button" id="clear">清空本页</button></div>
+    <span id="save-status">搭配会自动保存</span>
+  </footer>
+  <div class="modal" id="confirm" hidden>
+    <section role="dialog" aria-modal="true" aria-labelledby="confirm-title"><h2 id="confirm-title">收起这一页？</h2><p>其他页面会保留，也可以用“撤销”找回来。</p><div><button type="button" id="cancel-clear">继续玩</button><button type="button" id="confirm-clear">收起来</button></div></section>
+  </div>
+  <script src="art.js"></script>
+  <script src="../../assets/js/audio.js"></script>
+  <script src="game.js"></script>
+  <script src="../../assets/js/offline.js"></script>
+</body>
+</html>

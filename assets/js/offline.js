@@ -40,7 +40,7 @@
       button.textContent = "重试";
       button.hidden = !navigator.onLine;
     } else if (ready) {
-      text.textContent = navigator.onLine ? "离线已就绪 · 7 款游戏和声音已保存" : "当前离线 · 7 款游戏可正常玩";
+      text.textContent = navigator.onLine ? "离线已就绪 · 全部游戏和声音已保存" : "当前离线 · 全部游戏可正常玩";
       button.textContent = "检查更新";
       button.hidden = !navigator.onLine;
     } else text.textContent = navigator.onLine ? "正在准备离线游戏…" : "请先联网打开一次，保存离线游戏";

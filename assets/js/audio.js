@@ -3,7 +3,7 @@
 const gameAudioBaseURL = new URL("../audio/", document.currentScript.src);
 
 // One mixer per page. Only a real touch/click/key gesture resumes Web Audio.
-window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () => false }) {
+window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () => false, music = true }) {
   const base = gameAudioBaseURL;
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
   const customEffects = {
@@ -74,7 +74,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
       musicGain.gain.cancelScheduledValues(context.currentTime);
       musicGain.gain.setTargetAtTime(targetLevel, context.currentTime, voices.size ? .015 : .18);
     }
-    if (!allowed || !isPlaying() || context.state !== "running") {
+    if (!music || !allowed || !isPlaying() || context.state !== "running") {
       stopMusic();
       return;
     }
@@ -121,7 +121,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
       effectGain.connect(context.destination);
       context.addEventListener("statechange", sync);
     }
-    for (const name of [...effects, "music"]) {
+    for (const name of [...effects, ...(music ? ["music"] : [])]) {
       if (!retry && failures.has(name)) continue;
       const folder = customEffects[game]?.includes(name) ? game + "/" : "";
       load(name, name === "music" ? game + ".mp3" : folder + name + ".wav");

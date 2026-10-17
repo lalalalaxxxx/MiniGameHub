@@ -7,6 +7,7 @@ const http = require('node:http');
 const { chromium, webkit } = require('playwright');
 
 const root = path.resolve(__dirname, '..');
+const games = JSON.parse(fs.readFileSync(path.join(root, 'games/manifest.json'), 'utf8')).map(g => g.id);
 const generated = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const assets = JSON.parse(generated.match(/^const ASSETS = (.+);$/m)[1]);
 const template = fs.readFileSync(path.join(root, 'tools/service-worker.template.js'), 'utf8');
@@ -73,7 +74,7 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
     });
     await lobby.goto(base);
     await ready(lobby);
-    assert.equal(await lobby.locator('.card').count(), 7);
+    assert.equal(await lobby.locator('.card').count(), games.length);
     assert.equal(await version(lobby), deployed.version);
     await lobby.evaluate(() => caches.open('another-app-cache'));
     console.log('PASS first installation saves the complete release');
@@ -81,7 +82,7 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
     await context.setOffline(true);
     await lobby.reload();
     await ready(lobby);
-    assert.equal(await lobby.locator('.card').count(), 7);
+    assert.equal(await lobby.locator('.card').count(), games.length);
     // Windows Playwright WebKit omits Web Audio. Still verify every cached sound
     // byte in that engine; Chromium (and WebKit builds with audio) also decode it.
     const supportsAudio = await lobby.evaluate(() => !!(window.AudioContext || window.webkitAudioContext));
@@ -97,16 +98,16 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
       return true;
     }, { base, audioFiles }));
     if (!supportsAudio) console.log('NOTE this WebKit build has no Web Audio API; verified all offline audio bytes instead of decoding');
-    for (const game of ['snake', '2048', 'tetris', 'whack', 'shooter', 'racing', 'watermelon']) {
+    for (const game of games) {
       const page = await context.newPage();
       await page.goto(base + `games/${game}/index.html?v=old-bookmark`);
-      if (supportsAudio) await page.waitForFunction(() => window.__audioDecoded === 13).catch(async error => {
+      if (supportsAudio) await page.waitForFunction(count => window.__audioDecoded === count, game === 'quietbook' ? 12 : 13).catch(async error => {
         console.error(game, await page.evaluate(() => ({ decoded: window.__audioDecoded, errors: window.__audioDecodeErrors,
           audio: performance.getEntriesByType('resource').filter(r => r.name.includes('/audio/')).map(r => r.name) })));
         throw error;
       });
       assert.equal(await page.locator('body').getAttribute('data-test-release'), 'A');
-      await page.locator(game === 'whack' ? '#mainAction' : '#restart').click();
+      await page.locator(game === 'quietbook' ? '[data-preset="picnic"]' : game === 'whack' ? '#mainAction' : '#restart').click();
       if (game === 'snake') await page.keyboard.press('ArrowUp');
       await page.waitForFunction(state => document.querySelector('#sound').dataset.audioState === state, supportsAudio ? 'on' : 'unsupported');
       await page.close();
@@ -119,7 +120,7 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
     await alias.goto(base + 'games/tetris/');
     if (supportsAudio) await alias.waitForFunction(() => window.__audioDecoded === 13);
     await alias.close();
-    console.log('PASS offline reopen, all seven games and their audio, directory/query aliases');
+    console.log('PASS offline reopen, all games and their audio, directory/query aliases');
 
     await context.setOffline(false);
     const gameTab = await context.newPage();
