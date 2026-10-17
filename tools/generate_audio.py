@@ -1,5 +1,10 @@
-"""Rebuild original game music/effects: pip install numpy imageio-ffmpeg."""
+"""Retro synth audio. Needs numpy and imageio-ffmpeg.
+
+Tetris: public-domain Korobeiniki folk melody, newly arranged here.
+All other melodies/effects are original. No commercial recordings/samples.
+"""
 from pathlib import Path
+import math
 import subprocess
 import tempfile
 import wave
@@ -8,79 +13,174 @@ import imageio_ffmpeg
 
 ROOT = Path(__file__).resolve().parents[1] / 'assets' / 'audio'
 RATE = 24000
-ROOT.mkdir(parents=True, exist_ok=True)
+RNG = np.random.default_rng(1989)
 
 
-def note(midi, length, kind='bell'):
-    t = np.arange(int(length * RATE)) / RATE
-    f = 440 * 2 ** ((midi - 69) / 12)
-    attack = np.minimum(t / .008, 1)
-    release = np.minimum((length - t) / .05, 1)
-    if kind == 'bass':
-        signal = np.sin(2*np.pi*f*t) + .18*np.sin(4*np.pi*f*t)
-        envelope = np.exp(-t*4)
+def envelope(length, attack=.006, release=.035):
+    t = np.arange(round(length * RATE)) / RATE
+    return t, np.minimum(t / attack, 1) * np.minimum((length-t) / release, 1)
+
+
+def oscillator(phase, kind):
+    if kind == 'pulse':
+        # Limited odd harmonics: handheld tone without a harsh square-wave buzz.
+        return (np.sin(phase) + .22*np.sin(3*phase) + .08*np.sin(5*phase)) / 1.3
+    if kind == 'triangle':
+        return np.sin(phase) - np.sin(3*phase)/9 + np.sin(5*phase)/25
+    if kind == 'pluck':
+        return np.sin(phase) + .18*np.sin(2*phase)
+    return np.sin(phase)
+
+
+def note(midi, length, kind='triangle'):
+    t, env = envelope(length)
+    frequency = 440 * 2 ** ((midi-69)/12)
+    decay = np.exp(-t * (9 if kind == 'pluck' else 2.5))
+    return oscillator(2*np.pi*frequency*t, kind) * env * decay
+
+
+def sweep(start, end, length, kind='pulse'):
+    t, env = envelope(length, .003, min(.04, length/3))
+    frequencies = start * (end/start) ** (t/length)
+    return oscillator(2*np.pi*np.cumsum(frequencies)/RATE, kind) * env * np.exp(-t*5)
+
+
+def noise(length, cutoff=1400):
+    t, env = envelope(length, .002, .04)
+    raw = RNG.uniform(-1, 1, len(t))
+    width = max(3, RATE//cutoff)
+    return np.convolve(raw, np.ones(width)/width, mode='same') * env * np.exp(-t*12)
+
+
+def add(track, sound, seconds, gain=1, loop=True):
+    indexes = round(seconds*RATE) + np.arange(len(sound))
+    if loop:
+        np.add.at(track, indexes % len(track), sound*gain)
     else:
-        signal = np.sin(2*np.pi*f*t) + .24*np.sin(4*np.pi*f*t)*np.exp(-t*8)
-        signal += .08*np.sin(6*np.pi*f*t)*np.exp(-t*12)
-        envelope = np.exp(-t*(5 if kind == 'bell' else 9))
-    return signal * attack * release * envelope
+        valid = indexes < len(track)
+        track[indexes[valid]] += sound[valid]*gain
 
 
-def add(track, sound, seconds, gain):
-    start = int(seconds * RATE)
-    # Wrap the decay into the start of the loop, keeping the seam continuous.
-    indexes = (start + np.arange(len(sound))) % len(track)
-    np.add.at(track, indexes, sound * gain)
+def normalize(data, peak, rms=None):
+    scale = peak / max(np.max(np.abs(data)), 1e-9)
+    if rms:
+        scale = min(scale, rms / max(np.sqrt(np.mean(data**2)), 1e-9))
+    return data*scale
 
 
 def wav(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    assert np.max(np.abs(data)) < .96
     with wave.open(str(path), 'wb') as out:
         out.setparams((1, 2, RATE, 0, 'NONE', 'not compressed'))
-        out.writeframes((np.clip(data, -.95, .95)*32767).astype('<i2').tobytes())
+        out.writeframes((data*32767).astype('<i2').tobytes())
 
 
-# Distinct pentatonic motifs with an eight-bar tonic / vi / IV / V progression.
-THEMES = {
-    'snake': (110, 60, [0, 4, 7, 9, 7, 4, 2, 4, 7, 12, 9, 7, 4, 2, 4, 0]),
-    '2048': (88, 62, [7, 4, 2, 0, 4, 7, 12, 9, 7, 4, 9, 7, 4, 2, 0, 2]),
-    'tetris': (118, 60, [0, 7, 4, 7, 2, 9, 4, 9, 7, 12, 9, 7, 4, 7, 2, 0]),
-    'whack': (122, 65, [0, 0, 7, 4, 2, 2, 9, 7, 4, 7, 12, 7, 9, 4, 2, 0]),
-    'shooter': (116, 62, [0, 7, 12, 7, 9, 4, 7, 2, 4, 9, 12, 9, 7, 4, 2, 7]),
-    'racing': (126, 60, [0, 4, 7, 12, 9, 7, 4, 7, 2, 4, 9, 12, 7, 4, 2, 0]),
-    'watermelon': (96, 65, [4, 7, 9, 7, 4, 2, 0, 4, 2, 7, 4, 9, 7, 4, 2, 0]),
-}
-for game, (bpm, root, motif) in THEMES.items():
-    beat = 60 / bpm
-    track = np.zeros(round(32 * beat * RATE))
-    for bar in range(8):
-        chord = [(0, 4, 7), (-3, 0, 4), (-7, -3, 0), (-5, -1, 2)][bar // 2]
-        for step in range(8):
-            time = (bar*4 + step*.5)*beat
-            pitch = root + 12 + motif[(bar*4+step) % len(motif)]
-            if step != 7 or bar % 2:
-                add(track, note(pitch, .65), time, .16 if step % 2 == 0 else .10)
-            add(track, note(root+chord[step % 3], .4, 'pluck'), time, .055)
-        for step in (0, 2):
-            add(track, note(root-12+chord[0], .7, 'bass'), (bar*4+step)*beat, .14)
-        for step in (1, 3):
-            add(track, note(root+24, .07, 'pluck'), (bar*4+step)*beat, .035)
+def music(game, bpm, melody, bass, kind, percussion=False):
+    beat = 60/bpm
+    beats = math.ceil(sum(duration for _, duration in melody)/4)*4
+    track = np.zeros(round(beats*beat*RATE))
+    cursor = 0
+    for pitch, duration in melody:
+        if pitch is not None:
+            add(track, note(pitch, duration*beat*.80, kind), cursor*beat, .18)
+        cursor += duration
+    for bar in range(beats//4):
+        root = bass[bar % len(bass)]
+        for offset in (0, 2):
+            add(track, note(root, beat*.65, 'triangle'), (bar*4+offset)*beat, .10)
+        if percussion:
+            for offset in (1, 3):
+                add(track, noise(.055, 2400), (bar*4+offset)*beat, .06)
+    track = normalize(track, .32, .085)
     with tempfile.TemporaryDirectory() as temp:
         source = Path(temp)/'loop.wav'
         wav(source, track)
         subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), '-v', 'error', '-y', '-i', str(source),
                         '-codec:a', 'libmp3lame', '-b:a', '80k', str(ROOT/(game+'.mp3'))], check=True)
 
-EFFECTS = {
-    'move': ([72, 76], .035), 'rotate': ([72, 79], .07),
-    'drop': ([60, 48], .07), 'collect': ([79, 84, 88], .07),
-    'merge': ([72, 76, 79, 84], .065), 'clear': ([72, 76, 79, 84, 88], .085),
-    'hit': ([79, 67], .045), 'crash': ([48, 43, 36], .09),
-    'start': ([72, 76, 79], .085), 'finish': ([79, 76, 72, 67, 72], .12),
-    'over': ([67, 64, 60, 48], .13), 'shoot': ([88, 81], .025),
-}
-for name, (notes, step) in EFFECTS.items():
-    track = np.zeros(int((len(notes)*step+.22)*RATE))
+
+def phrase(pitches, durations):
+    assert len(pitches) == len(durations)
+    return list(zip(pitches, durations))
+
+
+def make_music():
+    # Sparse two-channel patterns instead of continuous high-pitched arpeggios.
+    music('snake', 100, phrase(
+        [72, 76, 79, None, 76, 74, 72, None, 74, 77, 81, None, 79, 76, 72, None],
+        [1, .5, .5, 2]*4)*2, [48, 48, 53, 55], 'pulse')
+    music('2048', 76, phrase(
+        [64, None, 67, None, 69, None, 67, None, 65, None, 64, None, 62, None, 60, None],
+        [1, 3]*8), [48, 45, 53, 55], 'pluck')
+    folk = phrase(
+        [76, 71, 72, 74, 72, 71, 69, 69, 72, 76, 74, 72,
+         71, 72, 74, 76, 72, 69, 69, None,
+         74, 77, 81, 79, 77, 76, 72, 76, 74, 72,
+         71, 71, 72, 74, 76, 72, 69, 69, None],
+        [1, .5, .5, 1, .5, .5, 1, .5, .5, 1, .5, .5,
+         1.5, .5, 1, 1, 1, 1, 1, 1,
+         1.5, .5, 1, .5, .5, 1.5, .5, 1, .5, .5,
+         1, .5, .5, 1, 1, 1, 1, 1, 1])
+    music('tetris', 112, folk, [45, 45, 40, 45, 50, 45, 40, 45], 'pulse')
+    music('whack', 112, phrase(
+        [72, 76, 79, 76, None, 74, 77, 81, 77, None,
+         76, 79, 84, 79, None, 77, 74, 71, 72, None],
+        [.5, .5, .5, .5, 2]*4)*2, [48, 50, 53, 55], 'pluck', True)
+    music('shooter', 116, phrase(
+        [69, 76, 81, None, 79, 76, 72, None, 65, 72, 77, None, 71, 76, 68, None],
+        [.5, .5, 1, 2]*4)*2, [45, 48, 41, 40], 'pulse', True)
+    music('racing', 124, phrase(
+        [60, 67, 72, 67, None, 64, 69, 76, 69, None,
+         65, 72, 77, 72, None, 67, 74, 79, 74, None],
+        [.5, .5, .5, .5, 2]*4)*2, [36, 45, 41, 43], 'triangle', True)
+    music('watermelon', 88, phrase(
+        [72, 76, 79, None, 76, 74, 72, None, 69, 72, 77, None, 74, 71, 72, None],
+        [1, .5, .5, 2]*4)*2, [48, 45, 53, 55], 'pluck')
+
+
+def chime(notes, step=.065, kind='pulse'):
+    track = np.zeros(round((len(notes)*step+.16)*RATE))
     for i, pitch in enumerate(notes):
-        add(track, note(pitch, .18 if name == 'shoot' else .25, 'pluck'), i*step, .38)
-    wav(ROOT/(name+'.wav'), track)
-print('Generated 7 original music loops and 12 effects.')
+        add(track, note(pitch, step+.10, kind), i*step, loop=False)
+    return track
+
+
+def mix(*sounds):
+    out = np.zeros(max(map(len, sounds)))
+    for sound in sounds:
+        out[:len(sound)] += sound
+    return out
+
+
+def make_effects():
+    effects = {
+        'move': sweep(560, 420, .045, 'triangle'),
+        'rotate': chime([72, 79], .04),
+        'drop': mix(sweep(180, 55, .13, 'triangle'), noise(.07)*.4),
+        'collect': chime([79, 91], .055),
+        'merge': chime([72, 76, 84], .06, 'pluck'),
+        'clear': chime([72, 76, 79, 84], .055),
+        'hit': mix(sweep(240, 70, .12, 'triangle'), noise(.09)*.6),
+        'crash': mix(noise(.28)*2, sweep(120, 35, .25, 'triangle')*.5),
+        'start': chime([60, 67, 72], .09),
+        'finish': chime([72, 76, 79, 84, 79, 84], .10),
+        'over': chime([72, 67, 64, 60, 48], .12, 'triangle'),
+        'shoot': sweep(1800, 280, .075),
+        'snake/collect': chime([84, 88], .045),
+        'whack/hit': mix(sweep(430, 100, .09, 'triangle'), noise(.055)*.5),
+        'shooter/hit': mix(noise(.18)*1.6, sweep(180, 45, .16)*.5),
+        'watermelon/drop': sweep(320, 140, .11, 'sine'),
+        'watermelon/merge': mix(sweep(280, 900, .14, 'sine'), chime([79, 84], .065, 'pluck')*.3),
+        '2048/move': noise(.055, 900),
+        '2048/merge': chime([72, 79], .055, 'pluck'),
+    }
+    for name, sound in effects.items():
+        wav(ROOT/(name+'.wav'), normalize(sound, .48))
+    print(f'Generated 7 retro music loops and {len(effects)} effects.')
+
+
+if __name__ == '__main__':
+    ROOT.mkdir(parents=True, exist_ok=True)
+    make_music()
+    make_effects()

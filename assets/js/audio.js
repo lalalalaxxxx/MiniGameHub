@@ -6,6 +6,13 @@ const gameAudioBaseURL = new URL("../audio/", document.currentScript.src);
 window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () => false }) {
   const base = gameAudioBaseURL;
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
+  const customEffects = {
+    snake: ["collect"],
+    "2048": ["move", "merge"],
+    whack: ["hit"],
+    shooter: ["hit"],
+    watermelon: ["drop", "merge"],
+  };
   const buffers = new Map();
   const voices = new Set();
   const lastPlayed = new Map();
@@ -85,7 +92,9 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     if (buffers.has(name) || downloads.has(name)) return;
     const task = (async () => {
       try {
-        const response = await fetch(new URL(file, base));
+        const url = new URL(file, base);
+        url.searchParams.set("v", "retro-1");
+        const response = await fetch(url);
         if (!response.ok) throw new Error("Audio unavailable");
         buffers.set(name, await context.decodeAudioData(await response.arrayBuffer()));
         failures.delete(name);
@@ -114,7 +123,8 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     }
     for (const name of [...effects, "music"]) {
       if (!retry && failures.has(name)) continue;
-      load(name, name === "music" ? game + ".mp3" : name + ".wav");
+      const folder = customEffects[game]?.includes(name) ? game + "/" : "";
+      load(name, name === "music" ? game + ".mp3" : folder + name + ".wav");
     }
   }
 
