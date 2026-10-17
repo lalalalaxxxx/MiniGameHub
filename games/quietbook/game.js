@@ -19,6 +19,7 @@
         if(!look)continue;
         state.looks[key]={hair:clamp(Math.floor(look.hair),0,2),face:clamp(Math.floor(look.face),0,2),slots:{}};
         for(const slot of slots)if(A.catalog[look.slots?.[slot]]?.type===slot)state.looks[key].slots[slot]=look.slots[slot];
+        if(A.catalog[state.looks[key].slots.top]?.dress)delete state.looks[key].slots.bottom;
       }
       for(const room of Object.keys(categories))if(Array.isArray(saved.rooms?.[room]))state.rooms[room]=saved.rooms[room].filter(x=>x&&Object.hasOwn(A.catalog,x.id)&&!slots.includes(A.catalog[x.id].type)).slice(0,60).map((x,i)=>({uid:'saved-'+room+i,id:x.id,x:clamp(x.x,60,940),y:clamp(x.y,60,590),bites:clamp(x.bites,1,3)}));
     }
@@ -32,14 +33,28 @@
   const room=()=>state.rooms[state.scene];
   const hint=text=>{$('hint').textContent=text;};
   function save(){try{localStorage.setItem(KEY,JSON.stringify(state));$('save-status').textContent='搭配已自动保存';}catch(_){$('save-status').textContent='本次可玩，存档空间不足';}}
-  function change(fn,sound='drop'){history.push(JSON.stringify(state));if(history.length>30)history.shift();fn();save();render();audio.effect(sound,{volume:.28});}
+  function change(fn,sound='drop'){history.push(JSON.stringify(state));if(history.length>30)history.shift();fn();render();save();audio.effect(sound,{volume:.28});}
+  function equip(id){
+    const item=A.catalog[id];picked=null;selected={slot:item.type};
+    change(()=>{
+      const outfit=look().slots;outfit[item.type]=id;
+      if(item.dress)delete outfit.bottom;
+      if(item.type==='bottom'&&A.catalog[outfit.top]?.dress)outfit.top='cream-shirt';
+    },'rotate');
+    hint(`已换上${item.name}，原来的同类衣物已收起。`);
+  }
+  function choose(id){if(slots.includes(A.catalog[id].type)){equip(id);return;}picked=id;selected=null;render();hint('选好了，再点角色或场景就能放下。');}
   function actorTransform(){if(state.scene==='wardrobe')return 'translate(420 165) scale(1.2)';if(state.scene==='dining')return 'translate(145 155) scale(1.1)';if(state.pose==='sleep')return 'translate(620 300) rotate(75 110 170) scale(.85)';if(state.pose==='sit')return 'translate(150 200)';return 'translate(390 190) scale(1.1)';}
-  function sticker(x,ghost=false){const item=A.catalog[x.id],w=item.width||95;return `<g ${ghost?'class="drag-ghost"':`class="sticker" data-uid="${x.uid}"`} transform="translate(${x.x-w/2} ${x.y-w/2}) scale(${w/100})">${A.shape(item)}${!ghost&&selected?.uid===x.uid?'<rect class="selected-ring" x="0" y="0" width="100" height="100" rx="15"/>':''}${x.bites&&x.bites<3?`<text x="80" y="96" fill="#655344" font-size="16">${x.bites}</text>`:''}</g>`;}
+  function sticker(x,ghost=false){const item=A.catalog[x.id],w=item.width||95;return `<g ${ghost?'class="drag-ghost"':`class="sticker" data-uid="${x.uid}"`} transform="translate(${x.x-w/2} ${x.y-w/2}) scale(${w/100})"><rect width="100" height="100" fill="transparent"/>${A.shape(item)}${!ghost&&selected?.uid===x.uid?'<rect class="selected-ring" x="0" y="0" width="100" height="100" rx="15"/>':''}${x.bites&&x.bites<3?`<text x="80" y="96" fill="#655344" font-size="16">${x.bites}</text>`:''}</g>`;}
+  function drawActor(){
+    $('actor').setAttribute('transform',actorTransform());$('actor').innerHTML=A.character(state.theme,state.actor,look(),state.pose==='sit'&&state.scene==='home'?'sit':'stand',chewing);
+    if(selected?.slot)$('actor').querySelector(`[data-slot="${selected.slot}"]`)?.classList.add('selected-clothing');
+  }
   function render(){
     document.body.dataset.theme=state.theme;
-    for(const key of ['theme','scene'])document.querySelectorAll(`[data-${key}]`).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset[key]===state[key])));
+    for(const key of ['theme','scene'])document.querySelectorAll(`button[data-${key}]`).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset[key]===state[key])));
     $('backdrop').innerHTML=A.background(state.scene,state.theme);
-    $('actor').setAttribute('transform',actorTransform());$('actor').innerHTML=A.character(state.theme,state.actor,look(),state.pose==='sit'&&state.scene==='home'?'sit':'stand',chewing);
+    drawActor();
     $('stickers').innerHTML=[...room()].sort((a,b)=>(['plate','rug'].includes(A.catalog[b.id].shape)?1:0)-(['plate','rug'].includes(A.catalog[a.id].shape)?1:0)).map(x=>sticker(x)).join('');
     $('night').innerHTML=state.scene==='home'&&!state.light?'<rect width="1000" height="650" fill="#253652" opacity=".28" pointer-events="none"/>':'';
     $('characters').innerHTML=A.themes[state.theme].names.map((name,i)=>`<button type="button" data-actor="${i}" aria-pressed="${i===state.actor}">${name}</button>`).join('');
@@ -47,12 +62,12 @@
     const items=A.items.filter(x=>x.type===category), pageSize=innerWidth<=600?4:6, pageCount=Math.ceil(items.length/pageSize);
     trayPage%=pageCount;
     if(pageCount>1)$('categories').innerHTML+=`<button type="button" data-more="true" aria-label="下一组贴纸">更多 ${trayPage+1}/${pageCount} ›</button>`;
-    $('tray').innerHTML=items.slice(trayPage*pageSize,(trayPage+1)*pageSize).map(x=>`<button type="button" class="item" data-item="${x.id}" aria-pressed="${picked===x.id}">${A.icon(x)}<span>${x.name}</span></button>`).join('');
+    $('tray').innerHTML=items.slice(trayPage*pageSize,(trayPage+1)*pageSize).map(x=>`<button type="button" class="item" data-item="${x.id}" aria-pressed="${picked===x.id||look().slots[x.type]===x.id}">${A.icon(x)}<span>${x.name}</span></button>`).join('');
     $('item-count').textContent=items.length+' 件';
     $('pose').hidden=$('light').hidden=state.scene!=='home';
     $('pose').textContent={stand:'坐一坐',sit:'躺下来',sleep:'站起来'}[state.pose];$('light').textContent=state.light?'关灯':'开灯';
     $('undo').disabled=!history.length;$('remove').disabled=!selected;
-    $('scene-note').textContent={wardrobe:'把喜欢的衣服穿到身上',dining:'摆好餐盘，把食物送到嘴边',home:'摆玩具、盖被子，创造自己的小屋'}[state.scene];
+    $('scene-note').textContent={wardrobe:'点衣服直接换装，也可以拖到角色身上',dining:'摆好餐盘，把食物送到嘴边',home:'摆玩具、盖被子，创造自己的小屋'}[state.scene];
   }
   function point(e){return new DOMPoint(e.clientX,e.clientY).matrixTransform($('scene').getScreenCTM().inverse());}
   function actorPoint(p){return new DOMPoint(p.x,p.y).matrixTransform($('actor').getCTM().inverse().multiply($('scene').getCTM()));}
@@ -61,11 +76,11 @@
     const item=A.catalog[id],local=actorPoint(p);
     if(slots.includes(item.type)){
       if(local.x < -35 || local.x >255 || local.y < -40 || local.y >380){hint('把衣服放到角色身上哦。');return;}
-      picked=null;selected={slot:item.type};change(()=>{look().slots[item.type]=id;if(item.type==='bottom'&&A.catalog[look().slots.top]?.dress)look().slots.top='cream-shirt';},'rotate');hint('穿好啦！可以继续搭配。');return;
+      equip(id);return;
     }
     if(['food','drink'].includes(item.type)&&Math.hypot(local.x-110,local.y-115)<70){
       picked=null;selected=null;change(()=>{if(uid){const entry=room().find(x=>x.uid===uid);if(--entry.bites<=0)state.rooms[state.scene]=room().filter(x=>x.uid!==uid);}},'collect');
-      chewing=true;$('actor').classList.add('eating');clearTimeout(eatTimer);eatTimer=setTimeout(()=>{chewing=false;$('actor').classList.remove('eating');},700);hint('啊呜，好好吃！');return;
+      chewing=true;drawActor();$('actor').classList.add('eating');clearTimeout(eatTimer);eatTimer=setTimeout(()=>{chewing=false;$('actor').classList.remove('eating');drawActor();},700);hint('啊呜，好好吃！');return;
     }
     if(!uid&&room().length>=60){hint('这页已经很热闹啦，先收起一些贴纸吧。');return;}
     let x=clamp(p.x,60,940),y=clamp(p.y,60,590);
@@ -86,7 +101,7 @@
   document.addEventListener('pointerup',e=>{
     if(!drag||e.pointerId!==drag.pointer)return;const d=drag,p=point(e);cancel();
     if(d.moved){if(d.id)drop(d.id,{x:p.x+d.offset.x,y:p.y+d.offset.y},d.uid);return;}
-    if(d.palette){picked=d.id;selected=null;render();hint('选好了，再点角色或场景就能放下。');return;}
+    if(d.palette){choose(d.id);return;}
     if(picked){drop(picked,p);return;}
     selected=d.uid?{uid:d.uid}:d.target.closest('[data-slot]')?{slot:d.target.closest('[data-slot]').dataset.slot}:null;render();
   });
@@ -101,7 +116,7 @@
     if(b.dataset.actor)navigate(()=>state.actor=Number(b.dataset.actor));
     if(b.dataset.category){trayPage=0;picked=selected=null;category=b.dataset.category;render();}
     if(b.dataset.more){trayPage++;render();}
-    if(b.dataset.item&&e.detail===0){picked=b.dataset.item;selected=null;render();}
+    if(b.dataset.item&&e.detail===0)choose(b.dataset.item);
     if(b.dataset.preset){navigate(()=>{
       const preset=b.dataset.preset;
       if(preset==='day'){state.scene='wardrobe';look().slots={top:A.themes[state.theme].tops[state.actor],hat:{garden:'leaf-hat',fairy:'heart-hat',snow:'ice-hat'}[state.theme],shoes:'shoes-0',accessory:'bag-pink'};}
@@ -114,7 +129,7 @@
   $('pose').onclick=()=>change(()=>state.pose={stand:'sit',sit:'sleep',sleep:'stand'}[state.pose]);
   $('light').onclick=()=>change(()=>state.light=!state.light,'move');
   $('sound').onclick=()=>{soundOn=audio.toggle();if(soundOn)audio.unlock(true);try{localStorage.setItem('childgame.sound',soundOn?'on':'off');}catch(_){}audio.sync();};
-  $('undo').onclick=()=>{cancel();if(!history.length)return;state=JSON.parse(history.pop());category=categories[state.scene][0];picked=selected=null;save();render();hint('回到上一步啦。');};
+  $('undo').onclick=()=>{cancel();if(!history.length)return;state=JSON.parse(history.pop());category=categories[state.scene][0];picked=selected=null;render();save();hint('回到上一步啦。');};
   $('remove').onclick=()=>{if(!selected)return;change(()=>{if(selected.uid)state.rooms[state.scene]=room().filter(x=>x.uid!==selected.uid);else delete look().slots[selected.slot];selected=null;});};
   function closeDialog(){$('confirm').hidden=true;$('clear').focus();}
   $('clear').onclick=()=>{cancel();$('confirm').hidden=false;$('cancel-clear').focus();};

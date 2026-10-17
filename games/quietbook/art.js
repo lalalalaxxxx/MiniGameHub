@@ -87,19 +87,24 @@ window.BookArt = (() => {
     let headExtra="";
     if(plant&&who) headExtra=Array.from({length:12},(_,i)=>`<ellipse cx="110" cy="37" rx="14" ry="23" fill="#e7c36c" transform="rotate(${i*30} 110 91)"/>`).join("");
     if(fairy)headExtra=who?`<ellipse cx="77" cy="29" rx="16" ry="37" fill="${skin}"/><ellipse cx="145" cy="29" rx="16" ry="37" fill="${skin}"/>`:`<path d="M58 78 60 19 99 50m24 0 37-31 2 59" fill="${skin}"/>`;
-    let body=`<ellipse cx="110" cy="326" rx="62" ry="10" fill="#665648" opacity=".1"/><path d="M76 225v66h25l9-50 9 50h25v-66" fill="${skin}"/><path d="M68 152q-26 13-28 60l17 6 19-33m68-33q26 13 28 60l-17 6-19-33" fill="${skin}"/><path d="M77 143h66l10 91H67z" fill="#fff0dd"/><path d="M72 226h76v42h-33l-5-19-5 19H72z" fill="#d8c6b2"/>`;
-    if(bottom && !top?.dress)body+=`<g data-slot="bottom" transform="translate(56 200) scale(1.08 .95)">${shape(bottom)}</g>`;
-    if(top)body+=`<g data-slot="top" transform="translate(${top.dress?40:48} 126) scale(${top.dress?1.4:1.24} ${top.dress?1.85:1.35})">${shape(top)}</g>`;
+    let body=`<ellipse cx="110" cy="326" rx="62" ry="10" fill="#665648" opacity=".1"/><path d="M76 225v66h25l9-50 9 50h25v-66" fill="${skin}"/><path d="M68 152q-26 13-28 60l17 6 19-33m68-33q26 13 28 60l-17 6-19-33" fill="${skin}"/>`;
+    if(accessory?.shape==='wings')body=`<g data-slot="accessory" transform="translate(0 115) scale(2.2 1.5)">${shape(accessory)}</g>`+body;
+    // The modest default outfit is a fallback, never another layer under clothes.
+    if(!top)body+='<path data-base="top" d="M77 143h66l10 91H67z" fill="#fff0dd"/>';
+    if(!bottom&&!top?.dress)body+='<path data-base="bottom" d="M72 226h76v42h-33l-5-19-5 19H72z" fill="#d8c6b2"/>';
+    if(bottom&&!top?.dress)body+=`<g data-slot="bottom" data-item-id="${bottom.id}"><path d="${bottom.shape==='skirt'?'M73 218h74l20 66q-57 19-114 0z':'M73 218h74l8 72h-39l-6-40-6 40H65z'}" fill="${bottom.color}"/><path d="M75 225h70" stroke="#fff8e7" stroke-width="5"/></g>`;
+    if(top)body+=`<g data-slot="top" data-item-id="${top.id}"><path d="${top.dress?'M77 143 57 154 47 181 67 190 77 174 55 288q55 21 110 0l-22-114 10 16 20-9-10-27-20-11q-33 20-66 0z':'M77 143 57 154 47 181 67 190 77 174 72 230h76l-5-56 10 16 20-9-10-27-20-11q-33 20-66 0z'}" fill="${top.color}"/><path d="M78 208h64" stroke="#fff8e7" stroke-width="4"/><g transform="translate(85 ${top.dress?222:157}) scale(.5)">${motif(top.motif)}</g></g>`;
     body+=`<g data-slot="shoes" transform="translate(57 273) scale(1.06 .58)">${shape(shoes||catalog['shoes-5'])}</g>`;
     if(pose==="sit")body=`<g transform="translate(0 35) scale(1 .86)">${body}</g>`;
-    body+=`${headExtra}<circle cx="110" cy="91" r="55" fill="${skin}"/><path d="M56 85q-5-65 56-58 59-1 54 61-23-2-36-28-19 27-74 25" fill="${hair}"/>`;
+    const fringe=["M56 85q-5-65 56-58 59-1 54 61-23-2-36-28-19 27-74 25","M56 85q-5-65 56-58 59-1 54 61l-19-12-13 8-15-15-13 13-15-10-16 13z","M56 85q-5-65 56-58 59-1 54 61-30-6-56-36-15 31-54 33"][look.hair];
+    body+=`${headExtra}<circle cx="110" cy="91" r="55" fill="${skin}"/><path d="${fringe}" fill="${hair}"/>`;
     if(theme==="snow")body+=`<path d="M155 74q25 26 10 48 20 23-1 40 11 16-5 25" fill="none" stroke="${hair}" stroke-width="20" stroke-linecap="round"/><path d="m153 102 18 5m-17 22 17 5m-20 18 16 5" stroke="#bda980" opacity=".35" stroke-width="3"/>`;
     if(plant&&!who)body+=`<path d="M110 30q-34-37-37-10 10 13 37 10 14-30 32-19 2 16-32 19" fill="#86a963"/>`;
     const face=look.face;
     body+=`<g fill="#605250">${face===1?'<path d="M81 94q9-10 18 0m22 0q9-10 18 0" fill="none" stroke="#605250" stroke-width="4" stroke-linecap="round"/>':'<ellipse cx="90" cy="92" rx="5" ry="7"/><ellipse cx="130" cy="92" rx="5" ry="7"/>'}${face===2||chewing?'<ellipse cx="110" cy="115" rx="7" ry="9"/>':'<path d="M101 111q9 12 18 0" fill="none" stroke="#605250" stroke-width="3" stroke-linecap="round"/>'}</g><ellipse cx="77" cy="108" rx="10" ry="6" fill="#dc9a9b" opacity=".55"/><ellipse cx="143" cy="108" rx="10" ry="6" fill="#dc9a9b" opacity=".55"/>`;
     if(fairy)body+=`<g transform="translate(90 45) scale(.4)">${motif(who?"moon":"heart",who?"#f6df93":"#d78caf")}</g>`;
     if(hat)body+=`<g data-slot="hat" transform="translate(48 -6) scale(1.24 .85)">${shape(hat)}</g>`;
-    if(accessory){const loc=accessory.shape==="glasses"?"translate(62 65) scale(.96 .65)":accessory.shape==="scarf"?"translate(63 122) scale(.95 .8)":"translate(130 178) scale(.9)";body+=`<g data-slot="accessory" transform="${loc}">${shape(accessory)}</g>`;}
+    if(accessory&&accessory.shape!=='wings'){const loc=accessory.shape==="glasses"?"translate(62 65) scale(.96 .65)":accessory.shape==="scarf"?"translate(63 122) scale(.95 .8)":"translate(130 178) scale(.9)";body+=`<g data-slot="accessory" transform="${loc}">${shape(accessory)}</g>`;}
     return body;
   }
   function background(scene,theme) {
