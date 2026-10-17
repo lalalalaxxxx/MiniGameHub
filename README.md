@@ -10,6 +10,33 @@ python -m http.server 8934
 
 打开 `http://127.0.0.1:8934/`。
 
+## 离线与更新
+
+网站仍是静态部署，使用 Service Worker 保存完整版本，不需要后端。首次联网打开大厅，等待“离线已就绪”，七款游戏、图片、音乐和音效就都已保存。之后可以在断网时重新打开大厅或主屏幕图标，并进入此前没有玩过的游戏。首次从未下载过的设备不能离线访问；Safari 清理网站数据或回收存储后，需要重新联网保存，出发前应检查大厅状态。
+
+联网打开、恢复网络、切回页面和每五分钟会检查更新。新版所有文件都通过 SHA-256 校验后，大厅显示“更新”；点击后切换完整版本并刷新。为保护进行中的游戏，更新时需要先关闭其他游戏屋页面。下载失败仍使用旧版本，其他应用的缓存和游戏最高分不会被删除。
+
+`sw.js` 由全部公开资源的内容生成，不能手工修改。修改游戏或素材后，提交和部署前必须运行：
+
+```bash
+python tools/build_offline.py
+python tools/build_offline.py --check
+```
+
+将生成的 `sw.js` 和对应资源一起部署，通过版本目录原子切换上线。服务器对 `/minigames/` 下的响应设置 `Cache-Control: no-cache, must-revalidate`，避免浏览器的 HTTP 缓存挡住版本检查；离线副本由 Service Worker 独立管理。离线功能需要 HTTPS 或 localhost。
+
+离线与升级回归测试：
+
+```bash
+npm ci
+npx playwright install chromium webkit
+npm test
+```
+
+设置环境变量 `TEST_BROWSER=webkit` 可用 WebKit 运行同一组测试。测试覆盖全量离线访问和声音解码、旧版本号书签、多页面升级保护、失败回滚、缓存丢失后的修复。
+
+Windows 版 Playwright WebKit 不提供 Web Audio API，因此该环境验证离线音频字节完整性；实际音频解码由 Chromium 测试覆盖，实体 iPad 的系统存储行为仍需实机验证。
+
 ## 添加游戏
 
 1. 在 `games/` 下创建独立目录，并提供 `index.html`。

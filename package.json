@@ -1,0 +1,10 @@
+{
+  "name": "minigamehub",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/offline.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}
