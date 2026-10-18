@@ -12,6 +12,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     whack: ["hit"],
     shooter: ["hit"],
     watermelon: ["drop", "merge"],
+    fruitcut: ["collect"],
   };
   const buffers = new Map();
   const voices = new Set();

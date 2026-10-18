@@ -1,5 +1,20 @@
 [
   {
+    "id": "fruitcut",
+    "title": "西瓜切切乐",
+    "blurb": "手指划过水果，连切加分，还有无炸弹模式",
+    "category": "动作",
+    "tags": [
+      "切西瓜",
+      "水果忍者",
+      "切水果",
+      "多指",
+      "滑动"
+    ],
+    "cover": "games/fruitcut/cover.svg",
+    "entry": "games/fruitcut/index.html"
+  },
+  {
     "id": "hanzi",
     "title": "汉字小侦探",
     "blurb": "听一听，发现汉字的小秘密 · 幼儿园 / 二年级",
