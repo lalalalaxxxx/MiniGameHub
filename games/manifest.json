@@ -1,5 +1,35 @@
 [
   {
+    "id": "gardenwatch",
+    "title": "花园守卫队",
+    "blurb": "种下花朵伙伴，分行守护花园，六波轻松塔防",
+    "tags": [
+      "塔防",
+      "花园",
+      "守护",
+      "策略",
+      "幼儿园"
+    ],
+    "category": "塔防",
+    "cover": "games/gardenwatch/cover.svg",
+    "entry": "games/gardenwatch/index.html"
+  },
+  {
+    "id": "toydefense",
+    "title": "玩具城堡塔防",
+    "blurb": "沿弯曲小路建造箭塔、泡泡塔和冰雪塔",
+    "tags": [
+      "塔防",
+      "城堡",
+      "建造",
+      "策略",
+      "二年级"
+    ],
+    "category": "塔防",
+    "cover": "games/toydefense/cover.svg",
+    "entry": "games/toydefense/index.html"
+  },
+  {
     "id": "toyblast",
     "title": "玩具点点消",
     "blurb": "点击相连玩具，轻松收集好朋友",

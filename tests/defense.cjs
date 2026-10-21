@@ -1,0 +1,69 @@
+const { test } = require('node:test'), assert = require('node:assert/strict');
+const fs = require('node:fs'), path = require('node:path'), http = require('node:http'), os = require('node:os');
+const { chromium, webkit } = require('playwright'), C = require('../assets/js/defense-core.js');
+const placements = id => id === 'gardenwatch' ? [0, 8, 16, 24, 32] : [9, 11, 13, 25, 27, 29];
+test('Defense rules: six waves at both difficulties, economics, targeting, damage, saves and defeat', () => {
+  for (const id of ['gardenwatch', 'toydefense']) for (const difficulty of ['easy', 'normal']) {
+    const s = C.fresh(id, difficulty);
+    assert(!C.build(s, id === 'gardenwatch' ? 7 : 0, 0));
+    for (const cell of placements(id)) assert(C.build(s, cell, 0));
+    assert(!C.build(s, placements(id)[0], 0));
+    for (let wave = 1; wave <= 6; wave++) {
+      for (const t of s.towers) while (C.upgrade(s, t.cell)) {}
+      assert(C.start(s)); assert(!C.start(s));
+      let ticks = 0;
+      while (s.phase === 'running' && ticks++ < 10000) { C.tick(s, .1); assert.deepEqual(C.restore(id, s), s); }
+      assert.equal(s.wave, wave); assert.equal(s.phase, wave === 6 ? 'won' : 'ready'); assert(s.hearts > 0);
+    }
+    const won = C.clone(s); C.tick(s, .1); assert(!C.start(s)); assert.deepEqual(s, won); assert.equal(s.cleared, 72);
+  }
+  const economy = C.fresh('gardenwatch'); C.build(economy, 0, 0); C.upgrade(economy, 0); C.upgrade(economy, 0); assert(!C.upgrade(economy, 0)); assert(C.sell(economy, 0)); assert.equal(economy.coins, 189); assert(!C.sell(economy, 0));
+  const enemy = (id, p, lane) => ({ id, p, lane, hp: 100, max: 100, slow: 0 });
+  for (const type of [0, 1, 2]) {
+    const s = C.fresh('gardenwatch'); C.build(s, 0, type); C.start(s); s.spawnIn = 1; s.enemies = [enemy(1, 2, 0), enemy(2, 2.2, 0), enemy(3, 2, 3)];
+    C.tick(s, .1); assert(s.enemies[1].hp < 100); assert.equal(s.enemies[2].hp, 100); assert.equal(s.enemies[0].hp < 100, type === 1); assert.equal(s.enemies[1].slow > 0, type === 2);
+  }
+  const loss = C.fresh('toydefense', 'normal'); for (let n = 0; n < 3 && loss.phase !== 'lost'; n++) { C.start(loss); for (let i = 0; i < 10000 && loss.phase === 'running'; i++) C.tick(loss, .1); } assert.equal(loss.phase, 'lost'); assert.equal(loss.hearts, 0); const lost = C.clone(loss); C.tick(loss, .1); assert.deepEqual(loss, lost);
+  for (const raw of [null, {}, { ...C.fresh('gardenwatch'), coins: NaN }, { ...C.fresh('gardenwatch'), towers: [null] }, { ...C.fresh('gardenwatch'), enemies: [{ hp: Infinity }] }]) assert.deepEqual(C.restore('gardenwatch', raw), C.fresh('gardenwatch'));
+});
+test('Defense touch flows: full games, paused restore, upgrades, dialogs, layouts and blocked storage', { timeout: 240000 }, async () => {
+  const root = path.resolve(__dirname, '..'), mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.wav': 'audio/wav', '.svg': 'image/svg+xml' };
+  const server = http.createServer((req, res) => { const file = path.join(root, new URL(req.url, 'http://localhost').pathname); fs.readFile(file, (error, bytes) => { if (error) { res.writeHead(404); res.end(); return; } res.setHeader('Content-Type', mime[path.extname(file)] || 'application/octet-stream'); res.end(bytes); }); });
+  await new Promise(r => server.listen(0, '127.0.0.1', r));
+  const engine = process.env.TEST_BROWSER === 'webkit' ? webkit : chromium;
+  const browser = await engine.launch({ headless: true, ...(engine === chromium ? { executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' } : {}) });
+  try {
+    const ctx = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, serviceWorkers: 'block' }), page = await ctx.newPage(), errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    await page.clock.install();
+    const snap = () => page.evaluate(() => DefenseGame.snapshot()), cell = n => page.locator(`[data-cell="${n}"]`);
+    for (const id of ['gardenwatch', 'toydefense']) {
+      await page.goto(`http://127.0.0.1:${server.address().port}/games/${id}/index.html`);
+      assert.equal(await page.locator('.cell').count(), 40);
+      await page.locator('[data-type="1"]').tap(); await cell(placements(id)[0]).tap(); assert.equal((await snap()).towers[0].type, 1);
+      await page.locator('#upgrade').tap(); assert.equal((await snap()).towers[0].level, 2); await page.locator('#sell').tap(); assert.equal((await snap()).towers.length, 0);
+      await page.locator('#restart').tap(); await page.locator('#confirm').tap();
+      for (const at of placements(id)) await cell(at).tap();
+      await page.locator('#start').tap(); await page.clock.runFor(1800); await page.locator('#pause').tap(); const paused = await snap(); await page.clock.runFor(2000); assert.deepEqual(await snap(), paused);
+      await page.reload(); assert.deepEqual(await snap(), paused); assert(await page.evaluate(() => DefenseGame.paused())); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused);
+      await page.locator('#help').tap(); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused); await page.locator('#confirm').tap();
+      await page.locator('#pause').tap(); await page.locator('#speed').tap();
+      for (let wave = 1; wave <= 6; wave++) {
+        if (wave > 1) { for (const at of placements(id)) { await cell(at).tap(); while (await page.locator('#upgrade').isEnabled()) await page.locator('#upgrade').tap(); } await page.locator('#start').tap(); }
+        for (let i = 0; i < 70 && (await snap()).phase === 'running'; i++) await page.clock.runFor(1000);
+        assert.equal((await snap()).phase, wave === 6 ? 'won' : 'ready');
+      }
+      assert(await page.locator('#finish').isVisible()); const completed = await snap(); await page.reload(); assert.deepEqual(await snap(), completed);
+      await page.locator('#restart').tap(); await page.locator('#cancel').tap(); assert.deepEqual(await snap(), completed);
+      await page.locator('#difficulty').selectOption('normal'); await page.locator('#cancel').tap(); assert.equal((await snap()).difficulty, 'easy');
+      await page.locator('#difficulty').selectOption('normal'); await page.locator('#confirm').tap(); assert.equal((await snap()).difficulty, 'normal'); assert.equal((await snap()).wave, 0);
+      for (const at of placements(id)) await cell(at).tap(); await page.locator('#start').tap(); await page.clock.runFor(1500); await page.locator('#pause').tap();
+      for (const viewport of [{ width: 820, height: 1180 }, { width: 390, height: 844 }, { width: 1180, height: 820 }]) { await page.setViewportSize(viewport); assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)); const box = await cell(0).boundingBox(); assert(box.width >= 40); }
+      await page.screenshot({ path: path.join(os.tmpdir(), `defense-${id}.png`), fullPage: true });
+      await page.locator('#sound').tap(); await page.locator('#sound').tap();
+      console.log(`PASS ${id}: six waves through touch UI and paused persistence`);
+    }
+    await ctx.addInitScript(() => { Storage.prototype.getItem = () => { throw Error('blocked'); }; Storage.prototype.setItem = () => { throw Error('blocked'); }; });
+    await page.goto(`http://127.0.0.1:${server.address().port}/games/gardenwatch/index.html`); await cell(0).tap(); assert.equal((await snap()).towers.length, 1); assert.match(await page.locator('#save-status').textContent(), /无法保存/); assert.deepEqual(errors, []);
+  } finally { await browser.close(); await new Promise(r => server.close(r)); }
+});
