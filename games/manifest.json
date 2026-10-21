@@ -1,5 +1,62 @@
 [
   {
+    "id": "toyblast",
+    "title": "玩具点点消",
+    "blurb": "点击相连玩具，轻松收集好朋友",
+    "tags": [
+      "点点消",
+      "消除",
+      "玩具",
+      "幼儿园"
+    ],
+    "category": "休闲",
+    "cover": "games/toyblast/cover.svg",
+    "entry": "games/toyblast/index.html"
+  },
+  {
+    "id": "fruitgarden",
+    "title": "水果三消花园",
+    "blurb": "交换消除赚种子，离线种花装饰花园",
+    "tags": [
+      "三消",
+      "种植",
+      "放置",
+      "花园",
+      "消消乐"
+    ],
+    "category": "休闲",
+    "cover": "games/fruitgarden/cover.svg",
+    "entry": "games/fruitgarden/index.html"
+  },
+  {
+    "id": "icecream",
+    "title": "小熊冰淇淋店",
+    "blurb": "招待小熊顾客，自由搭配冰淇淋作品",
+    "tags": [
+      "冰淇淋",
+      "经营",
+      "厨房",
+      "自由创作"
+    ],
+    "category": "休闲",
+    "cover": "games/icecream/cover.svg",
+    "entry": "games/icecream/index.html"
+  },
+  {
+    "id": "aquarium",
+    "title": "我的水族馆",
+    "blurb": "邀请小鱼，喂食、布置安静的水底世界",
+    "tags": [
+      "鱼",
+      "放置",
+      "水族馆",
+      "装饰"
+    ],
+    "category": "休闲",
+    "cover": "games/aquarium/cover.svg",
+    "entry": "games/aquarium/index.html"
+  },
+  {
     "id": "fruitcut",
     "title": "西瓜切切乐",
     "blurb": "手指划过水果，连切加分，还有无炸弹模式",
