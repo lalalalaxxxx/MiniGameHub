@@ -21,7 +21,7 @@ def main():
         folder = ROOT / 'games' / game_id
         folder.mkdir(exist_ok=True)
         html = f'''<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f6f4e9"><meta name="apple-mobile-web-app-capable" content="yes"><title>{title} · 软软游戏屋</title><link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png"><link rel="manifest" href="../../manifest.webmanifest"><link rel="stylesheet" href="../../assets/css/learning.css"></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f6f4e9"><meta name="apple-mobile-web-app-capable" content="yes"><title>{title} · 软软游戏屋</title><link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png"><link rel="manifest" href="../../manifest.webmanifest"><link rel="stylesheet" href="../../assets/css/learning.css"><link rel="stylesheet" href="../../assets/css/screen-fit.css"></head>
 <body style="--accent:{accent};--pale:{pale}">
 <header><a href="../../index.html">‹ 回大厅</a><div><span class="eyebrow">PLAY · DISCOVER · GROW</span><h1>{title}</h1></div><button id="sound">开启声音</button></header>
 <div class="top-controls"><nav class="levels" aria-label="难度"><button data-level="0">轻松入门</button><button data-level="1">动脑练习</button><button data-level="2">进阶挑战</button></nav><div class="tools"><button id="undo">撤销</button><button id="help">怎么玩</button><button id="restart">换一关</button></div></div>
@@ -29,7 +29,7 @@ def main():
 <footer><p id="feedback" role="status">{intro}</p><span id="save-status">进度会自动保存</span></footer>
 <dialog id="dialog"><h2 id="dialog-title"></h2><p id="dialog-text"></p><div><button id="cancel">继续玩</button><button id="confirm" class="primary">确定</button></div></dialog>
 <script src="../quietbook/art.js"></script><script src="../../assets/js/learning-core.js"></script><script src="../../assets/js/audio.js"></script><script src="../../assets/js/learning-ui.js"></script><script src="game.js"></script><script src="../../assets/js/offline.js"></script>
-</body></html>'''
+<script src="../../assets/js/screen-fit.js"></script></body></html>'''
         (folder/'index.html').write_text(html, encoding='utf-8', newline='\n')
         cover=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450"><rect width="800" height="450" fill="{pale}"/><circle cx="100" cy="450" r="210" fill="{accent}" opacity=".12"/><circle cx="730" cy="30" r="170" fill="{accent}" opacity=".10"/><rect x="250" y="65" width="300" height="300" rx="65" fill="#fffdf7" stroke="{accent}" stroke-width="5"/><text x="400" y="270" text-anchor="middle" font-family="sans-serif" font-size="140" font-weight="bold" fill="{accent}">{symbol}</text><circle cx="180" cy="120" r="22" fill="{accent}" opacity=".4"/><path d="m640 260 15 30 34 4-25 24 6 33-30-16-30 16 6-33-25-24 34-4z" fill="#d7b665"/></svg>'''
         (folder/'cover.svg').write_text(cover, encoding='utf-8', newline='\n')

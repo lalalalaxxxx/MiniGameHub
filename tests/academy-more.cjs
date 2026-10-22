@@ -69,8 +69,9 @@ test('Five games: full touch play at both ages, drag/cancel, retry, save, sound 
           // Make an incorrect answer through the same controls used by children.
           if(kind==='clock'&&A.won(kind,q,(await saved()).work))await button('w-time',60).tap();
           if(kind==='share'||kind==='shop')await button('w-give',0).tap();
+          if(kind==='shop'&&A.won(kind,q,(await saved()).work))await button('w-give',1).tap();
           await button('w-check').tap();assert.equal((await saved()).solved,false);assert(await page.locator('.counting').isVisible());
-          if(kind==='share'||kind==='shop'){await button('w-take',0).tap();assert((await saved()).work.counts.every(n=>n===0));}
+          if(kind==='share'||kind==='shop'){for(let k=0;k<(await saved()).work.counts.length;k++)while((await saved()).work.counts[k])await button('w-take',k).tap();assert((await saved()).work.counts.every(n=>n===0));}
           await button('w-clear').tap();
           if(kind==='build'||kind==='sentence'){
             await button('w-add',0).tap();assert(await button('w-add',0).isDisabled());await button('w-remove',0).tap();

@@ -37,7 +37,11 @@
     let markup = '';
     if (tower && !garden) { const p = C.point(tower.cell); markup += `<circle cx="${p.x * 100}" cy="${p.y * 100}" r="${(C.types[tower.type].range + (tower.level - 1) * .2) * 100}" fill="#fff2" stroke="#5a7a6a66" stroke-width="3" stroke-dasharray="8 8"/>`; }
     for (const e of s.enemies) { const p = C.position(s, e); markup += `<g transform="translate(${p.x * 100},${p.y * 100})"><ellipse cy="22" rx="24" ry="8" fill="#44642a22"/><text class="enemy-icon">${garden ? '🐛' : '🧸'}</text><rect x="-23" y="-33" width="46" height="6" rx="3" fill="#ffffffcc"/><rect x="-23" y="-33" width="${46 * Math.max(0, e.hp / e.max)}" height="6" rx="3" fill="${e.slow ? '#6bafe2' : '#71a969'}"/>${e.slow ? '<text x="18" y="12" font-size="20">❄</text>' : ''}</g>`; }
-    for (const beam of beams) markup += `<line x1="${beam.from.x * 100}" y1="${beam.from.y * 100}" x2="${beam.to.x * 100}" y2="${beam.to.y * 100}" stroke="${['#ebc64c', '#e899bd', '#7dbbdc'][beam.type]}" stroke-width="${beam.type === 1 ? 10 : 5}" stroke-linecap="round" opacity=".8"/>`;
+    for (const p of s.projectiles) {
+      const color = ['#7fba42', '#e79bc6', '#76c8ef'][p.type], radius = p.type === 1 ? 12 : 8;
+      markup += `<g class="projectile" transform="translate(${p.x * 100},${p.y * 100})"><circle r="${radius}" fill="${color}" stroke="${p.type === 2 ? '#e5fbff' : '#568b34'}" stroke-width="2"/><circle cx="-3" cy="-3" r="${radius * .3}" fill="#fff9"/></g>`;
+    }
+    for (const hit of beams) markup += `<circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="${(1 - hit.life / .22) * (hit.type === 1 ? 65 : 20)}" fill="none" stroke="${['#a2c970', '#e79bc6', '#76c8ef'][hit.type]}" stroke-width="4" opacity="${hit.life / .22}"/>`;
     $('actors').innerHTML = markup;
   }
   function render() { drawCells(); panel(); status(); drawActors(); }
@@ -74,13 +78,14 @@
     if (!paused && !$('dialog').open && !document.hidden && s.phase === 'running') {
       let events = []; for (let i = 0; i < speed; i++) events.push(...C.tick(s, dt));
       beams = beams.map(v => ({ ...v, life: v.life - dt })).filter(v => v.life > 0);
-      beams.push(...events.filter(e => e.kind === 'shot').map(e => ({ ...e, life: .12 })));
+      beams.push(...events.filter(e => e.kind === 'impact').map(e => ({ ...e, life: .22 })));
       if (events.some(e => e.kind === 'shot')) audio.effect('move', { volume: .035 });
       if (events.some(e => e.kind === 'clear')) audio.effect('collect', { volume: .09 });
       if (events.some(e => e.kind === 'leak')) audio.effect('hit', { volume: .07 });
       if (events.some(e => ['wave', 'won', 'lost'].includes(e.kind))) { save(); render(); say(s.phase === 'won' ? '六波全部守住了！' : s.phase === 'lost' ? '换个布置再试试，你一定有新办法。' : '这一波完成！准备好了再开始下一波。'); audio.effect(s.phase === 'lost' ? 'over' : 'finish', { volume: .12 }); }
       elapsed += dt; paintIn += dt;
-      if (paintIn >= .08) { status(); drawActors(); paintIn = 0; const t = s.towers.find(t => t.cell === selected); const button = $('upgrade'); if (button && t) button.disabled = !['ready', 'running'].includes(s.phase) || t.level >= 3 || s.coins < t.level * 25; }
+      drawActors();
+      if (paintIn >= .08) { status(); paintIn = 0; const t = s.towers.find(t => t.cell === selected); const button = $('upgrade'); if (button && t) button.disabled = !['ready', 'running'].includes(s.phase) || t.level >= 3 || s.coins < t.level * 25; }
       if (elapsed > 2) { save(); elapsed = 0; }
     }
     requestAnimationFrame(frame);

@@ -1,0 +1,20 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const {chromium,webkit}=require('playwright');
+const data=require('../assets/js/academy-data.js'),C=require('../assets/js/academy-core.js');
+test('All game screens and lesson next buttons fit tablet viewports without page scrolling',{timeout:240000},async()=>{
+  const root=path.resolve(__dirname,'..'),server=http.createServer((req,res)=>{const file=path.join(root,new URL(req.url,'http://localhost').pathname);fs.readFile(file,(e,b)=>{res.statusCode=e?404:200;res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.wav':'audio/wav','.mp3':'audio/mpeg'})[path.extname(file)]||'application/octet-stream');res.end(b);});});
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));const engine=process.env.TEST_BROWSER==='webkit'?webkit:chromium,browser=await engine.launch({headless:true,...(engine===chromium?{executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'}:{})});
+  try{const ctx=await browser.newContext({viewport:{width:1024,height:650},hasTouch:true,serviceWorkers:'block'}),page=await ctx.newPage(),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log('PAGE ERROR',e.message);});
+    const base=`http://127.0.0.1:${server.address().port}/`;
+    async function fits(label){await page.waitForTimeout(180);const report=await page.evaluate(()=>({width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,viewport:[innerWidth,innerHeight],bad:[...document.querySelectorAll('button,a')].filter(e=>e.getClientRects().length&&!e.closest('[hidden]')&&getComputedStyle(e).visibility!=='hidden').filter(e=>{const r=e.getBoundingClientRect();return r.bottom>innerHeight+1||r.top< -1||r.right>innerWidth+1||r.left< -1;}).map(e=>e.id||e.textContent.trim()).slice(0,8)}));assert(report.width<=report.viewport[0]+1&&report.height<=report.viewport[1]+1,`${label}: overflow ${JSON.stringify(report)}`);assert.deepEqual(report.bad,[],label);}
+    for(const game of JSON.parse(fs.readFileSync(path.join(root,'games/manifest.json'),'utf8'))){await page.goto(base+game.entry);if(await page.locator('[data-action="start"]').count())await page.locator('[data-action="start"]').tap();for(const viewport of [{width:1024,height:650},{width:820,height:560},{width:768,height:1024}]){await page.setViewportSize(viewport);await fits(game.id+' '+viewport.width);}console.log('PASS screen '+game.id);}
+    await page.setViewportSize({width:1024,height:650});
+    for(const [id,config]of Object.entries(data))for(const level of [0,1]){
+      const s={...C.fresh(level),seed:11,index:2,started:true,solved:true},q=C.questions(config,level,s.seed)[s.index];s.cargo=id==='mathtrain'?q.answer:0;
+      if(config.kind)s.work=config.kind==='build'||config.kind==='sentence'?{selected:q.parts.map((_,i)=>i)}:config.kind==='clock'?{time:q.time}:{counts:config.kind==='share'?Array(q.children).fill(q.each):q.order};
+      await page.goto(base+`games/${id}/index.html`);await page.evaluate(([key,s])=>localStorage.setItem(key,JSON.stringify(s)),[`childgame.academy.${id}.v1`,s]);await page.reload();await fits(id+' solved '+level);assert(await page.locator('#next-question').isVisible());await page.locator('#next-question').tap();assert.equal(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).index,`childgame.academy.${id}.v1`),3);
+    }
+    for(const id of ['toyblast','fruitgarden','icecream','aquarium','gardenwatch','toydefense','sudoku']){await page.goto(base+`games/${id}/index.html`);const help=page.locator('#help,#rules');await help.tap();await page.waitForTimeout(120);const box=await page.locator('#confirm').boundingBox();assert(box.y>=0&&box.y+box.height<=650,id+' dialog confirm');await page.locator('#confirm').tap();}
+    assert.deepEqual(errors,[]);
+  }finally{await browser.close();await new Promise(r=>server.close(r));}
+});

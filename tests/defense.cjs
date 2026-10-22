@@ -21,7 +21,7 @@ test('Defense rules: six waves at both difficulties, economics, targeting, damag
   const enemy = (id, p, lane) => ({ id, p, lane, hp: 100, max: 100, slow: 0 });
   for (const type of [0, 1, 2]) {
     const s = C.fresh('gardenwatch'); C.build(s, 0, type); C.start(s); s.spawnIn = 1; s.enemies = [enemy(1, 2, 0), enemy(2, 2.2, 0), enemy(3, 2, 3)];
-    C.tick(s, .1); assert(s.enemies[1].hp < 100); assert.equal(s.enemies[2].hp, 100); assert.equal(s.enemies[0].hp < 100, type === 1); assert.equal(s.enemies[1].slow > 0, type === 2);
+    C.tick(s, .1); assert.equal(s.enemies[1].hp, 100); assert.equal(s.projectiles.length, 1); const shotX = s.projectiles[0].x; C.tick(s, .1); assert(s.projectiles[0].x > shotX); assert.deepEqual(C.restore(s.id, s), s); for(let i=0;i<10 && s.enemies[1].hp===100;i++)C.tick(s,.1); assert(s.enemies[1].hp < 100); assert.equal(s.enemies[2].hp, 100); assert.equal(s.enemies[0].hp < 100, type === 1); assert.equal(s.enemies[1].slow > 0, type === 2);
   }
   const loss = C.fresh('toydefense', 'normal'); for (let n = 0; n < 3 && loss.phase !== 'lost'; n++) { C.start(loss); for (let i = 0; i < 10000 && loss.phase === 'running'; i++) C.tick(loss, .1); } assert.equal(loss.phase, 'lost'); assert.equal(loss.hearts, 0); const lost = C.clone(loss); C.tick(loss, .1); assert.deepEqual(loss, lost);
   for (const raw of [null, {}, { ...C.fresh('gardenwatch'), coins: NaN }, { ...C.fresh('gardenwatch'), towers: [null] }, { ...C.fresh('gardenwatch'), enemies: [{ hp: Infinity }] }]) assert.deepEqual(C.restore('gardenwatch', raw), C.fresh('gardenwatch'));
@@ -44,7 +44,9 @@ test('Defense touch flows: full games, paused restore, upgrades, dialogs, layout
       await page.locator('#upgrade').tap(); assert.equal((await snap()).towers[0].level, 2); await page.locator('#sell').tap(); assert.equal((await snap()).towers.length, 0);
       await page.locator('#restart').tap(); await page.locator('#confirm').tap();
       for (const at of placements(id)) await cell(at).tap();
-      await page.locator('#start').tap(); await page.clock.runFor(1800); await page.locator('#pause').tap(); const paused = await snap(); await page.clock.runFor(2000); assert.deepEqual(await snap(), paused);
+      await page.locator('#start').tap(); await page.clock.runFor(2600);
+      if(id==='gardenwatch'){assert((await snap()).projectiles.length>0);assert(await page.locator('.projectile').count()>0);assert.equal(await page.locator('#actors line').count(),0);}
+      await page.locator('#pause').tap(); const paused = await snap(); await page.clock.runFor(2000); assert.deepEqual(await snap(), paused);
       await page.reload(); assert.deepEqual(await snap(), paused); assert(await page.evaluate(() => DefenseGame.paused())); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused);
       await page.locator('#help').tap(); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused); await page.locator('#confirm').tap();
       await page.locator('#pause').tap(); await page.locator('#speed').tap();

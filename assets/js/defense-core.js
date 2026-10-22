@@ -15,7 +15,7 @@
   }
   function buildable(id, cell) { return Number.isInteger(cell) && cell >= 0 && cell < 40 && (id === 'gardenwatch' ? cell % 8 < 6 : !path.includes(cell)); }
   function fresh(id, difficulty = 'easy') {
-    return { version: 1, id, difficulty, coins: difficulty === 'easy' ? 210 : 180, hearts: difficulty === 'easy' ? 20 : 12, wave: 0, phase: 'ready', towers: [], enemies: [], spawned: 0, spawnIn: 0, nextId: 1, cleared: 0 };
+    return { version: 1, id, difficulty, coins: difficulty === 'easy' ? 210 : 180, hearts: difficulty === 'easy' ? 20 : 12, wave: 0, phase: 'ready', towers: [], enemies: [], projectiles: [], spawned: 0, spawnIn: 0, nextId: 1, cleared: 0 };
   }
   function build(s, cell, type) {
     if (!['ready', 'running'].includes(s.phase) || !buildable(s.id, cell) || !types[type] || s.towers.some(t => t.cell === cell) || s.coins < types[type].cost) return false;
@@ -59,21 +59,33 @@
       }).sort((a, b) => b.p - a.p);
       if (!candidates.length) continue;
       const target = candidates[0], at = position(s, target);
-      for (const e of s.enemies) {
-        const pos = position(s, e);
-        if (e === target || (spec.splash && Math.hypot(pos.x - at.x, pos.y - at.y) < 1.5)) {
-          e.hp -= spec.damage * (1 + (t.level - 1) * .7); if (spec.slow) e.slow = 2;
-        }
-      }
-      t.cooldown = spec.delay; events.push({ kind: 'shot', from: origin, to: at, type: t.type });
+      s.projectiles.push({ x: origin.x, y: origin.y, target: target.id, tx: at.x, ty: at.y, type: t.type, damage: spec.damage * (1 + (t.level - 1) * .7), life: 3 });
+      t.cooldown = spec.delay; events.push({ kind: 'shot' });
     }
+    s.projectiles = s.projectiles.filter(p => {
+      const target = s.enemies.find(e => e.id === p.target && e.hp > 0);
+      if (target) { const at = position(s, target); p.tx = at.x; p.ty = at.y; }
+      const dx = p.tx - p.x, dy = p.ty - p.y, distance = Math.hypot(dx, dy), travel = dt * 7;
+      p.life -= dt;
+      if (distance > travel + .12 && p.life > 0) { p.x += dx / distance * travel; p.y += dy / distance * travel; return true; }
+      if (distance <= travel + .12) {
+        for (const e of s.enemies) {
+          const at = position(s, e);
+          if (e === target || (types[p.type].splash && Math.hypot(at.x - p.tx, at.y - p.ty) < 1.5)) {
+            e.hp -= p.damage; if (types[p.type].slow) e.slow = 2;
+          }
+        }
+        events.push({ kind: 'impact', x: p.tx, y: p.ty, type: p.type });
+      }
+      return false;
+    });
     for (const e of s.enemies) {
       if (e.hp <= 0) { s.coins += 7; s.cleared++; events.push({ kind: 'clear' }); }
       else if (e.p >= (s.id === 'gardenwatch' ? 8.5 : path.length - 1)) { s.hearts = Math.max(0, s.hearts - 1); events.push({ kind: 'leak' }); }
     }
     s.enemies = s.enemies.filter(e => e.hp > 0 && e.p < (s.id === 'gardenwatch' ? 8.5 : path.length - 1));
-    if (!s.hearts) { s.phase = 'lost'; events.push({ kind: 'lost' }); }
-    else if (s.spawned >= count(s) && !s.enemies.length) { s.coins += 35; s.phase = s.wave === 6 ? 'won' : 'ready'; events.push({ kind: s.phase === 'won' ? 'won' : 'wave' }); }
+    if (!s.hearts) { s.phase = 'lost'; s.projectiles = []; events.push({ kind: 'lost' }); }
+    else if (s.spawned >= count(s) && !s.enemies.length && !s.projectiles.length) { s.coins += 35; s.phase = s.wave === 6 ? 'won' : 'ready'; events.push({ kind: s.phase === 'won' ? 'won' : 'wave' }); }
     return events;
   }
   const int = (n, a, b) => Number.isInteger(n) && n >= a && n <= b;
@@ -86,7 +98,9 @@
     if (raw.towers.some(t => !t || !buildable(id, t.cell) || !int(t.type, 0, 2) || !int(t.level, 1, 3) || !num(t.cooldown, 0, 2)) || new Set(raw.towers.map(t => t.cell)).size !== raw.towers.length) return fallback();
     if (raw.enemies.some(e => !e || !int(e.id, 1, 999) || !num(e.p, 0, id === 'gardenwatch' ? 8.5 : path.length - 1) || !int(e.lane, 0, 4) || !num(e.max, 1, 100) || !num(e.hp, .00001, e.max) || !num(e.slow, 0, 2)) || new Set(raw.enemies.map(e => e.id)).size !== raw.enemies.length) return fallback();
     if ((raw.phase === 'running' && (!raw.wave || !raw.hearts)) || (raw.phase === 'won' && raw.wave !== 6) || (raw.phase === 'lost' && raw.hearts !== 0) || (raw.phase === 'ready' && (raw.enemies.length || raw.wave >= 6))) return fallback();
-    return clone(raw);
+    const shots = raw.projectiles ?? [];
+    if (!Array.isArray(shots) || shots.length > 200 || shots.some(p => !p || !num(p.x, 0, 9) || !num(p.y, 0, 5) || !num(p.tx, 0, 9) || !num(p.ty, 0, 5) || !int(p.target, 1, 999) || !int(p.type, 0, 2) || !num(p.damage, 1, 30) || !num(p.life, 0, 3))) return fallback();
+    return { ...clone(raw), projectiles: clone(shots) };
   }
   const api = { clone, path, types, point, position, buildable, fresh, build, upgrade, sell, start, count, tick, restore };
   if (typeof module !== 'undefined') module.exports = api; else root.DefenseCore = api;
