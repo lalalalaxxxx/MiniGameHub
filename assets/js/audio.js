@@ -7,6 +7,11 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   const base = gameAudioBaseURL;
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
   const customEffects = {
+    bubblepop: ["shoot", "hit", "drop", "clear", "merge", "finish", "over"],
+    brickball: ["shoot", "hit", "clear", "collect", "finish", "over"],
+    goldminer: ["shoot", "hit", "clear", "collect", "merge", "finish", "over"],
+    ropefeast: ["rotate", "drop", "move", "collect", "finish", "over"],
+    snailquest: ["drop", "collect", "finish", "over"],
     petlink: ["clear", "merge", "collect", "finish", "drop"],
     birdblast: ["clear", "merge", "collect", "finish", "drop", "glow", "fire", "lightning", "whirlwind"],
     candyland: ["clear", "merge", "collect", "finish", "drop"],

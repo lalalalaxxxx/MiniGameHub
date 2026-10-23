@@ -1,9 +1,87 @@
 [
   {
+    "id": "bubblepop",
+    "title": "萌宠泡泡龙",
+    "blurb": "瞄准彩色泡泡，救出萌宠，体验整片掉落的连消",
+    "tags": [
+      "泡泡龙",
+      "射击",
+      "宠物",
+      "消除"
+    ],
+    "category": "消除",
+    "cover": "games/bubblepop/cover.svg",
+    "entry": "games/bubblepop/index.html"
+  },
+  {
+    "id": "brickball",
+    "title": "弹球打砖块",
+    "blurb": "发射一串弹球，反弹连击，打碎数字砖块",
+    "tags": [
+      "弹球",
+      "打砖块",
+      "反弹",
+      "射击"
+    ],
+    "category": "反应",
+    "cover": "games/brickball/cover.svg",
+    "entry": "games/brickball/index.html"
+  },
+  {
+    "id": "goldminer",
+    "title": "小小黄金矿工",
+    "blurb": "看准时机放钩，抓金块、钻石和神秘宝箱",
+    "tags": [
+      "黄金矿工",
+      "抓取",
+      "宝藏",
+      "反应"
+    ],
+    "category": "休闲",
+    "cover": "games/goldminer/cover.svg",
+    "entry": "games/goldminer/index.html"
+  },
+  {
+    "id": "ropefeast",
+    "title": "糖果喂喂怪",
+    "blurb": "划断绳子，借助泡泡和风，把糖果送进嘴里",
+    "tags": [
+      "割绳子",
+      "物理",
+      "糖果",
+      "解谜"
+    ],
+    "category": "益智",
+    "cover": "games/ropefeast/cover.svg",
+    "entry": "games/ropefeast/index.html"
+  },
+  {
+    "id": "snailquest",
+    "title": "蜗牛机关冒险",
+    "blurb": "开桥、换门、乘升降台，陪小蜗牛走过十个机关关卡",
+    "tags": [
+      "蜗牛",
+      "鲍勃",
+      "机关",
+      "冒险",
+      "闯关"
+    ],
+    "category": "冒险",
+    "cover": "games/snailquest/cover.svg",
+    "entry": "games/snailquest/index.html"
+  },
+  {
     "id": "petlink",
     "title": "宠物连连看",
     "blurb": "绕个弯找到好朋友，十二关宠物配对与移动挑战",
-    "tags": ["宠物", "连连看", "配对", "动物", "观察", "消除"],
+    "tags": [
+      "宠物",
+      "连连看",
+      "配对",
+      "动物",
+      "观察",
+      "消除"
+    ],
     "category": "消除",
     "cover": "games/petlink/cover.svg",
     "entry": "games/petlink/index.html"
