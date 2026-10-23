@@ -1,5 +1,54 @@
 [
   {
+    "id": "birdblast",
+    "title": "小鸟爆破",
+    "blurb": "移动顶端小鸟，合成四种超能伙伴，体验五种模式",
+    "tags": [
+      "小鸟",
+      "爆破",
+      "拖动",
+      "三消",
+      "经典",
+      "破冰",
+      "狂热"
+    ],
+    "category": "消除",
+    "cover": "games/birdblast/cover.svg",
+    "entry": "games/birdblast/index.html"
+  },
+  {
+    "id": "candyland",
+    "title": "糖果乐园",
+    "blurb": "条纹、包装和彩色炸弹，十二关连锁甜蜜挑战",
+    "tags": [
+      "糖果",
+      "三消",
+      "Candy Crush",
+      "糖果传奇",
+      "果冻",
+      "连锁"
+    ],
+    "category": "消除",
+    "cover": "games/candyland/cover.svg",
+    "entry": "games/candyland/index.html"
+  },
+  {
+    "id": "gemquest",
+    "title": "宝石寻宝",
+    "blurb": "解开锁链、引爆宝石，把宝箱送到收集点",
+    "tags": [
+      "宝石",
+      "三消",
+      "寻宝",
+      "锁链",
+      "宝箱",
+      "策略"
+    ],
+    "category": "消除",
+    "cover": "games/gemquest/cover.svg",
+    "entry": "games/gemquest/index.html"
+  },
+  {
     "id": "gardenwatch",
     "title": "花园守卫队",
     "blurb": "花朵组队破甲减速，三档难度挑战首领",
@@ -39,7 +88,7 @@
       "玩具",
       "幼儿园"
     ],
-    "category": "休闲",
+    "category": "消除",
     "cover": "games/toyblast/cover.svg",
     "entry": "games/toyblast/index.html"
   },
@@ -54,7 +103,7 @@
       "花园",
       "消消乐"
     ],
-    "category": "休闲",
+    "category": "消除",
     "cover": "games/fruitgarden/cover.svg",
     "entry": "games/fruitgarden/index.html"
   },
