@@ -17,6 +17,8 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     gardenwatch: ["shoot", "rotate", "merge", "hit", "clear", "collect", "drop", "finish"],
     toydefense: ["shoot", "rotate", "merge", "hit", "clear", "collect", "drop", "finish"],
   };
+  const gentleGames = ["toyblast","fruitgarden","icecream","pipes","tangram","market","robot","bento","shadow","patterns","memory","bridge","hanzi","mathtrain","englishisland","wordbuilder","sentencepost","bearclock","fairshare","englishshop"];
+  const gentleEffects = ["move","rotate","drop","collect","clear","finish"];
   const buffers = new Map();
   const voices = new Set();
   const lastPlayed = new Map();
@@ -127,7 +129,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     }
     for (const name of [...effects, ...(music ? ["music"] : [])]) {
       if (!retry && failures.has(name)) continue;
-      const folder = customEffects[game]?.includes(name) ? game + "/" : "";
+      const folder = customEffects[game]?.includes(name) ? game + "/" : gentleGames.includes(game) && gentleEffects.includes(name) ? "feedback/" : "";
       load(name, name === "music" ? game + ".mp3" : folder + name + ".wav");
     }
   }

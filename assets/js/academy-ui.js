@@ -33,6 +33,7 @@
     return `<svg viewBox="0 0 200 60" aria-hidden="true">${Array.from({length:option.count},(_,i)=>book?`<g transform="translate(${8+i*48},8)"><rect width="35" height="44" rx="4" fill="${option.color}" stroke="#36575b"/><path d="M8 0v44M12 36h18" stroke="white" stroke-width="3"/></g>`:`<g transform="translate(${26+i*48},30)"><circle r="20" fill="${option.color}" stroke="#36575b"/><path d="M-14 -12Q0 -20 14 -12M-14 12Q0 20 14 12" fill="none" stroke="white" stroke-width="2"/></g>`).join('')}</svg>`;
   }
   function render() {
+    const visualBefore=GameFeedback.capture($('activity'));
     $('feedback').textContent=message||'慢慢想，试试看。没有倒计时，也不会扣分。';
     document.querySelectorAll('[data-level]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.level)===state.level)));
     $('restart').textContent=state.started?'重新出发':'开始旅程';
@@ -47,6 +48,7 @@
     else content=`${id==='hanzi'&&state.level===0?`<div class="picture" aria-hidden="true">${q.picture}</div>`:''}<div class="choices">${C.shuffle(q.options,state.seed+state.index*73).map((o,i)=>{const value=typeof o==='string'?o:o.id;return `<button class="choice ${id==='hanzi'?'hanzi':''} ${state.solved&&value===q.answer?'correct':''} ${wrong===value?'wrong':''}" data-action="choose" data-value="${escape(value)}" ${state.solved?'disabled':''}>${typeof o==='string'?escape(o):optionArt(o)+`<small>${escape(o.label)}</small>`}${state.solved&&value===q.answer?'<small>✓ 找到了</small>':''}</button>`;}).join('')}</div>`;
     $('activity').className=`activity ${id}`;
     $('activity').innerHTML=`<section class="stage"><div class="listen-row"><button id="listen" data-action="listen">🔊 听题目</button><span id="voice-status" role="status">可以反复听</span></div><h2 class="prompt">${escape(q.prompt)}</h2>${content}${state.solved?`<div class="answer-note" role="status"><strong>✓ 你做到了！</strong><p>${escape(q.explain)}</p><button data-action="explain">🔊 听解释</button><button class="primary" id="next-question" data-action="next">${state.index===5?'领取花园贴纸':'下一站 →'}</button></div>`:''}</section><aside class="guide"><h2>${config.kind?config.emoji+' '+config.title:id==='hanzi'?'🔎 侦探笔记':id==='mathtrain'?'📦 装货小帮手':'🧭 寻宝小指南'}</h2><p>${config.kind?config.guide:id==='hanzi'?'先听读音，再看看字的样子。':id==='mathtrain'?'装好的货物就是你的答案。可以加，也可以减。':state.level?'色卡上的实物颜色和数量，就是你要听清的线索。':'先听单词，再看看它对应哪件宝物。'}</p><button data-action="hint">💡 ${hint?'再听提示':'小提示'}</button>${hint?`<div class="counting"><p>${escape(q.hint)}</p>${id==='mathtrain'?diagram(q):''}</div>`:''}<p>一时没找到也没关系，慢慢试。</p></aside>`;
+    GameFeedback.update(visualBefore,$('activity'));
   }
   function reset(level) {stopVoice();state=C.fresh(level);state.started=true;list=C.questions(config,level,state.seed);prepareWork();hint=false;wrong=null;message='';save();render();say();}
   function requestReset(level) {
@@ -56,8 +58,9 @@
   let drag=null,suppressClick=0;
   function workAction(action,value){
     if(!config.kind||state.solved||state.index===6)return;
+    const beforeWork=JSON.stringify(state.work);
     state.work=activities.reduce(config.kind,list[state.index],state.work,action,value);
-    message='可以继续调整，完成后点检查。';save();render();
+    message='可以继续调整，完成后点检查。';save();render();if(JSON.stringify(state.work)!==beforeWork)audio.effect(action==='w-time'?'rotate':'drop',{volume:voice.paused?.18:.05});
     const target=[...$('activity').querySelectorAll('button[data-action]')].find(el=>el.dataset.action===action&&el.dataset.value===value&&!el.disabled);
     (target||$('activity').querySelector('[data-action="w-add"]:not(:disabled), [data-action="w-check"]:not(:disabled)'))?.focus({preventScroll:true});
   }
@@ -88,11 +91,11 @@
     if(action==='next'&&state.solved){stopVoice();state.index++;state.solved=false;state.cargo=0;delete state.work;prepareWork();hint=false;wrong=null;message='';save();render();if(state.index<6){$('listen').focus();say();}else{$('finish-title').focus();audio.effect('finish',{volume:.2});}return;}
     if(state.solved||state.index===6)return;
     if(action.startsWith('w-')&&action!=='w-check'){workAction(action,value);return;}
-    if(action==='cargo'){const n=state.cargo+Number(value);if(n<0||n>(state.level?100:10))return;state.cargo=n;message='货物调整好了，装好后点“发车检查”。';save();render();const target=$('activity').querySelector(`[data-action="cargo"][data-value="${value}"]`);if(!target.disabled)target.focus();return;}
+    if(action==='cargo'){const n=state.cargo+Number(value);if(n<0||n>(state.level?100:10))return;state.cargo=n;audio.effect('drop',{volume:voice.paused?.18:.05});message='货物调整好了，装好后点“发车检查”。';save();render();const target=$('activity').querySelector(`[data-action="cargo"][data-value="${value}"]`);if(!target.disabled)target.focus();return;}
     if(action==='choose'||action==='check'||action==='w-check'){
       stopVoice();const correct=action==='w-check'?activities.won(config.kind,q,state.work):action==='check'?state.cargo===q.answer:value===q.answer;
-      if(correct){state.solved=true;wrong=null;message='找到答案啦！听听解释，再去下一站。';save();render();$('next-question').focus();say('explain');}
-      else{wrong=value;hint=true;message=id==='mathtrain'?'还需要调整一下货物。看看提示，再数一数。':'再观察一下，看看提示，还可以继续选。';render();say('hint');const target=action==='w-check'?$('activity').querySelector('[data-action="w-check"]'):action==='check'?$('activity').querySelector('[data-action="check"]'):[...$('activity').querySelectorAll('[data-action="choose"]')].find(el=>el.dataset.value===value);target?.focus();}
+      if(correct){state.solved=true;wrong=null;message='找到答案啦！听听解释，再去下一站。';save();render();$('next-question').focus();GameFeedback.celebrate($('activity').querySelector('.stage'));if(id==='mathtrain')GameFeedback.animate($('activity').querySelector('.train'),[{translate:'0px 0px'},{translate:'30px 0px',opacity:.3},{translate:'0px 0px',opacity:1}],{duration:650});audio.effect('collect',{volume:.07});say('explain');}
+      else{wrong=value;hint=true;message=id==='mathtrain'?'还需要调整一下货物。看看提示，再数一数。':'再观察一下，看看提示，还可以继续选。';render();say('hint');const target=action==='w-check'?$('activity').querySelector('[data-action="w-check"]'):action==='check'?$('activity').querySelector('[data-action="check"]'):[...$('activity').querySelectorAll('[data-action="choose"]')].find(el=>el.dataset.value===value);target?.focus();GameFeedback.pulse(target,false);}
     }
   });
   $('restart').onclick=()=>requestReset(state.level);

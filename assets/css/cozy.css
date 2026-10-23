@@ -10,3 +10,4 @@ body[data-game=aquarium] .fish-tank.theme2{background-image:linear-gradient(#ffe
 body[data-game=aquarium] .swimmer.eating{filter:drop-shadow(0 0 5px #fff4a7)}
 body[data-game=aquarium] .side .pickers{gap:5px}
 body[data-game=aquarium] .side .pickers button{padding:6px 10px}
+.tile-face{display:inline-block;pointer-events:none;will-change:transform}
