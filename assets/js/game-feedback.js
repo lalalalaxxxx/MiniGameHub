@@ -14,7 +14,7 @@
     const key=el.dataset.fxKey||`${selector}:${el.closest('[data-value]')?.dataset.value??i}`;
     map.set(key,{el,kind});
   });return map;}
-  function capture(root){const out=new Map();for(const [key,{el,kind}] of elements(root)){
+  function capture(root){const out=new Map();out.initialized=root.childElementCount>0;for(const [key,{el,kind}] of elements(root)){
     const r=el.getBoundingClientRect();out.set(key,{kind,angle:Number(el.dataset.clockAngle),mask:el.dataset.pipeMask,html:el.innerHTML,signature:signature(el),rect:{x:r.x,y:r.y,width:r.width,height:r.height},font:getComputedStyle(el).font,el:el.cloneNode(true)});
   }return out;}
   function signature(el){return [el.innerHTML,el.getAttribute('transform'),el.getAttribute('style'),el.getAttribute('fill')].join('|');}
@@ -35,7 +35,7 @@
     if(a)a.finished.catch(()=>{}).finally(()=>el.remove());else el.remove();
   }
   function update(before,root){
-    if(!before.size||reduced.matches||document.hidden)return;
+    if(!before.initialized||reduced.matches||document.hidden)return;
     const next=elements(root);let index=0;
     for(const [key,{el,kind}]of next){const old=before.get(key),r=el.getBoundingClientRect(),changed=!old||old.signature!==signature(el);
       if(kind==='move'&&old){const dx=old.rect.x-r.x,dy=old.rect.y-r.y;if(Math.abs(dx)+Math.abs(dy)>1)animate(el,[{translate:`${dx}px ${dy}px`},{translate:'0px 0px'}],{duration:230,easing:'linear'});else if(changed)animate(el,[{rotate:'-9deg'},{rotate:'0deg'}]);continue;}
