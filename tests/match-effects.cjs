@@ -3,15 +3,8 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium,webkit}=require('playwright');
-const B=require('../assets/js/bird-core.js'),C=require('../assets/js/match-core.js');
+const C=require('../assets/js/match-core.js');
 
-function birdFixture(special){
-  const s=B.fresh('birdblast',11,741);s.board.fill(null);s.nextId=1;
-  const put=(i,color,special='')=>s.board[i]={uid:s.nextId++,kind:'normal',color,special};
-  put(45,0);put(38,0);put(30,0,special);put(37,1);put(44,2);
-  put(20,0);put(27,3);put(34,4);put(41,3);put(48,4);
-  return {label:`bird ${special}`,core:B,state:s,move:[20,3],beams:special!=='glow'};
-}
 function candyFixture(a,b){
   const s=C.fresh('candyland',0,37);
   s.board.forEach((tile,i)=>{tile.color=(Math.floor(i/7)*2+i%7)%4;tile.special='';});
@@ -19,7 +12,7 @@ function candyFixture(a,b){
   return {label:`candy ${a}+${b}`,core:C,state:s,move:[23,24],beams:a!=='bomb'||b!=='bomb'};
 }
 
-test('Special effects: eight charged combinations animate, retain cells, finish correctly and clean up',{timeout:90000},async()=>{
+test('Candy special combinations animate, retain cells, finish correctly and clean up',{timeout:90000},async()=>{
   const root=path.resolve(__dirname,'..'),types={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.wav':'audio/wav','.json':'application/json'};
   const server=http.createServer((req,res)=>{const file=path.join(root,new URL(req.url,'http://localhost').pathname);fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(error?'':data);});});
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -27,7 +20,7 @@ test('Special effects: eight charged combinations animate, retain cells, finish 
   try{
     const page=await browser.newPage({viewport:{width:1024,height:650},hasTouch:true,serviceWorkers:'block'}),base=`http://127.0.0.1:${server.address().port}/`,errors=[],missing=[];
     page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.status()>=400&&!response.url().endsWith('/favicon.ico'))missing.push(`${response.status()} ${response.url()}`);});
-    const cases=['glow','fire','lightning','whirlwind'].map(birdFixture).concat([['row','col'],['bomb','row'],['bomb','bomb'],['rainbow','rainbow']].map(([a,b])=>candyFixture(a,b)));
+    const cases=[['row','col'],['bomb','row'],['bomb','bomb'],['rainbow','rainbow']].map(([a,b])=>candyFixture(a,b));
     for(const fixture of cases){
       const {core,state,move,label,beams}=fixture,id=state.id,expected=core.clone(state);
       assert.deepEqual(core.restore(id,state),state,`${label}: legal stored state`);

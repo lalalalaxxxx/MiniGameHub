@@ -2,7 +2,7 @@
   "name": "minigamehub",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.cjs"
+    "test": "node --test --test-concurrency=1 tests/*.cjs"
   },
   "devDependencies": {
     "playwright": "1.64.1"

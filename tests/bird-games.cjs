@@ -1,128 +1,73 @@
 'use strict';
-
-const {test}=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const http=require('node:http');
-const {chromium,webkit}=require('playwright');
-const C=require('../assets/js/bird-core.js');
-const clone=C.clone,KEY='childgame.match.birdblast.v1';
-
-test('Bird browser: top-only column moves, frozen birds, multi-touch, all modes and real stage completion',{timeout:150000},async()=>{
-  const root=path.resolve(__dirname,'..'),types={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.wav':'audio/wav','.json':'application/json'};
-  const server=http.createServer((req,res)=>{const file=path.join(root,new URL(req.url,'http://localhost').pathname);fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(error?'':data);});});
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-  const engine=process.env.TEST_BROWSER==='webkit'?webkit:chromium;
-  const browser=await engine.launch({headless:true,...(engine===chromium?{executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'}:{})});
-  try{
-    const page=await browser.newPage({viewport:{width:1024,height:650},hasTouch:true,serviceWorkers:'block'});
-    const base=`http://127.0.0.1:${server.address().port}/`,errors=[],missing=[];
-    page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.status()>=400&&!response.url().endsWith('/favicon.ico'))missing.push(`${response.status()} ${response.url()}`);});
-    const snap=()=>page.evaluate(()=>MatchGame.snapshot());
-    const idle=()=>page.waitForFunction(()=>window.MatchGame&&!MatchGame.busy(),null,{timeout:15000});
-    const cell=i=>page.locator(`#cells [data-cell="${i}"]`);
-    async function install(s){
-      assert.deepEqual(C.restore('birdblast',s),s,'browser fixtures must satisfy the real save schema');
-      // Leave the previous game before writing; its pagehide handler saves once.
-      await page.goto(base+'index.html');await page.evaluate(([key,state])=>localStorage.setItem(key,JSON.stringify(state)),[KEY,s]);
-      await page.goto(base+'games/birdblast/index.html');await idle();assert.deepEqual(await snap(),s);
-    }
-    async function clickMove(move){for(const i of move)await cell(i).tap();await idle();}
-    async function drag(move){
-      const a=await cell(move[0]).boundingBox(),b=await cell(move[1]).boundingBox();
-      await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:6});await page.mouse.up();
-    }
-    const initial=C.fresh('birdblast',0,37);
-    await install(initial);assert.equal(await page.locator('#cells [data-cell]').count(),49);assert.equal(await page.locator('#mode option').count(),5);
-    assert.equal(await page.locator('#levels option').count(),12);
-    const buried=C.top(initial,0)+7;await drag([buried,6]);await idle();assert.deepEqual(await snap(),initial,'a buried bird cannot be dragged');
-    await page.locator('#hint').tap();assert.deepEqual(await snap(),initial);assert.equal(await page.locator('#cells .hinted').count(),2);
-
-    // A bird may cross several columns. This is a stack rearrangement, not an
-    // adjacent swap, and it must be accepted without an immediate match.
-    let rearrange;
-    for(let from=0;from<7&&!rearrange;from++)for(let to=0;to<7&&!rearrange;to++){
-      if(Math.abs(from-to)<3)continue;const s=clone(initial),move=[C.top(s,from),to],r=C.play(s,...move);
-      if(r.ok&&!r.total)rearrange={move,state:s};
-    }
-    assert(rearrange);await drag(rearrange.move);assert(await page.evaluate(()=>MatchGame.busy()));
-    const moved=await snap();assert.deepEqual(moved,rearrange.state);
-    await page.evaluate(()=>{document.querySelector('#cells [data-cell="42"]').click();document.querySelector('#cells [data-cell="0"]').click();});
-    assert.deepEqual(await snap(),moved,'busy board rejects a second action');await idle();
-    await page.locator('#undo').tap();assert.deepEqual(await snap(),initial);
-    await page.waitForTimeout(420);
-
-    const hint=C.hint(initial),expected=clone(initial);assert(C.play(expected,...hint).ok);
-    await page.evaluate(([a,b])=>{
-      const from=document.querySelector(`#cells [data-cell="${a}"]`),to=document.querySelector(`#cells [data-cell="${b}"]`),other=document.querySelector('#cells [data-cell="48"]');
-      const r=from.getBoundingClientRect(),t=to.getBoundingClientRect(),o=other.getBoundingClientRect();
-      const pointer=(el,type,id,primary,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:id,isPrimary:primary,button:0,buttons:type==='pointerup'?0:1,clientX:x,clientY:y}));
-      pointer(from,'pointerdown',51,true,r.x+r.width/2,r.y+r.height/2);
-      pointer(other,'pointerdown',52,false,o.x+o.width/2,o.y+o.height/2);pointer(other,'pointerup',52,false,o.x+o.width/2,o.y+o.height/2);
-      pointer(from,'pointermove',51,true,t.x+t.width/2,t.y+t.height/2);pointer(from,'pointerup',51,true,t.x+t.width/2,t.y+t.height/2);
-    },hint);
-    assert.deepEqual(await snap(),expected,'secondary touch cannot take over the first drag');
-    assert(await page.evaluate(()=>MatchGame.busy()));
-    await page.reload();await idle();assert.deepEqual(await snap(),expected,'reloading during an explosion restores the whole completed move');
-
-    const ice=C.fresh('birdblast',0,37,'ice'),frozenTop=C.top(ice,0),oldIce=ice.covers.findIndex(Boolean);
-    ice.covers[oldIce]=0;ice.covers[frozenTop]=1;await install(ice);await drag([frozenTop,6]);await idle();assert.deepEqual(await snap(),ice,'frozen top bird cannot be dragged');
-
-    await install(initial);
-    for(const mode of ['classic','pandora','ice','fever','practice']){
-      const before=await snap();await page.locator('#mode').selectOption(mode);assert(await page.locator('#dialog').evaluate(el=>el.open));
-      await page.locator('#cancel').tap();assert.deepEqual(await snap(),before);assert.equal(await page.locator('#mode').inputValue(),before.mode);
-      await page.locator('#mode').selectOption(mode);await page.locator('#confirm').tap();assert.equal((await snap()).mode,mode);
-      if(['classic','pandora','fever'].includes(mode)){await page.locator('#pause').tap();assert(await page.evaluate(()=>MatchGame.paused()));}
-    }
-
-    await page.emulateMedia({reducedMotion:'reduce'});
-    for(const mode of ['practice','ice']){
-      const s=C.fresh('birdblast',0,37,mode);await install(s);let dry=0,last=-1;
-      for(let step=0;step<80&&s.phase==='playing';step++){
-        dry=s.score===last?dry+1:0;last=s.score;
-        if(dry===8){const change=C.shuffle(s);if(change.ok){await page.locator('#shuffle').tap();await idle();assert.deepEqual(await snap(),s);}dry=0;}
-        const move=C.hint(s);assert(move);assert(C.play(s,...move).ok);await clickMove(move);assert.deepEqual(await snap(),s);
-      }
-      assert.equal(s.phase,'won',`${mode} opening is completed through legal moves`);assert(await page.locator('#result').isVisible());assert(await page.locator('#next').isVisible());
-      await page.reload();await idle();assert.deepEqual(await snap(),s);assert(await page.locator('#result').isVisible());
-      const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('childgame.match.birdblast.v1.progress')));assert(progress[`${mode}:0`]>=s.score);
-      await page.locator('#next').tap();assert.equal((await snap()).level,1);assert.equal((await snap()).mode,mode);assert.equal((await snap()).movesUsed,0);
-    }
-    assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
-  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const {chromium,webkit}=require('playwright'),C=require('../assets/js/bird-core.js'),KEY='childgame.birdblast.v2';
+async function setup(){
+ const root=path.resolve(__dirname,'..'),types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.wav':'audio/wav','.json':'application/json','.svg':'image/svg+xml'};
+ const server=http.createServer((req,res)=>{let f=new URL(req.url,'http://local').pathname.replace(/^\/minigames\//,'/');if(f.endsWith('/'))f+='index.html';fs.readFile(path.join(root,f),(e,b)=>{res.writeHead(e?404:200,{'Content-Type':types[path.extname(f)]||'application/octet-stream'});res.end(e?'':b);});});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const engine=process.env.TEST_BROWSER==='webkit'?webkit:chromium,browser=await engine.launch({headless:true,...(engine===chromium?{executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'}:{})});
+ const page=await browser.newPage({viewport:{width:1024,height:650},hasTouch:true,serviceWorkers:'block'}),base=`http://127.0.0.1:${server.address().port}/minigames/`,errors=[],missing=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('favicon.ico'))missing.push(r.url());});
+ const snap=()=>page.evaluate(()=>BirdGame.snapshot()),cell=i=>page.locator(`[data-cell="${i}"]`);
+ async function install(s){assert.deepEqual(C.restore(s),s);await page.goto(base+'index.html');await page.evaluate(([key,s])=>localStorage.setItem(key,JSON.stringify(s)),[KEY,s]);await page.goto(base+'games/birdblast/index.html');await page.waitForFunction(()=>window.BirdGame);assert.deepEqual(await snap(),s);}
+ async function drag(a,b){const from=await cell(a).boundingBox(),to=await cell(b).boundingBox();await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:5});await page.mouse.up();}
+ async function close(){await browser.close();await new Promise(r=>server.close(r));assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);}
+ return{page,base,engine,browser,snap,cell,install,drag,close};
+}
+function fixture(mode='practice'){
+ const s=C.fresh(mode,37);s.board.fill(null);s.charges=[];s.supplyLeft=100;
+ const put=(i,color=0,special='',extra={})=>s.board[i]={uid:s.nextId++,kind:'bird',color,special,lock:0,hp:0,loot:'',...extra};return{s,put};
+}
+test('Bird UI: side grabs, live append window, secondary touch, cancelled drag, real effects and persistence',{timeout:90000},async()=>{
+ const h=await setup(),{page,snap,install,drag,cell}=h;try{
+  const f=fixture();f.put(63,1);const bird=f.put(56,0);f.put(49,2);f.put(69,3);await install(f.s);await page.locator('#resume').tap();await drag(56,4);assert.equal((await snap()).board[67].uid,bird.uid);assert.equal((await snap()).moves,1);
+  const a=fixture();a.put(63);a.put(64);a.put(66);a.put(67);a.put(69,2);await install(a.s);await page.locator('#resume').tap();
+  await page.evaluate(()=>{
+   const el=i=>document.querySelector(`[data-cell="${i}"]`);
+   const point=i=>{const r=el(i).getBoundingClientRect();return[r.x+r.width/2,r.y+r.height/2];};
+   const pointer=(type,id,i,x,y,primary=true)=>el(i).dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:id,pointerType:'touch',isPrimary:primary,button:0,clientX:x,clientY:y}));
+   let p=point(66),q=point(65);pointer('pointerdown',11,66,...p);pointer('pointerdown',12,69,...point(69),false);pointer('pointerup',12,69,...point(69),false);pointer('pointermove',11,66,...q);pointer('pointerup',11,66,...q);
+   p=point(67);q=point(66);pointer('pointerdown',13,67,...p);pointer('pointermove',13,67,...q);pointer('pointerup',13,67,...q);
+   p=point(69);q=point(68);pointer('pointerdown',14,69,...p);pointer('pointermove',14,69,...q);pointer('pointercancel',14,69,...q);
+  });
+  const pending=await snap();assert.equal(pending.moves,2);assert.equal(pending.charges[0].uids.length,4);assert(pending.board[69]);
+  await page.locator('#pause').tap();const frozen=await snap();await page.reload();assert.deepEqual(await snap(),frozen,'reload retains pending match and the remaining append window');assert(await page.evaluate(()=>BirdGame.paused()));await page.locator('#resume').tap();
+  await page.waitForFunction(()=>BirdGame.snapshot().score>0);assert((await snap()).board.some(b=>b?.special==='glow'));
+  await page.waitForFunction(()=>!BirdGame.busy());assert.equal((await snap()).moves,2);
+  const memory=await page.evaluate(()=>({buttons:document.querySelectorAll('#cells button').length,fx:BirdGame.effects()}));assert.equal(memory.buttons,70);assert(memory.fx.particles<=180&&memory.fx.beams<=16);
+  await page.locator('#hint').tap();assert(await page.locator('.hinted').count()>0);
+  await page.locator('#help').tap();const help=await snap();await page.waitForTimeout(200);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
+  await page.locator('#restart').tap();await page.locator('#cancel').tap();assert.equal((await snap()).moves,2);
+ }finally{await h.close();}
 });
-
-test('Bird browser: classic rise/topout and timed pause, dialog, background, reload and expiry',{timeout:90000},async()=>{
-  const root=path.resolve(__dirname,'..'),server=http.createServer((req,res)=>{const file=path.join(root,new URL(req.url,'http://localhost').pathname);fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.wav':'audio/wav','.json':'application/json'})[path.extname(file)]||'application/octet-stream'});res.end(error?'':data);});});
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const engine=process.env.TEST_BROWSER==='webkit'?webkit:chromium;
-  const browser=await engine.launch({headless:true,...(engine===chromium?{executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'}:{})});
-  try{
-    const page=await browser.newPage({viewport:{width:1024,height:650},hasTouch:true,serviceWorkers:'block'}),base=`http://127.0.0.1:${server.address().port}/`,errors=[];
-    page.on('pageerror',error=>errors.push(error.message));const snap=()=>page.evaluate(()=>MatchGame.snapshot());
-    async function install(s){assert.deepEqual(C.restore('birdblast',s),s);await page.goto(base+'index.html');await page.evaluate(([key,s])=>localStorage.setItem(key,JSON.stringify(s)),[KEY,s]);await page.goto(base+'games/birdblast/index.html');assert.deepEqual(await snap(),s);assert(await page.evaluate(()=>MatchGame.paused()));}
-    const classic=C.fresh('birdblast',0,37,'classic');classic.riseLeft=.5;await install(classic);
-    await page.waitForTimeout(650);assert.deepEqual(await snap(),classic,'restored classic waits for resume');
-    await page.locator('#pause').tap();await page.waitForFunction(()=>MatchGame.busy());
-    assert((await snap()).nextId>classic.nextId,'classic adds a bottom row');await page.waitForFunction(()=>!MatchGame.busy());
-    await page.locator('#pause').tap();const paused=await snap();await page.waitForTimeout(650);assert.deepEqual(await snap(),paused);
-    const full=C.fresh('birdblast',0,37,'classic');for(let row=0;row<7;row++)full.board[row*7]={uid:full.nextId++,kind:'normal',color:row%3,special:''};full.riseLeft=.3;
-    await install(full);await page.locator('#pause').tap();await page.waitForFunction(()=>MatchGame.snapshot().phase==='lost');assert(await page.locator('#result').isVisible());assert(await page.locator('#retry').isVisible());
-    await page.locator('#retry').tap();assert.equal((await snap()).mode,'classic');assert.equal((await snap()).phase,'playing');
-
-    for(const mode of ['pandora','fever']){
-      const s=C.fresh('birdblast',0,37,mode);s.timeLeft=4;await install(s);await page.waitForTimeout(450);assert.deepEqual(await snap(),s);
-      await page.locator('#pause').tap();await page.waitForFunction(()=>MatchGame.snapshot().timeLeft<3.7);await page.locator('#pause').tap();const stopped=await snap();
-      await page.waitForTimeout(650);assert.deepEqual(await snap(),stopped,'pause freezes the actual simulation timer');
-      await page.locator('#pause').tap();await page.locator('#help').tap();const dialog=await snap();await page.waitForTimeout(650);assert.deepEqual(await snap(),dialog,'help dialog pauses elapsed time');await page.locator('#confirm').tap();
-      await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
-      const background=await snap();assert(await page.evaluate(()=>MatchGame.paused()));await page.waitForTimeout(650);assert.deepEqual(await snap(),background,'hidden page freezes the round');
-      await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});assert(await page.evaluate(()=>MatchGame.paused()),'returning to the tab does not silently resume');
-      await page.reload();assert.deepEqual(await snap(),background);assert(await page.evaluate(()=>MatchGame.paused()),'saved timed round resumes only on request');
-      const nearEnd=C.fresh('birdblast',0,37,mode);nearEnd.timeLeft=.3;await install(nearEnd);await page.locator('#pause').tap();await page.waitForFunction(()=>MatchGame.snapshot().phase==='won');assert(await page.locator('#result').isVisible());assert.equal((await snap()).timeLeft,0);
-      await page.reload();assert.equal((await snap()).phase,'won');assert(await page.locator('#result').isVisible());
-    }
-    assert.deepEqual(errors,[]);
-  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
+test('Bird UI: ice top release and next wave, all modes, timed results, sound and viewport controls',{timeout:120000},async()=>{
+ const h=await setup(),{page,snap,install,cell}=h;try{
+  const ice=fixture('ice');ice.put(42);ice.put(49);ice.put(56,1);ice.put(43,-1,'',{kind:'ice',hp:1,loot:'clock'});ice.put(57,-1,'',{kind:'ice',hp:1,loot:'egg'});ice.s.next[0].color=0;ice.s.supplyLeft=0;
+  await install(ice.s);await page.locator('#resume').tap();await cell(35).tap();await page.waitForFunction(()=>BirdGame.snapshot().wave===2);assert((await snap()).timeLeft>75);assert.equal((await snap()).moves,1);assert.equal(await page.locator('#cells button').count(),63);
+  for(const mode of ['classic','pandora','practice','fever','ice']){
+   const s=C.fresh(mode,741);await install(s);await page.locator('#resume').tap();await page.locator('#pause').tap();const stop=await snap();await page.waitForTimeout(180);assert.deepEqual(await snap(),stop);
+   await page.locator('#mode').selectOption(mode==='classic'?'practice':'classic');await page.locator('#cancel').tap();assert.equal((await snap()).mode,mode);
+   await page.locator('#mode').selectOption(mode==='classic'?'practice':'classic');await page.locator('#confirm').tap();assert.equal((await snap()).mode,mode==='classic'?'practice':'classic');
+  }
+  for(const mode of ['pandora','fever','ice']){const s=C.fresh(mode,37);s.timeLeft=.3;await install(s);await page.locator('#resume').tap();await page.waitForFunction(()=>BirdGame.snapshot().phase!=='playing');assert(await page.locator('#overlay').isVisible());await page.locator('#resume').tap();assert.equal((await snap()).phase,'playing');}
+  await page.locator('#pause').tap();await page.locator('#sound').tap();const hasAudio=await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext));if(hasAudio){await page.waitForFunction(()=>['on','off'].includes(document.querySelector('#sound').dataset.audioState));await page.locator('#sound').tap();await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');}
+  for(const size of [{width:1024,height:650},{width:1180,height:820},{width:820,height:1180},{width:390,height:844},{width:768,height:500}]){
+   await page.setViewportSize(size);await page.waitForTimeout(100);const metrics=await page.evaluate(()=>({w:innerWidth,h:innerHeight,sw:document.documentElement.scrollWidth,sh:document.documentElement.scrollHeight,buttons:['pause','hint','shuffle','restart','help','sound'].map(id=>document.getElementById(id).getBoundingClientRect().toJSON()),board:document.querySelector('#board').getBoundingClientRect().toJSON()}));
+   assert(metrics.sw<=metrics.w+1&&metrics.sh<=metrics.h+1,JSON.stringify(metrics));for(const r of metrics.buttons)assert(r.x>=0&&r.y>=0&&r.right<=metrics.w+1&&r.bottom<=metrics.h+1,'controls fit the screen');assert(metrics.board.width>170&&metrics.board.height>250);
+  }
+  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});const hidden=await snap();await page.waitForTimeout(200);assert.deepEqual(await snap(),hidden);assert(await page.evaluate(()=>BirdGame.paused()));
+ }finally{await h.close();}
+});
+test('Bird UI: all powers animate with bounded work; play remains available during the burst',{timeout:90000},async()=>{
+ const h=await setup(),{page,snap,install}=h;try{
+  if(h.engine===chromium){const session=await page.context().newCDPSession(page);await session.send('Emulation.setCPUThrottlingRate',{rate:4});}
+  for(const special of ['glow','fire','lightning','whirlwind']){
+   const f=fixture();f.put(63,0,special);f.put(64);f.put(66);if(special!=='whirlwind')f.put(34,2);await install(f.s);await page.locator('#resume').tap();
+   await page.evaluate(()=>{window.frameTimes=[];window.oldCells=[...document.querySelectorAll('#cells button')];let last=performance.now();window.collectFrames=true;function sample(t){if(!collectFrames)return;frameTimes.push(t-last);last=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+   await h.drag(66,2);await page.waitForFunction(()=>BirdGame.effects().beams>0);const fx=await page.evaluate(()=>BirdGame.effects());assert(fx.beams<=16&&fx.rings<=16&&fx.particles<=180&&fx.ghosts<=80);
+   assert(await page.evaluate(()=>[...document.querySelectorAll('#cells button')].every(el=>!el.disabled)),'effects never disable the board');
+   await page.waitForFunction(()=>Object.entries(BirdGame.effects()).filter(([k])=>k!=='sprites').every(([,n])=>n===0));
+   const frames=await page.evaluate(()=>{collectFrames=false;return frameTimes.sort((a,b)=>a-b);});assert(frames.length>10);const p95=frames[Math.floor(frames.length*.95)];console.log(`${special}: ${frames.length} frames, p95 ${p95.toFixed(1)}ms`);assert(p95<120,'bounded rendering remains responsive under 4x CPU throttling');
+   assert(await page.evaluate(()=>oldCells.every((el,i)=>el===document.querySelectorAll('#cells button')[i])));assert((await snap()).score>0);
+  }
+ }finally{await h.close();}
 });

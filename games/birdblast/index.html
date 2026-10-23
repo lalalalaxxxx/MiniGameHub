@@ -1,60 +1,28 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#d9f0e2">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#c3e8e4"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>小鸟爆破 · 软软游戏屋</title>
-<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
-<link rel="manifest" href="../../manifest.webmanifest">
-<link rel="stylesheet" href="../../assets/css/match.css">
-</head>
-<body data-game="birdblast">
-<header>
-  <a href="../../index.html"><span aria-hidden="true">‹</span> 回大厅</a>
-  <div class="game-heading"><span class="eyebrow">BIRD BLAST</span><h1>小鸟爆破</h1></div>
-  <button id="sound" type="button" aria-pressed="false">开启声音</button>
-</header>
-<div class="toolbar">
-  <div class="pickers"><label class="level-picker"><span>关卡</span><select id="levels" aria-label="选择关卡"></select></label><label class="mode-picker"><span class="sr-only">游戏模式</span><select id="mode" aria-label="游戏模式"><option value="practice">轻松练习</option><option value="classic">经典挑战</option><option value="pandora">潘多拉</option><option value="ice">冰封世界</option><option value="fever">狂热时刻</option></select></label></div>
-  <div class="toolbar-actions"><button id="pause" type="button" disabled>暂停</button><button id="restart" type="button">重来</button><button id="help" type="button">怎么玩</button></div>
-</div>
-<main class="match-layout">
-  <section class="play-panel" aria-label="游戏区域">
-    <div id="goals" aria-label="本关目标"></div>
-    <div class="board-stage"><div class="board-wrap">
-      <canvas id="board" width="700" height="700" aria-hidden="true"></canvas>
-      <div id="cells" class="hit-grid" role="group" aria-label="游戏棋盘"></div>
-      <div id="board-message" aria-hidden="true"></div>
-    </div></div>
-    <p id="feedback" role="status" aria-live="polite">准备好，一起发现连锁的惊喜！</p>
-  </section>
-  <aside class="match-side" aria-label="关卡进度">
-    <div class="level-summary"><span class="chapter-label">小小挑战 · 大大惊喜</span><h2 id="level-title">森林里的小小合唱团</h2><p id="level-note">移动最上面的小鸟，连起同色伙伴。</p></div>
-    <div class="side-art" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="counters">
-      <div class="counter"><span id="moves-label">剩余步数</span><strong id="moves">—</strong></div>
-      <div class="counter"><span>本关得分</span><strong id="score">0</strong></div>
-      <div class="counter timer-counter" hidden><span>剩余时间</span><strong id="timer">—</strong></div>
-    </div>
-    <div class="game-actions"><button id="hint" type="button">给我提示</button><button id="shuffle" type="button">重新排列</button><button id="undo" type="button">撤回一步</button></div>
-    <p class="side-tip">想一想，再试一试。<br>每一次连锁，都是新的发现。</p>
-    <section id="result" hidden aria-labelledby="result-title">
-      <div class="result-star" aria-hidden="true">✦</div>
-      <h2 id="result-title">太棒啦！</h2><p id="result-text"></p>
-      <div class="result-actions"><button id="next" class="primary" type="button">下一关</button><button id="retry" type="button">再玩一次</button><button id="result-undo" type="button">撤回一步</button></div>
-    </section>
+<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
+<link rel="manifest" href="../../manifest.webmanifest"><link rel="stylesheet" href="../../assets/css/bird.css">
+</head><body data-game="birdblast">
+<header><a href="../../index.html">‹ 回大厅</a><h1>小鸟爆破<small>BIRD BLAST · 森林合唱团</small></h1><button id="sound" aria-pressed="false">开启声音</button></header>
+<main>
+  <section class="play-panel" aria-label="游戏区域"><div class="stage"><div class="board-wrap">
+    <canvas id="board" width="700" height="1100" aria-hidden="true"></canvas>
+    <div id="cells" class="hit-grid" role="group" aria-label="小鸟棋盘"></div>
+    <div id="overlay" class="overlay"><span class="badge" aria-hidden="true">✦</span><h2 id="overlay-title">森林合唱团</h2><p id="overlay-text">拖动小鸟，连起三个同色伙伴。再快加一只，就能合成超能小鸟！</p><button id="resume">开始游戏</button></div>
+  </div></div><p id="feedback" role="status" aria-live="polite">三只相连，抖一抖，再一起爆破！</p></section>
+  <aside class="side" aria-label="游戏控制">
+    <div class="intro"><span class="eyebrow">A LITTLE FOREST, A BIG COMBO</span><h2 id="mode-title">经典挑战</h2><p id="mode-note">抓住露出上方或侧边的小鸟，拖到空位。爆破时也能继续操作。</p></div>
+    <div class="pickers"><label>玩法<select id="mode" aria-label="游戏模式"><option value="classic">经典挑战</option><option value="ice">顶部投放 · 破冰</option><option value="pandora">潘多拉宝盒</option><option value="practice">轻松练习</option><option value="fever">狂热冲分</option></select></label><label>节奏<select id="pace" aria-label="游戏节奏"><option value="gentle">悠闲节奏</option><option value="normal">经典节奏</option></select></label></div>
+    <div class="stats"><div class="stat"><span>本局得分</span><strong id="score">0</strong></div><div class="stat"><span id="level-label">森林等级</span><strong id="level">1</strong></div><div class="stat wide"><span id="clock-label">下一排小鸟</span><strong id="clock">—</strong><div class="meter"><i id="progress"></i></div></div></div>
+    <div class="powers" aria-label="超能小鸟合成"><span><b>✦</b>4只 · 发光</span><span><b>♨</b>5只 · 燃火</span><span><b>ϟ</b>6只 · 闪电</span><span><b>◎</b>7只 · 黑洞</span></div>
+    <div class="actions"><button id="pause" class="primary">开始</button><button id="hint">提示</button><button id="shuffle">重排</button><button id="restart">重来</button><button id="help">玩法</button></div>
+    <p class="bottom-tip" id="best">留一点空位，给连锁留一点可能。</p>
   </aside>
 </main>
-<footer><span class="footer-label">慢慢玩 · 发现小小快乐</span><span id="save-status">进度会自动保存</span></footer>
-<dialog id="dialog" aria-labelledby="dialog-title"><h2 id="dialog-title"></h2><p id="dialog-text"></p><div class="dialog-actions"><button id="cancel" type="button">继续玩</button><button id="confirm" class="primary" type="button">确定</button></div></dialog>
-<script src="../../assets/js/audio.js"></script>
-<script src="../../assets/js/match-core.js"></script>
-<script src="../../assets/js/bird-core.js"></script>
-<script src="../../assets/js/match-art.js"></script>
-<script src="../../assets/js/match-ui.js"></script>
-<script src="../../assets/js/offline.js"></script>
-</body>
-</html>
+<footer><span>自由拖动 · 连锁爆破 · 离线可玩</span><span id="save-status">进度自动保存</span></footer>
+<dialog id="dialog" aria-labelledby="dialog-title"><h2 id="dialog-title"></h2><p id="dialog-text"></p><div class="dialog-actions"><button id="cancel">继续玩</button><button id="confirm" class="primary">确定</button></div></dialog>
+<script src="../../assets/js/audio.js"></script><script src="../../assets/js/bird-core.js"></script><script src="../../assets/js/bird-ui.js"></script><script src="../../assets/js/offline.js"></script>
+</body></html>

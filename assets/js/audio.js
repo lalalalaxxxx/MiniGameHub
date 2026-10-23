@@ -8,7 +8,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
   const customEffects = {
     petlink: ["clear", "merge", "collect", "finish", "drop"],
-    birdblast: ["clear", "merge", "collect", "finish", "drop"],
+    birdblast: ["clear", "merge", "collect", "finish", "drop", "glow", "fire", "lightning", "whirlwind"],
     candyland: ["clear", "merge", "collect", "finish", "drop"],
     gemquest: ["clear", "merge", "collect", "finish", "drop"],
     toyblast: ["clear"],
@@ -133,7 +133,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
       effectGain.connect(context.destination);
       context.addEventListener("statechange", sync);
     }
-    for (const name of [...effects, ...(music ? ["music"] : [])]) {
+    for (const name of new Set([...effects, ...(customEffects[game] || []), ...(music ? ["music"] : [])])) {
       if (!retry && failures.has(name)) continue;
       const folder = customEffects[game]?.includes(name) ? game + "/" : gentleGames.includes(game) && gentleEffects.includes(name) ? "feedback/" : "";
       load(name, name === "music" ? game + ".mp3" : folder + name + ".wav");

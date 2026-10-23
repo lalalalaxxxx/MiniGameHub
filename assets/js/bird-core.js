@@ -1,243 +1,171 @@
+/* Birzzle-inspired rules. Time advances only through foreground simulation ticks. */
 (function(root){
   'use strict';
-  const N=7,SIZE=N*N,MODES=['practice','classic','pandora','ice','fever'];
-  const SPECIALS=['','glow','fire','lightning','whirlwind'];
-  const clone=value=>JSON.parse(JSON.stringify(value));
-  const int=(value,min,max)=>Number.isInteger(value)&&value>=min&&value<=max;
-  const neighbors=i=>[i%N?i-1:-1,i%N<N-1?i+1:-1,i>=N?i-N:-1,i<SIZE-N?i+N:-1].filter(v=>v>=0);
+  const COLS=7,MODES=['classic','ice','pandora','practice','fever'];
+  const SPECIALS=['','glow','fire','lightning','whirlwind'],WINDOW=.73;
+  const clone=v=>JSON.parse(JSON.stringify(v));
+  const integer=(v,a,b)=>Number.isInteger(v)&&v>=a&&v<=b;
   const random=(s,n)=>{s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return Math.floor(s.rng/4294967296*n);};
-  function level(id,index=0,mode='practice'){
-    if(id!=='birdblast'||!int(index,0,11)||!MODES.includes(mode))throw new RangeError('Unknown bird game or mode');
-    const ice=mode==='ice',stage=index+1,names={practice:'小鸟练习',classic:'经典上升',pandora:'潘多拉',ice:'冰雪挑战',fever:'狂热冲分'};
-    return {name:names[mode]+' '+stage,moves:null,colors:Math.min(5,3+Math.floor(index/4)),height:Math.min(5,3+Math.floor(index/4)),coverCells:[],lockCells:[],rescueCols:[],goals:{score:ice?0:mode==='practice'?150+index*70:0,colors:[],covers:ice?4+index:0,locks:0,rescue:0}};
+  const neighbors=(s,i)=>[i%7?i-1:-1,i%7<6?i+1:-1,i>=7?i-7:-1,i<s.board.length-7?i+7:-1].filter(v=>v>=0);
+  const colors=s=>Math.min(8,4+Math.floor((s.level-1)/4));
+  const interval=s=>Math.max(s.pace==='gentle'?3.2:1.6,(s.pace==='gentle'?13:9)-Math.log2(s.level+1)*1.1);
+  const threshold=s=>30+Math.min(90,(s.level-1)*5);
+  const tier=n=>n>=7?'whirlwind':n===6?'lightning':n===5?'fire':n===4?'glow':'';
+  const tile=(s,color=random(s,colors(s)),kind='bird')=>({uid:s.nextId++,kind,color,special:'',lock:0,hp:kind==='ice'?1:0,loot:''});
+  const event=(events,type,data={})=>events.push({type,...data});
+  const top=(s,c)=>{for(let i=c;i<s.board.length;i+=7)if(s.board[i])return i;return -1;};
+  const landing=(s,c)=>{const t=top(s,c);return t<0?s.board.length-7+c:t-7;};
+  const charging=(s,uid)=>s.charges.some(g=>g.uids.includes(uid));
+  function exposed(s,i){return i<7||!s.board[i-7]||i%7>0&&!s.board[i-1]||i%7<6&&!s.board[i+1];}
+  function selectable(s,i){const b=s.board[i];return s.phase==='playing'&&s.mode!=='ice'&&!!b&&b.kind==='bird'&&!b.lock&&!charging(s,b.uid)&&exposed(s,i);}
+  function group(s,start){
+    const b=s.board[start];if(!b||b.kind!=='bird')return [];
+    const found=new Set([start]),todo=[start];
+    while(todo.length)for(const i of neighbors(s,todo.pop()))if(!found.has(i)&&s.board[i]?.kind==='bird'&&s.board[i].color===b.color){found.add(i);todo.push(i);}
+    return [...found];
   }
-  const levels=(id,mode='practice')=>Array.from({length:12},(_,i)=>level(id,i,mode));
-  const top=(s,col)=>{if(!int(col,0,N-1))return -1;for(let row=0;row<N;row++)if(s.board[row*N+col])return row*N+col;return -1;};
-  const selectable=(s,index)=>int(index,0,SIZE-1)&&!!s.board[index]&&!s.covers[index]&&top(s,index%N)===index;
-  function group(s,index){
-    if(!int(index,0,SIZE-1)||!s.board[index])return [];
-    const color=s.board[index].color,seen=new Set([index]),queue=[index];
-    while(queue.length)for(const n of neighbors(queue.pop()))if(!seen.has(n)&&s.board[n]&&s.board[n].color===color){seen.add(n);queue.push(n);}
-    return [...seen];
-  }
-  function groups(s){
-    const seen=new Set(),result=[];
-    for(let i=0;i<SIZE;i++)if(s.board[i]&&!seen.has(i)){const cells=group(s,i);for(const p of cells)seen.add(p);if(cells.length>=3)result.push(cells);}
-    return result;
-  }
-  function destination(s,col){const first=top(s,col);return first<0?(N-1)*N+col:first>=N?first-N:-1;}
-  function canMove(s,a,b){return s.phase==='playing'&&selectable(s,a)&&int(b,0,SIZE-1)&&a%N!==b%N&&destination(s,b%N)>=0;}
-  function hint(s){
-    if(s.phase!=='playing')return null;
-    let best=null,bestValue=-Infinity,immediate=false;const setup=[];
-    for(let col=0;col<N;col++){
-      const a=top(s,col);if(!selectable(s,a))continue;
-      for(let target=0;target<N;target++){
-        if(target===col)continue;
-        const b=destination(s,target);if(b<0)continue;
-        const bird=s.board[a];s.board[a]=null;s.board[b]=bird;
-        const connected=group(s,b),matching=connected.length>=3;
-        let value=(matching?connected.length*20:connected.length*2)+(matching?connected.filter(i=>s.covers[i]).length*15:0);
-        if(matching)for(const i of connected){if(s.board[i].special)value+=50;for(const n of neighbors(i))if(s.covers[n])value+=8;}
-        // A nonmatching move is still legal and useful for exposing buried birds.
-        value+=Math.floor(a/N)*.01+Math.floor(b/N)*.02;
-        if(matching)immediate=true;
-        else setup.push({a,b,value});
-        s.board[a]=bird;s.board[b]=null;
-        if(value>bestValue){bestValue=value;best=[a,b];}
+  function groups(s){const seen=new Set(),out=[];for(let i=0;i<s.board.length;i++){if(seen.has(i)||s.board[i]?.kind!=='bird')continue;const g=group(s,i);g.forEach(p=>seen.add(p));if(g.length>=3)out.push(g);}return out;}
+  function nextBird(s){const b=tile(s);if(s.level>=7&&random(s,100)<Math.min(32,s.level+3))b.lock=s.level>=20&&random(s,4)===0?2:1;return b;}
+  function gravity(s,events){
+    const moved=[];
+    for(let c=0;c<7;c++){let write=s.board.length-7+c;
+      for(let i=write;i>=0;i-=7){const b=s.board[i];if(!b)continue;
+        if(b.kind==='ice'){write=i-7;continue;}
+        if(write!==i){s.board[write]=b;s.board[i]=null;moved.push({uid:b.uid,from:i,to:write});}write-=7;
       }
-    }
-    if(immediate)return best;
-    // If there is no direct match, show a setup that makes a match on the next
-    // move. This prevents hints from endlessly moving the same pair back/forth.
-    let setupValue=-Infinity;
-    for(const option of setup){
-      const bird=s.board[option.a];s.board[option.a]=null;s.board[option.b]=bird;
-      let nextValue=0;
-      for(let source=0;source<N;source++){
-        const a=top(s,source);if(!selectable(s,a))continue;
-        for(let target=0;target<N;target++){
-          if(target===source)continue;const b=destination(s,target);if(b<0)continue;
-          const moving=s.board[a];s.board[a]=null;s.board[b]=moving;
-          const connected=group(s,b);
-          if(connected.length>=3)nextValue=Math.max(nextValue,connected.length*20+connected.reduce((sum,i)=>sum+(s.covers[i]?15:0)+(s.board[i].special?40:0)+neighbors(i).filter(n=>s.covers[n]).length*8,0));
-          s.board[a]=moving;s.board[b]=null;
-        }
-      }
-      s.board[option.a]=bird;s.board[option.b]=null;
-      const value=nextValue+option.value*.01;
-      if(nextValue&&value>setupValue){setupValue=value;best=[option.a,option.b];}
-    }
-    return best;
+    }if(moved.length)event(events,'fall',{moved});
   }
-  function tile(s,color){return {uid:s.nextId++,kind:s.mode==='pandora'&&random(s,10)===0?'token':'normal',color,special:''};}
-  const stats=s=>({score:s.score,collected:[...s.collected],rescued:s.rescued,clearedCovers:s.clearedCovers,clearedLocks:s.clearedLocks,movesLeft:s.movesLeft});
-  function frame(s,kind,extra={}){return {kind,board:s.board.map(t=>t?{...t}:null),covers:[...s.covers],locks:[...s.locks],removed:[],triggered:[],rescued:[],created:[],chain:0,stats:stats(s),...extra};}
-  function noStartingGroups(s){
-    const colors=level(s.id,s.level,s.mode).colors;
-    for(let attempt=0;attempt<80;attempt++){
-      let good=true;
-      for(let i=0;i<SIZE;i++)if(s.board[i]){
-        const original=s.board[i].color,start=random(s,colors);let chosen=false;
-        for(let turn=0;turn<colors;turn++){s.board[i].color=(start+turn)%colors;if(group(s,i).length<3){chosen=true;break;}}
-        if(!chosen){s.board[i].color=original;good=false;break;}
-      }
-      if(good&&!groups(s).length)return true;
-    }
-    // A Latin arrangement always has distinct orthogonal neighbours.
-    const offset=random(s,colors);for(let i=0;i<SIZE;i++)if(s.board[i])s.board[i].color=(Math.floor(i/N)+i%N+offset)%colors;
-    return true;
+  function safeFill(s,i){const b=tile(s),start=b.color;s.board[i]=b;for(let n=0;n<colors(s);n++){b.color=(start+n)%colors(s);if(group(s,i).length<3)break;}}
+  function rise(s,events){
+    if(s.board.slice(0,7).some(Boolean))return false;
+    const moved=s.board.flatMap((b,i)=>b?[{uid:b.uid,from:i,to:i-7}]:[]);
+    s.board.splice(0,7);s.board.push(...Array(7).fill(null));
+    for(let i=s.board.length-7;i<s.board.length;i++)safeFill(s,i);event(events,'rise',{moved});return true;
   }
-  function fresh(id,index=0,seed,mode='practice'){
-    const cfg=level(id,index,mode),initialSeed=int(seed,0,4294967295)?seed:Math.floor(Math.random()*4294967296);
-    const s={version:1,id,level:index,mode,seed:initialSeed,rng:initialSeed,nextId:1,board:Array(SIZE).fill(null),covers:Array(SIZE).fill(0),locks:Array(SIZE).fill(0),movesLeft:null,movesUsed:0,score:0,collected:Array(5).fill(0),rescued:0,clearedCovers:0,clearedLocks:0,goals:clone(cfg.goals),phase:'playing',timeLeft:mode==='pandora'||mode==='fever'?120:null,riseLeft:mode==='classic'?18:null,combo:0,comboLeft:0};
-    for(let col=0;col<N;col++)for(let row=N-cfg.height+(col%3===0?1:0);row<N;row++)s.board[row*N+col]=tile(s,random(s,cfg.colors));
-    noStartingGroups(s);
-    if(mode==='ice'){
-      const positions=[];for(let row=N-1;row>=0;row--)for(let col=0;col<N;col++)if(s.board[row*N+col])positions.push(row*N+col);
-      for(let i=0;i<cfg.goals.covers;i++)s.covers[positions[i]]=1;
-    }
-    return s;
+  function scan(s,preferred=-1){
+    const old=s.charges;
+    s.charges=groups(s).map(cells=>{
+      const uids=cells.map(i=>s.board[i].uid),prev=old.filter(g=>g.uids.some(id=>uids.includes(id)));
+      return{uids,at:prev.length?Math.min(...prev.map(g=>g.at)):s.clock+(s.mode==='ice'?.9:WINDOW),anchor:cells.includes(preferred)?s.board[preferred].uid:prev.find(g=>uids.includes(g.anchor))?.anchor||uids[0]};
+    });
   }
-  function gravity(s,frames,chain){
-    for(let col=0;col<N;col++){
-      const birds=[];for(let row=N-1;row>=0;row--){const i=row*N+col;if(s.board[i])birds.push({bird:s.board[i],ice:s.covers[i]});s.board[i]=null;s.covers[i]=0;}
-      for(let k=0;k<birds.length;k++){const i=(N-1-k)*N+col;s.board[i]=birds[k].bird;s.covers[i]=birds[k].ice;}
-    }
-    frames.push(frame(s,'fall',{chain}));
+  function fresh(mode='classic',seed=Math.floor(Math.random()*4294967296),pace='gentle'){
+    if(!MODES.includes(mode)||!integer(seed,0,4294967295)||!['gentle','normal'].includes(pace))throw new RangeError('Invalid bird game');
+    const s={version:2,mode,pace,rows:mode==='ice'?9:10,seed,rng:seed,nextId:1,board:[],next:[],charges:[],clock:0,dropLeft:0,level:1,levelCleared:0,score:0,cleared:0,moves:0,combo:0,comboUntil:0,phase:'playing',timeLeft:mode==='ice'?60:['pandora','fever'].includes(mode)?120:null,wave:1,eggs:0,iceBroken:0,letters:[],chests:0,fever:0,feverUntil:0,shotLeft:0,supplyLeft:1};
+    s.board=Array(s.rows*7).fill(null);
+    if(mode==='ice')iceWave(s,[],true);else for(let i=s.board.length-21;i<s.board.length;i++)safeFill(s,i);
+    s.next=Array.from({length:7},()=>nextBird(s));s.dropLeft=interval(s);if(mode==='pandora')addBox(s,[]);return s;
   }
-  function specialCells(index,special){
-    const row=Math.floor(index/N),col=index%N,cells=[];
-    if(special==='glow'){
-      for(const [dx,dy]of [[0,0],[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1]])if(col+dx>=0&&col+dx<N&&row+dy>=0&&row+dy<N)cells.push((row+dy)*N+col+dx);
-      return cells;
-    }
-    for(let i=0;i<SIZE;i++){
-      const dy=Math.abs(Math.floor(i/N)-row),dx=Math.abs(i%N-col);
-      if(special==='whirlwind'||special==='lightning'&&(dy<=1||dx<=1)||special==='fire'&&(dy===0||dx===0||dy<=1&&dx<=1))cells.push(i);
-    }
-    return cells;
+  function target(s,from,to){
+    if(!integer(to,0,s.board.length-1)||from===to)return -1;
+    const bird=s.board[from];s.board[from]=null;let dest=s.board[to]?landing(s,to%7):to;
+    if(dest<0||!exposed(s,dest)){s.board[from]=bird;return -1;}
+    while(dest+7<s.board.length&&!s.board[dest+7])dest+=7;s.board[from]=bird;return dest===from?-1:dest;
   }
-  const tier=count=>count>=7?'whirlwind':count===6?'lightning':count===5?'fire':count===4?'glow':'';
-  function clearGroups(s,found,preferred,frames,chain){
-    const before=frame(s,'clear',{chain}),hit=new Set(found.flat()),protectedCells=new Set(),created=[],triggered=[],processed=new Set();
-    for(const cells of found){
-      const type=tier(cells.length);if(!type)continue;
-      const options=cells.filter(i=>!s.covers[i]&&!s.board[i].special);
-      const index=options.includes(preferred)?preferred:options[0];
-      if(index!==undefined){protectedCells.add(index);created.push({index,special:type});}
-    }
-    for(const i of hit){
-      const bird=s.board[i];if(!bird||!bird.special||s.covers[i]||processed.has(i))continue;
-      processed.add(i);triggered.push({index:i,special:bird.special});for(const n of specialCells(i,bird.special))hit.add(n);
-    }
-    const frozen=new Set(),damaged=new Set();
-    for(const i of hit){if(s.covers[i]){frozen.add(i);damaged.add(i);}for(const n of neighbors(i))if(s.covers[n])damaged.add(n);}
-    for(const i of damaged){s.covers[i]=0;s.clearedCovers++;}
-    const removed=[];let tokenCount=0;
-    const multiplier=s.mode==='fever'?1+Math.min(6,s.combo):1+Math.min(4,chain);
-    for(const i of hit){
-      const bird=s.board[i];if(!bird||frozen.has(i)||protectedCells.has(i))continue;
-      if(bird.kind==='token')tokenCount++;
-      removed.push(i);s.collected[bird.color]++;s.score+=10*multiplier;s.board[i]=null;
-    }
-    if(tokenCount){s.score+=tokenCount*50;s.timeLeft=Math.min(150,s.timeLeft+tokenCount*2);}
-    for(const {index,special}of created)if(s.board[index])s.board[index]={...s.board[index],special};
-    Object.assign(before,{removed,triggered,created,damagedCovers:[...damaged],tokens:tokenCount,multiplier,stats:stats(s)});frames.push(before);
-    gravity(s,frames,chain);return removed.length;
+  function move(s,from,to){
+    if(!integer(from,0,s.board.length-1)||!selectable(s,from))return{ok:false,events:[],reason:'blocked'};
+    const dest=target(s,from,to);if(dest<0)return{ok:false,events:[],reason:'space'};
+    const events=[],b=s.board[from];s.board[from]=null;s.board[dest]=b;s.moves++;
+    event(events,'move',{uid:b.uid,from,to:dest});gravity(s,events);scan(s,s.board.findIndex(t=>t?.uid===b.uid));return{ok:true,events};
   }
-  function settlePhase(s){
-    if(s.phase!=='playing')return;
-    if(s.mode==='practice'&&s.score>=s.goals.score||s.mode==='ice'&&s.clearedCovers>=s.goals.covers||s.timeLeft===0)s.phase='won';
+  function shoot(s,col){
+    if(s.phase!=='playing'||s.mode!=='ice'||!integer(col,0,6)||s.shotLeft>0)return{ok:false,events:[],reason:'wait'};
+    const dest=landing(s,col);if(dest<0)return{ok:false,events:[],reason:'space'};
+    const b=s.next.shift();s.next.push(tile(s));s.board[dest]=b;s.moves++;s.shotLeft=.09;
+    const events=[];event(events,'drop',{moved:[{uid:b.uid,from:col-7,to:dest}]});scan(s,dest);return{ok:true,events};
   }
-  function resolve(s,frames,preferred=-1){
-    let total=0,chain=0;
-    for(;chain<24;chain++){
-      const found=groups(s);if(!found.length)break;
-      total+=clearGroups(s,found,preferred,frames,chain);preferred=-1;
+  function area(s,i,special){
+    const row=Math.floor(i/7),col=i%7,out=[];
+    for(let p=0;p<s.board.length;p++){const r=Math.floor(p/7),c=p%7;
+      if(special==='whirlwind'||special==='glow'&&Math.abs(r-row)<=1&&Math.abs(c-col)<=1||special==='lightning'&&(r===row||c===col)||special==='fire'&&(c===col&&r>=row||r>=s.rows-2&&Math.abs(c-col)<=1))out.push(p);
+    }return out;
+  }
+  function openBox(s,events,i){
+    s.chests++;const letter='BIRZZLE'[s.letters.length];s.letters.push(letter);s.timeLeft+=5;event(events,'box',{index:i,letter});
+    if(s.letters.length===7){s.letters=[];s.timeLeft+=20;const options=s.board.flatMap((b,j)=>b?.kind==='bird'&&!b.special&&!b.lock?[j]:[]);
+      for(let k=0;k<3&&options.length;k++){const p=options.splice(random(s,options.length),1)[0];s.board[p].special=SPECIALS[1+random(s,3)];}
+      event(events,'reward',{text:'BIRZZLE！超能伙伴 +20 秒'});
     }
-    return{total,chain};
   }
-  function rise(s,frames,avoidMatches=false){
-    if(s.board.slice(0,N).some(Boolean)){s.phase='lost';return false;}
-    const colors=level(s.id,s.level,s.mode).colors;
-    for(let i=0;i<SIZE-N;i++){s.board[i]=s.board[i+N];s.covers[i]=s.covers[i+N];}
-    for(let col=0;col<N;col++){const i=SIZE-N+col;s.board[i]=null;s.covers[i]=0;}
-    for(let col=0;col<N;col++){
-      const i=SIZE-N+col,color=random(s,colors);s.board[i]=tile(s,color);
-      if(avoidMatches)for(let attempt=0;attempt<colors;attempt++){s.board[i].color=(color+attempt)%colors;if(group(s,i).length<3)break;}
+  function clear(s,charges,events){
+    const index=new Map(s.board.flatMap((b,i)=>b?[[b.uid,i]]:[])),hit=new Set(),blast=new Set(),anchors=new Map(),triggers=[],removed=[],damage=new Map();let largest=0;
+    for(const charge of charges){const cells=charge.uids.map(id=>index.get(id)).filter(i=>i!==undefined);if(cells.length<3)continue;
+      largest=Math.max(largest,cells.length);cells.forEach(i=>hit.add(i));const kind=tier(cells.length),eligible=cells.filter(i=>!s.board[i].lock&&!s.board[i].special);
+      if(kind&&eligible.length){const p=index.get(charge.anchor);anchors.set(eligible.includes(p)?p:eligible[0],kind);}
+      for(const i of cells)for(const p of neighbors(s,i))if(s.board[p]?.kind==='ice')damage.set(p,(damage.get(p)||0)+1);
     }
-    frames.push(frame(s,'rise'));return true;
-  }
-  function supply(s,frames){
-    if(s.mode==='classic'||s.phase!=='playing')return;
-    // Untimed stages and timed score modes need fresh birds after a big clear.
-    // Supply is earned by making room, never by waiting through a forced timer.
-    for(let count=0;count<2&&s.board.filter(Boolean).length<14&&!s.board.slice(0,N).some(Boolean);count++)rise(s,frames,true);
-  }
-  function play(s,a,b){
-    if(!canMove(s,a,b))return{ok:false,reason:s.phase!=='playing'?'finished':!selectable(s,a)?'top':'column',frames:[],total:0,chain:0};
-    const to=destination(s,b%N),frames=[];
-    s.board[to]=s.board[a];s.board[a]=null;s.movesUsed++;
-    frames.push(frame(s,'move',{from:a,to}));
-    if(s.mode==='fever'){if(s.comboLeft<=0)s.combo=0;}
-    const result=resolve(s,frames,to);
-    if(result.total>0){s.combo=s.comboLeft>0?Math.min(30,s.combo+1):1;s.comboLeft=4;}
-    settlePhase(s);supply(s,frames);settlePhase(s);
-    return{ok:true,frames,total:result.total,chain:result.chain};
-  }
-  function shuffle(s){
-    if(s.phase!=='playing')return{ok:false,reason:'finished',frames:[],total:0,chain:0};
-    const positions=[];for(let i=0;i<SIZE;i++)if(s.board[i]&&!s.covers[i])positions.push(i);
-    if(positions.length<2)return{ok:false,reason:'ice',frames:[],total:0,chain:0};
-    const original=positions.map(i=>s.board[i]);
-    for(let attempt=0;attempt<160;attempt++){
-      const pool=[...original];for(let i=pool.length-1;i>0;i--){const j=random(s,i+1);[pool[i],pool[j]]=[pool[j],pool[i]];}
-      positions.forEach((i,k)=>{s.board[i]=pool[k];});
-      if(!groups(s).length&&hint(s))return{ok:true,frames:[frame(s,'shuffle')],total:0,chain:0};
+    for(const i of damage.keys())if(s.board[i]?.loot==='bomb'&&damage.get(i)>=s.board[i].hp)hit.add(i);
+    const processed=new Set();
+    // Set iteration visits newly appended targets, so every chained power fires once.
+    for(const i of hit){const b=s.board[i];if(!b||processed.has(i))continue;processed.add(i);const special=b.special||(b.kind==='ice'&&b.loot==='bomb'?'glow':'');
+      if(special){triggers.push({index:i,special,color:b.color});for(const p of area(s,i,special)){hit.add(p);blast.add(p);}}
     }
-    positions.forEach((i,k)=>{s.board[i]=original[k];});
-    return{ok:false,reason:'unchanged',frames:[],total:0,chain:0};
+    for(const p of blast)if(s.board[p]?.kind==='ice')damage.set(p,2);
+    let count=0;
+    for(const i of hit){const b=s.board[i];if(!b||anchors.has(i)||b.kind==='ice')continue;
+      if(b.kind==='box'){if(blast.has(i)){openBox(s,events,i);removed.push({index:i,tile:{...b}});s.board[i]=null;}continue;}
+      if(b.lock&&!blast.has(i)){b.lock--;event(events,'unlock',{index:i});continue;}
+      removed.push({index:i,tile:{...b}});s.board[i]=null;count++;
+    }
+    for(const [i,n]of damage){const b=s.board[i];if(!b||b.kind!=='ice')continue;b.hp=Math.max(0,b.hp-n);event(events,'icehit',{index:i});if(!b.hp){
+      if(b.loot==='clock'){s.timeLeft+=6;event(events,'reward',{text:'+6 秒'});}if(b.loot==='egg'){s.eggs++;s.score+=1000;event(events,'reward',{text:'救出金蛋！'});}
+      removed.push({index:i,tile:{...b}});s.board[i]=null;s.iceBroken++;
+    }}
+    for(const [i,kind]of anchors)if(s.board[i]){s.board[i].special=kind;event(events,'create',{index:i,special:kind,uid:s.board[i].uid});}
+    if(count||damage.size){s.combo=s.clock<=s.comboUntil?s.combo+1:1;s.comboUntil=s.clock+2;s.cleared+=count;s.levelCleared+=count;
+      const gain=Math.round(Math.max(1,largest-2)**2*100*Math.min(64,Math.pow(1.5,s.combo-1))*(s.feverUntil>s.clock?2:1));s.score=Math.min(1e12,s.score+gain);
+      if(s.mode==='fever'){s.fever+=12;if(s.fever>=100){s.fever=0;s.feverUntil=s.clock+10;event(events,'reward',{text:'狂热！10 秒双倍分'});}}
+      event(events,'clear',{removed,triggers,count,combo:s.combo,gain,largest});
+    }
+    s.charges=s.charges.filter(g=>!charges.includes(g));gravity(s,events);scan(s);
+    if(s.mode!=='ice')while(s.levelCleared>=threshold(s)){s.levelCleared-=threshold(s);s.level++;event(events,'level',{level:s.level});}s.supplyLeft=.4;
+  }
+  function addBox(s,events){
+    if(s.board.filter(b=>b?.kind==='box').length>=2)return;const cols=Array.from({length:7},(_,i)=>i).filter(c=>landing(s,c)>=0);if(!cols.length)return;
+    const col=cols[random(s,cols.length)],i=landing(s,col),b=tile(s,-1,'box');s.board[i]=b;event(events,'drop',{moved:[{uid:b.uid,from:col-7,to:i}]});
+  }
+  function drop(s,events){const moved=[];for(let c=0;c<7;c++){const i=landing(s,c);if(i<0)continue;const b=s.next[c];s.board[i]=b;moved.push({uid:b.uid,from:c-7,to:i});s.next[c]=nextBird(s);}if(moved.length)event(events,'drop',{moved});scan(s);}
+  function iceWave(s,events,initial=false){
+    const rows=Math.min(4,3+Math.floor((s.wave-1)/4));
+    if(!initial){if(s.board.slice(0,rows*7).some(Boolean)){s.phase='lost';return;}s.board.splice(0,rows*7);s.board.push(...Array(rows*7).fill(null));s.timeLeft+=21;}
+    for(let i=s.board.length-rows*7;i<s.board.length;i++){const c=i%7,r=Math.floor(i/7);if((c+r+s.wave)%3===0){const b=tile(s,-1,'ice');b.hp=s.wave>=3&&random(s,4)===0?2:1;b.loot=['','clock','egg','bomb'][random(s,4)];s.board[i]=b;}else safeFill(s,i);}
+    const objective=s.board.length-rows*7+3;s.board[objective]=tile(s,-1,'ice');s.board[objective].loot='egg';event(events,'wave',{wave:s.wave,rows});gravity(s,events);scan(s);
   }
   function tick(s,dt){
-    const frames=[],beforePhase=s.phase;
-    if(s.phase!=='playing'||!Number.isFinite(dt)||dt<=0)return{ok:false,frames,total:0,chain:0};
-    // Callers supply only foreground elapsed time. Capping a single tick prevents
-    // a suspended tab from injecting an entire wall-clock interval on resume.
-    dt=Math.min(dt,1);s.comboLeft=Math.max(0,s.comboLeft-dt);if(!s.comboLeft)s.combo=0;
-    if(s.timeLeft!==null){s.timeLeft=Math.max(0,s.timeLeft-dt);settlePhase(s);}
-    let total=0,chain=0;
-    if(s.mode==='classic'){
-      s.riseLeft-=dt;
-      if(s.riseLeft<=0){if(rise(s,frames)){const result=resolve(s,frames);total=result.total;chain=result.chain;}s.riseLeft=Math.max(6,18-Math.floor(s.score/300));}
-    }
-    return{ok:frames.length>0||s.phase!==beforePhase,frames,total,chain};
+    const events=[];if(s.phase!=='playing'||!Number.isFinite(dt)||dt<=0)return{ok:false,events};dt=Math.min(dt,1);s.clock+=dt;s.shotLeft=Math.max(0,s.shotLeft-dt);s.supplyLeft=Math.max(0,s.supplyLeft-dt);
+    if(s.timeLeft!==null)s.timeLeft=Math.max(0,s.timeLeft-dt);if(s.comboUntil<s.clock)s.combo=0;
+    const ready=s.charges.filter(g=>g.at<=s.clock);if(ready.length)clear(s,ready,events);
+    if(s.timeLeft===0){s.phase=s.mode==='ice'?'lost':'won';event(events,'end');return{ok:true,events};}
+    if(s.mode==='classic'||s.mode==='pandora'){s.dropLeft=Math.max(-1,s.dropLeft-dt);if(s.dropLeft<=0&&!s.charges.length){drop(s,events);s.dropLeft=interval(s);if(s.mode==='pandora')addBox(s,events);}}
+    if(!s.charges.length&&!s.supplyLeft){if(s.mode==='ice'){
+      if(!s.board.slice(0,s.board.length-14).some(b=>b?.kind==='ice')){s.wave++;s.level=s.wave;iceWave(s,events);s.supplyLeft=.8;}
+    }else{for(let n=0;n<3&&s.board.filter(Boolean).length<21;n++)if(!rise(s,events))break;scan(s);if(s.mode==='pandora')addBox(s,events);}}
+    if(!s.charges.length&&s.board.every(Boolean)){s.phase='lost';event(events,'end');}return{ok:events.length>0,events};
   }
-  function restore(id,raw){
-    const fallback=()=>fresh(id);
-    if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.version!==1||raw.id!==id||id!=='birdblast'||!MODES.includes(raw.mode)||!int(raw.level,0,11))return fallback();
-    const s=clone(raw),cfg=level(id,s.level,s.mode),finite=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max;
-    if(!int(s.seed,0,4294967295)||!int(s.rng,0,4294967295)||!int(s.nextId,1,1e9)||!Array.isArray(s.board)||s.board.length!==SIZE||!Array.isArray(s.covers)||s.covers.length!==SIZE||!Array.isArray(s.locks)||s.locks.length!==SIZE)return fallback();
-    const seen=new Set();
-    for(let i=0;i<SIZE;i++){
-      const bird=s.board[i];
-      if(!int(s.covers[i],0,1)||s.locks[i]!==0||s.covers[i]&&(!bird||s.mode!=='ice'))return fallback();
-      if(!bird)continue;
-      if(typeof bird!=='object'||!int(bird.uid,1,s.nextId-1)||seen.has(bird.uid)||!['normal','token'].includes(bird.kind)||bird.kind==='token'&&s.mode!=='pandora'||!int(bird.color,0,cfg.colors-1)||!SPECIALS.includes(bird.special))return fallback();
-      seen.add(bird.uid);
-    }
-    for(let col=0;col<N;col++){let occupied=false;for(let row=0;row<N;row++){const bird=s.board[row*N+col];if(bird)occupied=true;else if(occupied)return fallback();}}
-    for(const key of ['movesUsed','score','rescued','clearedCovers','clearedLocks','combo'])if(!int(s[key],0,1e9))return fallback();
-    if(s.movesLeft!==null||!Array.isArray(s.collected)||s.collected.length!==5||!s.collected.every(n=>int(n,0,1e9))||s.rescued!==0||s.clearedLocks!==0||!finite(s.comboLeft,0,4)||s.combo>30||JSON.stringify(s.goals)!==JSON.stringify(cfg.goals)||!['playing','won','lost'].includes(s.phase))return fallback();
-    if(s.clearedCovers+s.covers.reduce((a,b)=>a+b,0)!==cfg.goals.covers)return fallback();
-    const timed=s.mode==='pandora'||s.mode==='fever';
-    if(timed?!finite(s.timeLeft,0,150):s.timeLeft!==null)return fallback();
-    if(s.mode==='classic'?!finite(s.riseLeft,0,18):s.riseLeft!==null)return fallback();
-    const complete=s.mode==='practice'&&s.score>=cfg.goals.score||s.mode==='ice'&&s.clearedCovers>=cfg.goals.covers||timed&&s.timeLeft===0;
-    if(s.phase==='won'&&!complete||s.phase==='playing'&&complete||s.phase==='lost'&&s.mode!=='classic')return fallback();
-    return s;
+  function hint(s){
+    if(s.phase!=='playing')return null;let best=null,value=-Infinity;
+    if(s.mode==='ice'){for(let c=0;c<7;c++){const i=landing(s,c);if(i<0)continue;s.board[i]=s.next[0];const v=group(s,i).length*10+neighbors(s,i).filter(p=>s.board[p]?.kind==='ice').length;s.board[i]=null;if(v>value){value=v;best=[-1,i];}}return best;}
+    for(let a=0;a<s.board.length;a++)if(selectable(s,a))for(let c=0;c<7;c++){const dest=target(s,a,c);if(dest<0)continue;const b=s.board[a];s.board[a]=null;s.board[dest]=b;const g=group(s,dest),v=g.length*10+g.filter(i=>s.board[i].special).length*15;s.board[dest]=null;s.board[a]=b;if(v>value){value=v;best=[a,dest];}}return best;
   }
-  const api={N,MODES,SPECIALS,clone,neighbors,level,levels,fresh,restore,top,selectable,group,groups,hint,play,shuffle,tick};
-  if(typeof module==='object'&&module.exports)module.exports=api;
-  if(root)root.BirdCore=api;
+  function shuffle(s){
+    if(s.phase!=='playing'||s.charges.length)return{ok:false,events:[]};const positions=s.board.flatMap((b,i)=>b?.kind==='bird'&&!b.lock?[i]:[]);if(positions.length<2)return{ok:false,events:[]};
+    for(let k=positions.length-1;k>0;k--){const a=positions[k],b=positions[random(s,k+1)];[s.board[a],s.board[b]]=[s.board[b],s.board[a]];}scan(s);return{ok:true,events:[{type:'shuffle'}]};
+  }
+  function restore(raw){
+    const fail=()=>fresh();if(!raw||raw.version!==2||!MODES.includes(raw.mode)||!['gentle','normal'].includes(raw.pace)||raw.rows!==(raw.mode==='ice'?9:10))return fail();
+    const s=clone(raw),finite=(v,a,b)=>Number.isFinite(v)&&v>=a&&v<=b;
+    if(!integer(s.seed,0,4294967295)||!integer(s.rng,0,4294967295)||!integer(s.nextId,1,1e9)||!Array.isArray(s.board)||s.board.length!==s.rows*7||!Array.isArray(s.next)||s.next.length!==7)return fail();
+    const ids=new Set();for(const b of [...s.board,...s.next])if(b){
+      if(!integer(b.uid,1,s.nextId-1)||ids.has(b.uid)||!['bird','ice','box'].includes(b.kind)||!integer(b.color,b.kind==='bird'?0:-1,b.kind==='bird'?7:-1)||!SPECIALS.includes(b.special)||!integer(b.lock,0,2)||!integer(b.hp,0,2)||!['','egg','clock','bomb'].includes(b.loot)||b.kind!=='bird'&&(b.special||b.lock)||b.kind==='ice'&&s.mode!=='ice'||b.kind==='box'&&s.mode!=='pandora')return fail();ids.add(b.uid);
+    }
+    if(s.next.some(b=>!b||b.kind!=='bird'))return fail();for(const k of ['level','wave'])if(!integer(s[k],1,1e6))return fail();
+    for(const k of ['score','cleared','moves','combo','eggs','iceBroken','chests','levelCleared','fever'])if(!integer(s[k],0,1e12))return fail();
+    for(const k of ['clock','comboUntil','feverUntil','shotLeft','supplyLeft'])if(!finite(s[k],0,1e12))return fail();
+    if(!finite(s.dropLeft,-1,30)||!['playing','won','lost'].includes(s.phase)||!Array.isArray(s.letters)||s.letters.length>6||s.letters.join('')!=='BIRZZLE'.slice(0,s.letters.length))return fail();
+    if(['ice','pandora','fever'].includes(s.mode)?!finite(s.timeLeft,0,1e9):s.timeLeft!==null)return fail();if(!Array.isArray(s.charges)||s.charges.length>24)return fail();
+    const charged=new Set(),onBoard=new Set(s.board.filter(Boolean).map(b=>b.uid));for(const g of s.charges){if(!g||!Array.isArray(g.uids)||g.uids.length<3||g.uids.length>s.board.length||!finite(g.at,s.clock-1,s.clock+1)||!g.uids.includes(g.anchor))return fail();for(const id of g.uids){if(charged.has(id)||!onBoard.has(id))return fail();charged.add(id);}}
+    const clean=fresh(s.mode,s.seed,s.pace);for(const k of Object.keys(clean))clean[k]=s[k];scan(clean);return clean;
+  }
+  const api={COLS,MODES,SPECIALS,WINDOW,clone,fresh,restore,neighbors,top,landing,selectable,exposed,group,groups,colors,interval,threshold,tier,target,move,shoot,tick,hint,shuffle,scan,area};
+  if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.BirdCore=api;
 })(typeof window==='object'?window:null);

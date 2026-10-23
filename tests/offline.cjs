@@ -114,7 +114,8 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
     for (const game of games) {
       const page = await context.newPage();
       await page.goto(base + `games/${game}/index.html?v=old-bookmark`);
-      if (supportsAudio) await page.waitForFunction(count => window.__audioDecoded === count, ['snake','2048','tetris','whack','shooter','racing','watermelon'].includes(game) ? 13 : 12).catch(async error => {
+      const expectedAudio = game === 'birdblast' ? 16 : ['snake','2048','tetris','whack','shooter','racing','watermelon'].includes(game) ? 13 : 12;
+      if (supportsAudio) await page.waitForFunction(count => window.__audioDecoded === count, expectedAudio).catch(async error => {
         console.error(game, await page.evaluate(() => ({ decoded: window.__audioDecoded, errors: window.__audioDecodeErrors,
           audio: performance.getEntriesByType('resource').filter(r => r.name.includes('/audio/')).map(r => r.name) })));
         throw error;
