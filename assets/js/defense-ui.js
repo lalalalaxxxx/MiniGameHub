@@ -8,19 +8,21 @@
   const names = garden ? ['阳光花', '泡泡花', '冰雪花'] : ['积木箭塔', '泡泡塔', '冰雪塔'];
   const enemyNames={plain:'普通队',runner:'快跑队',armor:'护甲队',swarm:'密集小队',boss:'首领混合队'};
   const tactics={plain:'先覆盖入口，再升级火力',runner:'速度快，搭配冰雪减速',armor:'抵挡普通弹，泡泡群攻能破甲',swarm:'成群冲来，泡泡群攻更合适',boss:'首领漏过扣 3 颗心，集中火力并减速'};
-  let s = C.fresh(id), selected = -1, type = 0, paused = false, speed = 1, pending = null, sound = true, elapsed = 0, last = 0, paintIn = 0, visualIn = 0;
+  let s = C.fresh(id), selected = -1, type = 0, paused = false, speed = 1, pending = null, sound = true, elapsed = 0, last = 0, paintIn = 0;
   try { s = C.restore(id, JSON.parse(localStorage.getItem(key))); sound = localStorage.getItem('childgame.sound') !== 'off'; } catch {}
   const activeRound = () => s.phase === 'running' || (s.phase === 'ready' && s.wave > 0);
   paused = activeRound();
   const audio = createGameAudio({ game: id, music: false, isEnabled: () => sound, isPlaying: () => s.phase === 'running', isPaused: () => paused || $('dialog').open });
-  const say = text => { $('feedback').textContent = text; };
-  function save() { try { localStorage.setItem(key, JSON.stringify(s)); $('save-status').textContent = '进度已保存 · 离开后战斗会暂停'; } catch { $('save-status').textContent = '暂时无法保存，关闭页面会丢失进度'; } }
-  function ask(title, description, fn) { pending = fn; $('dialog-title').textContent = title; $('dialog-text').textContent = description; $('cancel').hidden = !fn; $('dialog').showModal(); }
+  const setText = (id, value) => { const el = $(id); if (el.textContent !== value) el.textContent = value; };
+  const say = text => { setText('feedback', text); };
+  function save() { try { localStorage.setItem(key, JSON.stringify(s)); setText('save-status', '进度已保存 · 离开后战斗会暂停'); } catch { setText('save-status', '暂时无法保存，关闭页面会丢失进度'); } }
+  function ask(title, description, fn) { pending = fn; setText('dialog-title', title); setText('dialog-text', description); $('cancel').hidden = !fn; $('dialog').showModal(); }
   function drawCells() {
     $('cells').innerHTML = Array.from({ length: 40 }, (_, cell) => {
       const t = s.towers.find(v => v.cell === cell), can = C.buildable(id, cell);
       return `<button class="cell ${!can ? garden ? 'edge' : 'path' : ''} ${selected === cell ? 'selected' : ''}" data-cell="${cell}" ${can ? '' : 'disabled'} aria-label="第${Math.floor(cell / 8) + 1}行第${cell % 8 + 1}格${t ? `，${names[t.type]}，${t.level}级` : can ? '，空地' : '，道路'}">${t ? `<span class="defender" aria-hidden="true" style="background-image:url(${sprite(t.type)})"></span><small>${'★'.repeat(t.level)}</small>` : can ? '<span class="empty">＋</span>' : ''}</button>`;
     }).join('');
+    renderer.cells($('cells'));
   }
   function panel() {
     const t = s.towers.find(v => v.cell === selected), active = ['ready', 'running'].includes(s.phase);
@@ -30,29 +32,18 @@
     $('difficulty').querySelector('[value=normal]').textContent=!s.rules&&s.difficulty==='normal'?'旧版进行中 · 重开升级':'策略挑战 · 10 波';
   }
   function status() {
-    $('coins').textContent = `⭐ ${s.coins}`; $('hearts').textContent = `❤️ ${s.hearts}`; $('wave').textContent = `第 ${s.wave} / ${C.waves(s)} 波`;
-    $('start').disabled = s.phase !== 'ready'; $('start').textContent = s.wave ? '提前开始下一波' : '准备好了 · 开始守护';
-    $('pause').disabled = !activeRound(); $('pause').textContent = paused ? '▶ 继续' : 'Ⅱ 暂停';
-    $('speed').textContent = speed === 1 ? '速度 1×' : '速度 2×'; $('veil').hidden = !(paused && activeRound());
+    setText('coins', `⭐ ${s.coins}`); setText('hearts', `❤️ ${s.hearts}`); setText('wave', `第 ${s.wave} / ${C.waves(s)} 波`);
+    $('start').disabled = s.phase !== 'ready'; setText('start', s.wave ? '提前开始下一波' : '准备好了 · 开始守护');
+    $('pause').disabled = !activeRound(); setText('pause', paused ? '▶ 继续' : 'Ⅱ 暂停');
+    setText('speed', speed === 1 ? '速度 1×' : '速度 2×'); $('veil').hidden = !(paused && activeRound());
     const preview={...s,wave:Math.min(C.waves(s),s.wave+(s.phase==='ready'?1:0))},kind=C.waveKind(preview);
-    $('wave-note').textContent = s.phase==='ready'?`${s.wave?(paused?'已暂停':'准备')+' · '+Math.ceil(s.breakLeft)+' 秒后自动开始':'布置好再开始'} · 下一波 ${C.count(preview)} 位 · ${enemyNames[kind]}。${tactics[kind]}。`:s.phase==='running'?`${paused?'已暂停 · ':''}${enemyNames[kind]} · 出发 ${s.spawned}/${C.count(s)} · 路上 ${s.enemies.length} 位。${tactics[kind]}。`:'本轮结束，可以重新布置或换个难度再挑战。';
+    setText('wave-note', s.phase==='ready'?`${s.wave?(paused?'已暂停':'准备')+' · '+Math.ceil(s.breakLeft)+' 秒后自动开始':'布置好再开始'} · 下一波 ${C.count(preview)} 位 · ${enemyNames[kind]}。${tactics[kind]}。`:s.phase==='running'?`${paused?'已暂停 · ':''}${enemyNames[kind]} · 出发 ${s.spawned}/${C.count(s)} · 路上 ${s.enemies.length} 位。${tactics[kind]}。`:'本轮结束，可以重新布置或换个难度再挑战。');
     $('finish').hidden = !['won', 'lost'].includes(s.phase);
     if ($('finish').dataset.phase !== s.phase) { $('finish').dataset.phase = s.phase; $('finish').innerHTML = s.phase === 'won' ? `<h2>守护成功！🌟</h2><p>${C.waves(s)} 波全部完成，还剩 ${s.hearts} 颗爱心！</p>` : '<h2>一起再试试 🌱</h2><p>看看下一波的队伍类型：护甲怕泡泡、快跑怕冰雪。调整搭配再试一次。</p>';
     }
   }
-  function drawActors() {
-    const tower = s.towers.find(t => t.cell === selected);
-    let markup = '';
-    for (const el of $('cells').querySelectorAll('.defender')) { const cell=Number(el.parentElement.dataset.cell), f=FX.frame(fx,cell,reducedMotion.matches); if(el.dataset.frame!==String(f)){el.dataset.frame=String(f);el.style.backgroundPosition=`${f*100/9}% 0`;}}
-    if (tower && !garden) { const p = C.point(tower.cell); markup += `<circle cx="${p.x * 100}" cy="${p.y * 100}" r="${(C.types[tower.type].range + (tower.level - 1) * .2) * 100}" fill="#fff2" stroke="#5a7a6a66" stroke-width="3" stroke-dasharray="8 8"/>`; }
-    for (const e of s.enemies) { const p = C.position(s, e); markup += `<g class="enemy enemy-${e.kind||'plain'} ${fx.hurt[e.id]?'enemy-hit':''}" data-kind="${e.kind||'plain'}" transform="translate(${p.x * 100},${p.y * 100}) scale(${fx.hurt[e.id]?1.13:1},${fx.hurt[e.id]?.87:1})"><ellipse cy="22" rx="24" ry="8" fill="#44642a22"/><text class="enemy-icon">${e.kind==='boss'?'🐲':e.kind==='armor'?'🐞':e.kind==='runner'?'🐇':e.kind==='swarm'?'🐜':garden?'🐛':'🧸'}</text>${e.kind==='armor'?'<path d="M-16-20v19q16 18 32 0v-19z" fill="#c1d8ec88" stroke="#52768e" stroke-width="3"/>':''}${e.kind==='boss'?'<text x="-12" y="-43" font-size="24">👑</text>':''}<rect x="-23" y="-33" width="46" height="6" rx="3" fill="#ffffffcc"/><rect x="-23" y="-33" width="${46 * Math.max(0, e.hp / e.max)}" height="6" rx="3" fill="${e.slow ? '#6bafe2' : '#71a969'}"/>${e.slow ? '<text x="18" y="12" font-size="20">❄</text>' : ''}</g>`; }
-    for (const p of s.projectiles) {
-      const color = ['#7fba42', '#e79bc6', '#76c8ef'][p.type], radius = p.type === 1 ? 12 : 8;
-      markup += `<g class="projectile" transform="translate(${p.x * 100},${p.y * 100})"><circle r="${radius}" fill="${color}" stroke="${p.type === 2 ? '#e5fbff' : '#568b34'}" stroke-width="2"/><circle cx="-3" cy="-3" r="${radius * .3}" fill="#fff9"/></g>`;
-    }
-    markup += FX.particles(fx,reducedMotion.matches);
-    $('actors').innerHTML = markup;
-  }
+  const renderer = createDefenseRenderer($('actors'), garden);
+  function drawActors() { renderer.draw(s, fx, selected, reducedMotion.matches); }
   function render() { drawCells(); panel(); status(); drawActors(); }
   function changed(text) { save(); render(); say(text); audio.effect('drop', { volume: .12 }); }
   $('cells').addEventListener('click', event => {
@@ -97,7 +88,7 @@
       if (events.some(e => e.kind === 'leak')) audio.effect('hit', { volume: .07 });
       if (events.some(e => ['wave', 'won', 'lost'].includes(e.kind))) { save(); render(); say(s.phase === 'won' ? `${C.waves(s)} 波全部守住了！` : s.phase === 'lost' ? '换个布置再试试，你一定有新办法。' : `这一波完成！奖励 ${C.advanced(s)?25:35} 颗星星，10 秒后自动开始下一波。`); audio.effect(s.phase === 'lost' ? 'over' : 'finish', { volume: .12 }); }
       elapsed += dt; paintIn += dt;
-      visualIn += dt; if(visualIn>=1/30){drawActors();visualIn=0;}
+      drawActors();
       if (paintIn >= .08) { status(); paintIn = 0; const t = s.towers.find(t => t.cell === selected); const button = $('upgrade'); if (button && t) button.disabled = !['ready', 'running'].includes(s.phase) || t.level >= 3 || s.coins < t.level * 25; }
       if (elapsed > 2) { save(); elapsed = 0; }
     }

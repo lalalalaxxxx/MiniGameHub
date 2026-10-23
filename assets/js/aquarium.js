@@ -1,9 +1,17 @@
 'use strict';
 // Runtime positions deliberately stay separate from the saved aquarium arrangement.
 window.createAquarium = function ({state, paused, eat}) {
-  const animals=new Map(), pellets=[];
+  const animals=new Map(), pellets=[], parts=new WeakMap();
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  let tank,last=0,serial=0,eaten=0;
+  let tank,last=0,serial=0,eaten=0,width=0,height=0;
+  const resize=new ResizeObserver(entries=>{
+    for(const entry of entries)if(entry.target===tank){
+      width=entry.contentRect.width;height=entry.contentRect.height;
+      for(const a of animals.values())paint(a);
+      for(const p of pellets)paintFood(p);
+    }
+  });
+  function paintFood(p){p.el.style.transform=`translateY(${p.y*height/100}px) translate(-50%,-50%)`;}
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   function art(type){
     const bird=type===5||type===6, color=['#ffb653','#70bce4','#ecc968','#8baabc','#d99ddc','#ffe179','#fff9ed','#86b77c'][type];
@@ -12,23 +20,26 @@ window.createAquarium = function ({state, paused, eat}) {
   }
   function paint(a){
     if(!a.el)return;
-    a.el.style.left=`${a.x}%`;a.el.style.top=`${a.y}%`;
-    a.el.style.transform=`translate(-50%,-50%) scaleX(${a.face})`;
+    a.el.style.transform=`translate(${a.x*width/100}px,${a.y*height/100}px) translate(-50%,-50%) scaleX(${a.face})`;
+    const view=parts.get(a);
     const wave=reduced.matches?0:Math.sin(a.phase),bite=a.bite>0?Math.sin(a.bite/.48*Math.PI):0;
-    a.el.querySelector('.animal-tail').style.transform=`rotate(${wave*19}deg) scaleX(${1-Math.abs(wave)*.18})`;
-    a.el.querySelector('.animal-fin').style.transform=`rotate(${wave*25}deg)`;
-    a.el.querySelector('.animal-body').style.transform=`translateY(${a.bird?bite*7:0}px) rotate(${a.bird?bite*17:wave*2}deg) scale(${1+bite*.1},${1-bite*.08})`;
+    view.tail.style.transform=`rotate(${wave*19}deg) scaleX(${1-Math.abs(wave)*.18})`;
+    view.fin.style.transform=`rotate(${wave*25}deg)`;
+    view.body.style.transform=`translateY(${a.bird?bite*7:0}px) rotate(${a.bird?bite*17:wave*2}deg) scale(${1+bite*.1},${1-bite*.08})`;
     a.el.classList.toggle('eating',a.bite>0);
   }
   function sync(){
-    tank=document.getElementById('tank');if(!tank)return;
+    resize.disconnect();tank=document.getElementById('tank');if(!tank)return;
+    width=tank.clientWidth;height=tank.clientHeight;resize.observe(tank);
     const s=state();
     for(const [key] of animals)if(!s.fish.some(f=>f.id===key))animals.delete(key);
     for(const f of s.fish){
       const bird=f.type===5||f.type===6;
       let a=animals.get(f.id);
       if(!a){a={id:f.id,type:f.type,bird,x:f.x,y:bird?16:f.y,vx:0,vy:0,face:1,phase:0,bite:0,wander:0};animals.set(f.id,a);}
-      a.el=tank.querySelector(`[data-action="fish"][data-value="${f.id}"]`);a.el.innerHTML=art(f.type);a.el.classList.toggle('surface-bird',bird);paint(a);
+      a.el=tank.querySelector(`[data-action="fish"][data-value="${f.id}"]`);a.el.innerHTML=art(f.type);a.el.classList.toggle('surface-bird',bird);
+      a.el.style.left='0';a.el.style.top='0';
+      parts.set(a,{tail:a.el.querySelector('.animal-tail'),fin:a.el.querySelector('.animal-fin'),body:a.el.querySelector('.animal-body')});paint(a);
     }
     for(const p of pellets){tank.append(p.el);}
   }
@@ -38,14 +49,14 @@ window.createAquarium = function ({state, paused, eat}) {
       const angle=Math.random()*Math.PI*2,r=Math.sqrt(Math.random());
       // A small floating share lets surface birds eat wherever the child taps.
       const p={id:serial++,x:clamp(x+Math.cos(angle)*r*13,10,90),y:clamp(i<3?17+Math.random()*5:y+Math.sin(angle)*r*9,17,80),age:0,floating:i<3,el:document.createElement('i')};
-      p.el.className='food-dot';p.el.style.left=`${p.x}%`;p.el.style.top=`${p.y}%`;tank.append(p.el);pellets.push(p);
+      p.el.className='food-dot';p.el.style.left=`${p.x}%`;p.el.style.top='0';paintFood(p);tank.append(p.el);pellets.push(p);
     }
     while(pellets.length>60)pellets.shift().el.remove();return true;
   }
   function tick(now){
     const dt=Math.min(.04,(now-last)/1000||0);last=now;
     if(tank&&!paused()&&!document.hidden){
-      for(let i=pellets.length-1;i>=0;i--){const p=pellets[i];p.age+=dt;if(p.age>24){p.el.remove();pellets.splice(i,1);continue;}if(!p.floating)p.y=Math.min(83,p.y+dt*.65);p.el.style.top=`${p.y}%`;}
+      for(let i=pellets.length-1;i>=0;i--){const p=pellets[i];p.age+=dt;if(p.age>24){p.el.remove();pellets.splice(i,1);continue;}if(!p.floating&&p.y<83){p.y=Math.min(83,p.y+dt*.65);paintFood(p);}}
       for(const a of animals.values()){
         a.bite=Math.max(0,a.bite-dt);
         let target=null,best=Infinity;

@@ -9,6 +9,7 @@ test('Game feedback follows actions, respects reduced motion, cleans up and keep
   await page.goto(base+'games/toyblast/index.html');const saved=await page.evaluate(()=>CozyGame.snapshot());
   const index=await page.evaluate(()=>CozyGame.snapshot().board.findIndex((_,i)=>CozyCore.group(CozyGame.snapshot().board,i).length>1));
   await page.locator(`[data-action=tile][data-value="${index}"]`).click();assert(await page.locator('[data-fx-event=drop]').count()>0);
+  assert.equal(await page.locator('canvas[data-fx=blast]').count(),1,'elimination has a shared burst canvas');
   const moved=await page.evaluate(()=>CozyGame.snapshot());assert.notDeepEqual(moved,saved);
   await page.waitForTimeout(800);assert.equal(await page.locator('#game-fx-layer > *').count(),0);assert.deepEqual(await page.evaluate(()=>CozyGame.snapshot()),moved);
   await page.locator('#undo').click();assert.deepEqual(await page.evaluate(()=>CozyGame.snapshot()),saved);
@@ -22,6 +23,9 @@ test('Game feedback follows actions, respects reduced motion, cleans up and keep
   await page.waitForTimeout(400);assert(await page.evaluate(()=>{const clock=document.querySelector('.teaching-clock').getBoundingClientRect();return [...document.querySelectorAll('[data-clock-angle]')].every(el=>{const r=el.getBoundingClientRect();return r.left>=clock.left&&r.right<=clock.right&&r.top>=clock.top&&r.bottom<=clock.bottom;});}),'clock hands stay on the dial after rotating');
   // Decoration must not create unbounded nodes during rapid input.
   await page.evaluate(()=>{const el=document.querySelector('.clock-bear');for(let i=0;i<30;i++)GameFeedback.celebrate(el);});assert((await page.locator('#game-fx-layer > *').count())<=96);await page.waitForTimeout(800);assert.equal(await page.locator('#game-fx-layer > *').count(),0);
+  await page.evaluate(()=>{const el=document.querySelector('[data-action=w-time]');for(let i=0;i<40;i++)GameFeedback.blast([el],2);});assert.equal(await page.locator('canvas[data-fx=blast]').count(),1,'rapid bursts reuse one canvas');
+  await page.waitForTimeout(900);assert.equal(await page.locator('#game-fx-layer > *').count(),0);
+  await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>matchMedia('(prefers-reduced-motion: reduce)').matches);await page.evaluate(()=>GameFeedback.blast([document.querySelector('[data-action=w-time]')]));assert.equal(await page.locator('canvas[data-fx=blast]').count(),0);
   assert.deepEqual(errors,[]);
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 });
