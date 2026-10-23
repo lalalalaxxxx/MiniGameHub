@@ -19,7 +19,7 @@
       const design=d=>d&&int(d.cup,0,2)&&Array.isArray(d.flavors)&&d.flavors.length<=3&&d.flavors.every(n=>int(n,0,4))&&int(d.topping,-1,3);
       if(!['orders','free'].includes(v.mode)||!int(v.order,0,6)||!design(v)||!int(v.served,0,100000)||!Array.isArray(v.album)||v.album.length>6||!v.album.every(design))return fresh(id);
     }else if(id==='aquarium'){
-      if(!Array.isArray(v.fish)||v.fish.length>8||!v.fish.every(f=>int(f.id,1,100000)&&int(f.type,0,4)&&Number.isFinite(f.x)&&f.x>=10&&f.x<=85&&Number.isFinite(f.y)&&f.y>=15&&f.y<=75)||new Set(v.fish.map(f=>f.id)).size!==v.fish.length||!int(v.nextId,1,100000)||v.fish.some(f=>f.id>=v.nextId)||!array(v.decor,15,n=>int(n,0,5))||!int(v.theme,0,2))return fresh(id);
+      if(!Array.isArray(v.fish)||v.fish.length>8||!v.fish.every(f=>int(f.id,1,100000)&&int(f.type,0,7)&&Number.isFinite(f.x)&&f.x>=10&&f.x<=85&&Number.isFinite(f.y)&&f.y>=15&&f.y<=75)||new Set(v.fish.map(f=>f.id)).size!==v.fish.length||!int(v.nextId,1,100000)||v.fish.some(f=>f.id>=v.nextId)||!array(v.decor,15,n=>int(n,0,5))||!int(v.theme,0,2))return fresh(id);
     }else return fresh(id);
     return clone(v);
   }

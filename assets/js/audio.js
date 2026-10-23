@@ -7,6 +7,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   const base = gameAudioBaseURL;
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
   const customEffects = {
+    aquarium: ["collect", "drop"],
     snake: ["collect"],
     "2048": ["move", "merge"],
     whack: ["hit"],
