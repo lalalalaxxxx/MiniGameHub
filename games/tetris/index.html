@@ -15,8 +15,10 @@
   <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../assets/css/game.css">
   <link rel="stylesheet" href="game.css">
-<link rel="stylesheet" href="../../assets/css/screen-fit.css"></head>
-<body>
+<link rel="stylesheet" href="../../assets/css/screen-fit.css">
+  <link rel="stylesheet" href="../../assets/css/touch-controls.css">
+  <link rel="stylesheet" href="../../assets/css/legacy-touch.css"></head>
+<body class="legacy-touch" data-legacy="tetris">
   <header class="topbar">
     <a class="back" href="../../index.html">回大厅</a>
     <h1>俄罗斯方块</h1>
@@ -48,10 +50,12 @@
       </aside>
     </div>
 
+    <div id="touchDock" class="legacy-touch-deck" aria-label="拇指控制区"></div>
     <div class="controls" aria-label="方块控制">
       <button type="button" data-action="left" aria-label="向左移动">←</button>
       <button type="button" data-action="rotate" aria-label="顺时针旋转">&#8635;</button>
       <button type="button" data-action="right" aria-label="向右移动">→</button>
+      <button type="button" data-action="down" aria-label="按住缓慢下降">慢降</button>
       <button type="button" class="drop" data-action="drop" aria-label="直接落到底">↓</button>
     </div>
   </main>
@@ -66,6 +70,7 @@
 
   <script src="../../assets/js/swipe.js"></script>
   <script src="../../assets/js/audio.js"></script>
+  <script src="../../assets/js/touch-controls.js"></script>
   <script src="game.js"></script>
   <script src="../../assets/js/offline.js"></script>
 <script src="../../assets/js/screen-fit.js"></script></body>

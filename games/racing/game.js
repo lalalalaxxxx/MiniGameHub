@@ -49,6 +49,10 @@ let paused = false;
 let gameOver = false;
 let shownScore = -1;
 let newRecord = false;
+const steeringInputs = new Map();
+let steeringDirection = 0;
+let steeringWait = 0;
+let touchControls = null;
 
 function loadNumber(key) {
   try {
@@ -131,6 +135,26 @@ function movePlayer(direction) {
   gameAudio.effect("move", { volume: .55 });
 }
 
+function steer(source, direction) {
+  if (direction && (paused || gameOver)) return;
+  if (direction) steeringInputs.set(source, direction);
+  else steeringInputs.delete(source);
+  const next = [...steeringInputs.values()].at(-1) || 0;
+  if (next !== steeringDirection) {
+    steeringDirection = next;
+    steeringWait = .32;
+    if (next) movePlayer(next);
+  }
+}
+
+function clearSteering() {
+  steeringInputs.clear();
+  steeringDirection = 0;
+  steeringWait = 0;
+  touchControls?.reset();
+  document.querySelectorAll(".steer.is-down").forEach(button => button.classList.remove("is-down"));
+}
+
 function chooseLane(excluded = []) {
   const choices = [];
   for (let lane = 0; lane < LANES; lane += 1) {
@@ -203,6 +227,10 @@ function hitObstacle(obstacle) {
 
 function update(delta) {
   if (paused || gameOver) return;
+  if (steeringDirection) {
+    steeringWait -= delta;
+    if (steeringWait <= 0) { movePlayer(steeringDirection); steeringWait = .22; }
+  }
 
   distance += speed * delta * 0.035;
   speed = Math.min(535, 270 + distance * 0.42);
@@ -230,6 +258,7 @@ function update(delta) {
 }
 
 function resetGame() {
+  clearSteering();
   obstacles = [];
   player = { x: laneCenter(1), targetX: laneCenter(1) };
   distance = 0;
@@ -248,13 +277,15 @@ function resetGame() {
   overlay.hidden = true;
   pauseBtn.disabled = false;
   pauseBtn.textContent = "暂停";
-  hintEl.textContent = "向左或向右滑动，切换车道";
+  hintEl.textContent = "按住转向连续换道，轻推或滑动换一条车道";
   updateHearts();
   updateScore(true);
   draw();
+  syncTouch();
 }
 
 function finishGame() {
+  clearSteering();
   gameOver = true;
   paused = false;
   pauseBtn.disabled = true;
@@ -266,15 +297,18 @@ function finishGame() {
   overlay.hidden = false;
   gameAudio.effect("finish");
   againBtn.focus();
+  syncTouch();
 }
 
 function setPaused(next, message = true) {
   if (gameOver) return;
+  if (next) clearSteering();
   paused = next;
   pauseBtn.textContent = paused ? "继续" : "暂停";
   if (message) hintEl.textContent = paused ? "休息一下，准备好再继续" : "看准空车道，继续向前！";
   lastTime = performance.now();
   draw();
+  syncTouch();
 }
 
 function roundedRect(context, x, y, width, height, radius) {
@@ -524,17 +558,23 @@ function frame(timestamp) {
 
 document.querySelectorAll(".steer").forEach((button) => {
   button.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || paused || gameOver) return;
     event.preventDefault();
     button.classList.add("is-down");
-    movePlayer(Number(button.dataset.move));
+    button.setPointerCapture?.(event.pointerId);
+    steer(`pointer:${event.pointerId}`, Number(button.dataset.move));
   });
-  const release = () => button.classList.remove("is-down");
+  const release = event => {
+    steer(`pointer:${event.pointerId}`, 0);
+    if (![...steeringInputs.values()].includes(Number(button.dataset.move))) button.classList.remove("is-down");
+  };
   button.addEventListener("pointerup", release);
   button.addEventListener("pointercancel", release);
-  button.addEventListener("pointerleave", release);
+  button.addEventListener("lostpointercapture", release);
+  button.addEventListener("click", event => { if (event.detail === 0) movePlayer(Number(button.dataset.move)); });
 });
 
-bindSwipe(document.querySelector(".stage"), {
+bindSwipe(canvas, {
   onInteract: unlockAudio,
   enabled: () => !paused && !gameOver,
   onDirection: (direction) => {
@@ -545,10 +585,10 @@ bindSwipe(document.querySelector(".stage"), {
 window.addEventListener("keydown", (event) => {
   if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
     event.preventDefault();
-    movePlayer(-1);
+    if (!event.repeat) steer(`key:${event.key.toLowerCase()}`, -1);
   } else if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
     event.preventDefault();
-    movePlayer(1);
+    if (!event.repeat) steer(`key:${event.key.toLowerCase()}`, 1);
   } else if (event.key === " " && !gameOver) {
     event.preventDefault();
     setPaused(!paused);
@@ -556,6 +596,12 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault();
     resetGame();
   }
+});
+
+window.addEventListener("keyup", event => steer(`key:${event.key.toLowerCase()}`, 0));
+window.addEventListener("blur", () => {
+  clearSteering();
+  if (!paused && !gameOver) setPaused(true, false);
 });
 
 pauseBtn.addEventListener("click", () => {
@@ -591,6 +637,21 @@ document.addEventListener("visibilitychange", () => {
     hintEl.textContent = "页面离开时已自动暂停";
   }
 });
+
+function syncTouch() {
+  touchControls?.setEnabled(!gameOver);
+  touchControls?.setActions([
+    { id: "pause", label: paused ? "继续" : "暂停", primary: true },
+  ]);
+}
+if (window.createTouchControls) {
+  touchControls = createTouchControls({
+    mount: document.querySelector("#touchDock"), axis: "horizontal", label: "按住转向",
+    onMove: ({x}) => steer("stick", Math.abs(x) > .15 ? Math.sign(x) : 0),
+    onAction: (id, pressed) => { if (id === "pause" && pressed) pauseBtn.click(); },
+  });
+  document.body.classList.add("touch-ready");
+}
 
 bestEl.textContent = String(best);
 paintSound();

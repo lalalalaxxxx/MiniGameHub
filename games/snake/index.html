@@ -15,8 +15,10 @@
   <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../assets/css/game.css">
   <link rel="stylesheet" href="game.css">
-<link rel="stylesheet" href="../../assets/css/screen-fit.css"></head>
-<body>
+<link rel="stylesheet" href="../../assets/css/screen-fit.css">
+  <link rel="stylesheet" href="../../assets/css/touch-controls.css">
+  <link rel="stylesheet" href="../../assets/css/legacy-touch.css"></head>
+<body class="legacy-touch" data-legacy="snake">
   <header class="topbar">
     <a class="back" href="../../index.html">回大厅</a>
     <h1>贪吃蛇</h1>
@@ -37,6 +39,7 @@
         <canvas id="board" width="600" height="600"></canvas>
       </div>
     </div>
+    <div id="touchDock" class="legacy-touch-deck" aria-label="拇指控制区"></div>
     <div class="pad" aria-label="方向">
       <button type="button" class="up" data-dir="0,-1" aria-label="向上">↑</button>
       <button type="button" class="left" data-dir="-1,0" aria-label="向左">←</button>
@@ -53,6 +56,7 @@
   </div>
   <script src="../../assets/js/swipe.js"></script>
   <script src="../../assets/js/audio.js"></script>
+  <script src="../../assets/js/touch-controls.js"></script>
   <script src="game.js"></script>
   <script src="../../assets/js/offline.js"></script>
 <script src="../../assets/js/screen-fit.js"></script></body>

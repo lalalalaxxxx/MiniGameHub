@@ -24,11 +24,11 @@ for(const id of ['zumapath','slingblocks','bombergarden','tankguard'])test('Extr
    }
   }else{
    await h.hold('up',317);
-   await page.evaluate(()=>{const b=document.querySelector('[data-action="fire"]');b.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch',pointerId:11,button:0,isPrimary:true}));});
+   await page.evaluate(()=>{const b=document.querySelector('[data-action="fire"]'),r=b.getBoundingClientRect();b.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch',pointerId:11,button:0,isPrimary:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2}));});
    for(let i=0;i<1600&&(await snap()).phase==='playing';i++){
     await page.evaluate(()=>{const s=ExtraGame.snapshot(),distance=e=>Math.hypot(e.x-s.player.x,e.y-s.player.y),aligned=e=>Math.abs(e.x-s.player.x)<19||Math.abs(e.y-s.player.y)<19;
      const e=s.bullets.filter(b=>b.enemy&&aligned(b)&&distance(b)<180).sort((a,b)=>distance(a)-distance(b))[0]||s.enemies.filter(aligned).sort((a,b)=>distance(a)-distance(b))[0];
-     if(e){const dx=e.x-s.player.x,dy=e.y-s.player.y,a=Math.abs(dx)>Math.abs(dy)?dx>0?'right':'left':dy>0?'down':'up',b=document.querySelector(`[data-action="${a}"]`);for(const type of ['pointerdown','pointerup'])b.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:12,button:0,isPrimary:false}));}
+     if(e){const dx=e.x-s.player.x,dy=e.y-s.player.y,a=Math.abs(dx)>Math.abs(dy)?dx>0?'right':'left':dy>0?'down':'up',b=document.querySelector(`[data-action="${a}"]`),r=b.getBoundingClientRect();for(const type of ['pointerdown','pointerup'])b.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:12,button:0,isPrimary:false,clientX:r.x+r.width/2,clientY:r.y+r.height/2}));}
      if((s.player.hp<2&&s.invuln<=0||s.baseHp<3&&s.baseShield<=0)&&s.shields)document.querySelector('[data-action="shield"]').click();
     });await page.waitForTimeout(50);
    }

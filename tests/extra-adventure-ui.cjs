@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {setup}=require('./helpers/extra-browser.cjs');
 const {games,fireiceActions,assembleActions,mushroomActions}=require('./helpers/extra-adventure');
-async function press(page,id,pressed,pointerId=201){await page.locator(`[data-action="${id}"]`).dispatchEvent(pressed?'pointerdown':'pointerup',{pointerId,button:0,pointerType:'touch',isPrimary:pointerId===201,buttons:pressed?1:0,bubbles:true});}
+async function press(page,id,pressed,pointerId=201){const button=page.locator(`[data-action="${id}"]`),r=await button.boundingBox();await button.dispatchEvent(pressed?'pointerdown':'pointerup',{pointerId,button:0,pointerType:'touch',isPrimary:pointerId===201,buttons:pressed?1:0,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2});}
 async function click(page,id){await page.locator(`[data-action="${id}"]`).click({force:true});}
 async function start(page){await page.locator('#resume').click({force:true});}
 async function finish(h,id){await h.page.clock.runFor(1600);assert.equal((await h.snap()).phase,'won',id+' finishes through DOM controls');assert(await h.page.locator('#overlay').isVisible());const fx=await h.page.evaluate(()=>ExtraGame.effects());assert.equal(fx.raf,false,'terminal animation loop sleeps');assert.equal(fx.particles,0);assert.equal(fx.rings,0);const before=await h.snap();await h.page.reload();assert.deepEqual(await h.snap(),before,'winning save reloads exactly');await start(h.page);assert.equal((await h.snap()).level,1,'next level works');assert(!(await h.page.locator('#overlay').isVisible()));}

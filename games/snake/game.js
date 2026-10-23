@@ -39,6 +39,8 @@ let over = false;
 let lastTs = 0;
 let cell = 0;
 let soundOn = true;
+let touchControls = null;
+let padPointer = null;
 
 function loadBest() {
   try {
@@ -93,6 +95,7 @@ function placeFood() {
 }
 
 function reset() {
+  clearControls();
   snake.splice(
     0,
     snake.length,
@@ -111,14 +114,16 @@ function reset() {
   lastTs = performance.now();
   pauseBtn.disabled = true;
   pauseBtn.textContent = "暂停";
-  hintEl.textContent = "上下左右滑动，带小蛇吃果子";
+  hintEl.textContent = "推摇杆转弯，也可以在棋盘上滑动";
   overlay.hidden = true;
   placeFood();
   remember();
   draw();
+  syncTouch();
 }
 
 function finish(title, text) {
+  clearControls();
   over = true;
   running = false;
   pauseBtn.disabled = true;
@@ -130,6 +135,7 @@ function finish(title, text) {
   overlay.hidden = false;
   againBtn.focus();
   draw();
+  syncTouch();
 }
 
 function setDir(x, y) {
@@ -145,6 +151,7 @@ function setDir(x, y) {
     pauseBtn.disabled = false;
     hintEl.textContent = "吃到粉色果子就会变长";
     lastTs = performance.now();
+    syncTouch();
   }
 }
 
@@ -292,15 +299,35 @@ function loop(ts) {
   requestAnimationFrame(loop);
 }
 
+function clearControls() {
+  padPointer = null;
+  queuedDir = null;
+  touchControls?.reset();
+  document.querySelectorAll(".pad .active").forEach(button => button.classList.remove("active"));
+}
+
 document.querySelectorAll(".pad button").forEach((button) => {
   button.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || padPointer !== null || paused || over) return;
     event.preventDefault();
+    padPointer = event.pointerId;
+    button.setPointerCapture?.(event.pointerId);
+    button.classList.add("active");
     const [x, y] = button.dataset.dir.split(",").map(Number);
     setDir(x, y);
   });
+  const release = event => {
+    if (event.pointerId !== padPointer) return;
+    padPointer = null;
+    button.classList.remove("active");
+  };
+  for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) button.addEventListener(type, release);
+  button.addEventListener("click", event => {
+    if (event.detail === 0) { const [x,y] = button.dataset.dir.split(",").map(Number); setDir(x,y); }
+  });
 });
 
-bindSwipe(document.querySelector(".stage"), {
+bindSwipe(canvas, {
   onInteract: unlock,
   enabled: () => !paused && !over,
   repeat: () => true,
@@ -332,9 +359,11 @@ window.addEventListener("keydown", (event) => {
 pauseBtn.addEventListener("click", () => {
   unlock();
   if (!running || over) return;
+  clearControls();
   paused = !paused;
   pauseBtn.textContent = paused ? "继续" : "暂停";
   hintEl.textContent = paused ? "暂停中" : "吃到粉色果子就会变长";
+  syncTouch();
 });
 
 function restart() {
@@ -358,10 +387,38 @@ soundBtn.addEventListener("click", () => {
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden || !running || over || paused) return;
+  clearControls();
   paused = true;
   pauseBtn.textContent = "继续";
   hintEl.textContent = "暂停中";
+  syncTouch();
 });
+
+window.addEventListener("blur", () => {
+  clearControls();
+  if (!running || over || paused) return;
+  paused = true;
+  pauseBtn.textContent = "继续";
+  hintEl.textContent = "离开页面，已自动暂停";
+  syncTouch();
+});
+
+function syncTouch() {
+  touchControls?.setEnabled(!over);
+  touchControls?.setActions([{ id: "pause", label: paused ? "继续" : "暂停", primary: true, disabled: !running || over }]);
+}
+
+if (window.createTouchControls) {
+  touchControls = createTouchControls({
+    mount: document.querySelector("#touchDock"), axis: "four", label: "拇指转弯",
+    onMove: ({keys}) => {
+      const next = {left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[keys[0]];
+      if (next) setDir(...next);
+    },
+    onAction: (id, pressed) => { if (id === "pause" && pressed) pauseBtn.click(); },
+  });
+  document.body.classList.add("touch-ready");
+}
 
 document.addEventListener("touchmove", (event) => {
   if (event.target.closest(".stage")) event.preventDefault();

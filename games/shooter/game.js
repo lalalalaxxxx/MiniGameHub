@@ -48,6 +48,9 @@ let fireTimer = 0;
 let spawnTimer = 0.65;
 let lastTime = performance.now();
 let pointerId = null;
+let pointerOrigin = null;
+let touchControls = null;
+const touchVector = { x: 0, y: 0 };
 let soundOn = loadSound();
 
 function loadNumber(key) {
@@ -92,7 +95,7 @@ function unlockAudio() {
 }
 
 function resetGame() {
-  clearPointer();
+  clearInput();
   score = 0;
   lives = 3;
   elapsed = 0;
@@ -110,13 +113,14 @@ function resetGame() {
   lastTime = performance.now();
   pauseBtn.disabled = false;
   pauseBtn.textContent = "\u6682\u505c";
-  hintEl.textContent = "\u62d6\u52a8\u5c0f\u98de\u8239\uff0c\u81ea\u52a8\u53d1\u5c04\u661f\u661f";
+  hintEl.textContent = "按住摇杆飞行，自动发射；也可在画面任意处拖动";
   overlay.hidden = true;
   updateHud();
+  syncTouch();
 }
 
 function finishGame() {
-  clearPointer();
+  clearInput();
   gameState = "over";
   const newRecord = score > best;
   saveBest();
@@ -128,17 +132,19 @@ function finishGame() {
   overlay.hidden = false;
   gameAudio.effect("over");
   againBtn.focus();
+  syncTouch();
 }
 
 function setPaused(paused) {
   if (gameState === "over") return;
-  clearPointer();
+  clearInput();
   gameState = paused ? "paused" : "playing";
   pauseBtn.textContent = paused ? "\u7ee7\u7eed" : "\u6682\u505c";
   hintEl.textContent = paused
     ? "\u6682\u505c\u4e2d\uff0c\u51c6\u5907\u597d\u518d\u7ee7\u7eed"
-    : "\u62d6\u52a8\u5c0f\u98de\u8239\uff0c\u81ea\u52a8\u53d1\u5c04\u661f\u661f";
+    : "按住摇杆飞行，自动发射；也可在画面任意处拖动";
   if (!paused) lastTime = performance.now();
+  syncTouch();
 }
 
 function clampPlayer() {
@@ -147,9 +153,10 @@ function clampPlayer() {
 }
 
 function moveTargetFromPointer(event) {
+  if (!pointerOrigin) return;
   const rect = canvas.getBoundingClientRect();
-  player.targetX = (event.clientX - rect.left) / rect.width * WORLD.width;
-  player.targetY = (event.clientY - rect.top) / rect.height * WORLD.height;
+  player.targetX = pointerOrigin.x + (event.clientX - pointerOrigin.clientX) / rect.width * WORLD.width;
+  player.targetY = pointerOrigin.y + (event.clientY - pointerOrigin.clientY) / rect.height * WORLD.height;
   clampPlayer();
 }
 
@@ -211,10 +218,10 @@ function update(dt) {
   elapsed += dt;
   player.invincible = Math.max(0, player.invincible - dt);
 
-  const horizontal = (keys.has("ArrowRight") ? 1 : 0) - (keys.has("ArrowLeft") ? 1 : 0);
-  const vertical = (keys.has("ArrowDown") ? 1 : 0) - (keys.has("ArrowUp") ? 1 : 0);
+  const horizontal = (keys.has("ArrowRight") ? 1 : 0) - (keys.has("ArrowLeft") ? 1 : 0) + touchVector.x;
+  const vertical = (keys.has("ArrowDown") ? 1 : 0) - (keys.has("ArrowUp") ? 1 : 0) + touchVector.y;
   if (horizontal || vertical) {
-    const length = Math.hypot(horizontal, vertical);
+    const length = Math.max(1, Math.hypot(horizontal, vertical));
     player.targetX += horizontal / length * 520 * dt;
     player.targetY += vertical / length * 520 * dt;
     clampPlayer();
@@ -536,11 +543,13 @@ function frame(now) {
 canvas.addEventListener("pointerdown", (event) => {
   // Keep control with the first finger until it is released. Extra fingers
   // must never replace its ID or move the target to their contact position.
-  if (gameState !== "playing" || pointerId !== null || !event.isPrimary || event.button !== 0) return;
+  if (gameState !== "playing" || pointerId !== null || touchVector.x || touchVector.y || !event.isPrimary || event.button !== 0) return;
   unlockAudio();
   pointerId = event.pointerId;
-  canvas.setPointerCapture(pointerId);
-  moveTargetFromPointer(event);
+  pointerOrigin = { clientX: event.clientX, clientY: event.clientY, x: player.x, y: player.y };
+  try { canvas.setPointerCapture(pointerId); } catch { /* A cancelled touch may already have ended. */ }
+  player.targetX = player.x;
+  player.targetY = player.y;
   event.preventDefault();
 });
 
@@ -553,9 +562,19 @@ canvas.addEventListener("pointermove", (event) => {
 function clearPointer() {
   const previousId = pointerId;
   pointerId = null;
+  pointerOrigin = null;
+  player.targetX = player.x;
+  player.targetY = player.y;
   if (previousId !== null && canvas.hasPointerCapture(previousId)) {
     canvas.releasePointerCapture(previousId);
   }
+}
+
+function clearInput() {
+  keys.clear();
+  touchVector.x = touchVector.y = 0;
+  touchControls?.reset();
+  clearPointer();
 }
 
 function releasePointer(event) {
@@ -582,8 +601,8 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("blur", () => {
-  keys.clear();
-  clearPointer();
+  clearInput();
+  if (gameState === "playing") setPaused(true);
 });
 
 pauseBtn.addEventListener("click", () => {
@@ -618,6 +637,24 @@ document.addEventListener("visibilitychange", () => {
 document.addEventListener("touchmove", (event) => {
   if (event.target.closest(".game-shell")) event.preventDefault();
 }, { passive: false });
+
+function syncTouch() {
+  touchControls?.setEnabled(gameState !== "over");
+  touchControls?.setActions([{ id: "pause", label: gameState === "paused" ? "继续" : "暂停", primary: true }]);
+}
+if (window.createTouchControls) {
+  touchControls = createTouchControls({
+    mount: document.querySelector("#touchDock"), axis: "free", label: "按住飞行",
+    onMove: ({x, y}) => {
+      if (gameState !== "playing" || pointerId !== null) { touchVector.x = touchVector.y = 0; return; }
+      touchVector.x = x; touchVector.y = y;
+      if (x || y) unlockAudio();
+      else { player.targetX = player.x; player.targetY = player.y; }
+    },
+    onAction: (id, pressed) => { if (id === "pause" && pressed) pauseBtn.click(); },
+  });
+  document.body.classList.add("touch-ready");
+}
 
 bestEl.textContent = String(best);
 updateSoundButton();

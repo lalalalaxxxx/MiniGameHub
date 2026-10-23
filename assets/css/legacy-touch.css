@@ -1,0 +1,62 @@
+/* Thumb controls for the original continuous-action games. */
+.legacy-touch{height:100dvh;overscroll-behavior:none}
+.legacy-touch .back,.legacy-touch .ghost,.legacy-touch .primary{min-height:44px}
+.legacy-touch.touch-ready .pad,.legacy-touch.touch-ready .controls,.legacy-touch.touch-ready .steer{display:none!important}
+.legacy-touch .stage{position:relative;gap:7px;padding-bottom:max(8px,env(safe-area-inset-bottom));width:100%;margin:0 auto;max-width:1280px}
+.legacy-touch .legacy-touch-deck{flex:none;width:100%;min-height:150px;max-width:1120px;position:relative;z-index:2;touch-action:none}
+.legacy-touch .legacy-touch-deck .touch-controls{width:100%;height:100%;min-height:150px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+.legacy-touch .legacy-touch-deck .touch-stick{flex:none}
+.legacy-touch .hint{max-width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-size:13px}
+.legacy-touch[data-legacy=racing] .play-area{display:flex;justify-content:center;width:100%;gap:0}
+.legacy-touch[data-legacy=racing] .road-wrap{max-height:100%;height:100%;width:auto}
+.legacy-touch[data-legacy=shooter] .stage{container-type:normal}
+.legacy-touch .legacy-shooter-fit{flex:1;min-height:0;width:100%;display:grid;place-items:center;container-type:size}
+.legacy-touch[data-legacy=shooter] .game-shell{flex:none;width:min(100cqw,80cqh);height:min(125cqw,100cqh);max-width:none;aspect-ratio:4/5}
+.legacy-touch[data-legacy=shooter] .actions{position:static;width:auto;flex-direction:row;padding:4px 12px 8px}
+.legacy-touch[data-legacy=shooter] .actions .ghost,.legacy-touch[data-legacy=shooter] .lives{width:auto}
+.legacy-touch[data-legacy=tetris] .stage{display:flex;flex-direction:column}
+.legacy-touch[data-legacy=tetris] .game-area{width:100%;flex:1;min-height:0}
+.legacy-touch[data-legacy=tetris] .board-shell{width:min(48vw,calc((100dvh - 330px)*.5),330px);height:auto;flex:none}
+.legacy-touch[data-legacy=tetris] .side-card{width:82px;gap:7px}
+.legacy-touch[data-legacy=tetris] .side-card section,.legacy-touch[data-legacy=tetris] .side-card p{padding:7px 5px;font-size:12px}
+.legacy-touch[data-legacy=tetris] .side-card strong{font-size:23px}
+@media(min-width:700px) and (orientation:landscape){
+ .legacy-touch .topbar{padding-top:max(6px,env(safe-area-inset-top));padding-bottom:4px;min-height:54px}
+ .legacy-touch .topbar h1{font-size:24px}
+ .legacy-touch .actions{position:static;flex-direction:row;padding:0 12px 8px;width:auto}
+ .legacy-touch .stage{padding-left:12px;padding-right:12px}
+ .legacy-touch .legacy-touch-deck{position:absolute;left:max(14px,env(safe-area-inset-left));right:max(14px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:auto;max-width:none;pointer-events:none}
+ .legacy-touch .legacy-touch-deck .touch-controls{pointer-events:none}
+ .legacy-touch .legacy-touch-deck .touch-controls>*{pointer-events:auto}
+ .legacy-touch[data-legacy=snake] .fit{width:min(100%,calc(100vw - 370px))}
+ .legacy-touch[data-legacy=snake] .square{width:min(100cqw,100cqh,calc(100vw - 380px));height:min(100cqw,100cqh,calc(100vw - 380px))}
+ .legacy-touch[data-legacy=racing] .play-area{max-width:calc(100vw - 370px)}
+ .legacy-touch[data-legacy=racing] .status-row{position:static;width:100%;flex-direction:row;justify-content:center}
+ .legacy-touch[data-legacy=racing] .status-row .hint{display:block}
+ .legacy-touch[data-legacy=shooter] .legacy-shooter-fit{max-width:calc(100vw - 370px)}
+ .legacy-touch[data-legacy=tetris] .board-shell{width:min(calc((100dvh - 150px)*.5),calc((100vw - 440px)*.7));height:auto}
+ .legacy-touch[data-legacy=tetris] .game-area{max-width:calc(100vw - 370px);align-items:center;gap:12px}
+ .legacy-touch[data-legacy=tetris] .side-card{align-self:flex-start;margin-top:10px}
+}
+@media(max-width:699px){
+ .legacy-touch .topbar{padding:6px 10px 4px;gap:6px;flex-wrap:wrap}
+ .legacy-touch .topbar h1{order:0;flex:1 1 100px;font-size:20px}
+ .legacy-touch .scores{gap:5px;margin-left:0}
+ .legacy-touch .score{padding:0 7px;font-size:11px;min-height:40px}
+ .legacy-touch .score strong{font-size:17px}
+ .legacy-touch .back,.legacy-touch .ghost{font-size:13px;padding:0 11px}
+ .legacy-touch .stage{padding-left:9px;padding-right:9px}
+ .legacy-touch .legacy-touch-deck{min-height:142px}
+ .legacy-touch .legacy-touch-deck .touch-controls{min-height:142px;gap:8px}
+ .legacy-touch[data-legacy=racing] .play-area{grid-template-rows:none;min-height:0}
+ .legacy-touch[data-legacy=tetris] .board-shell{width:min(47vw,calc((100dvh - 300px)*.5))}
+ .legacy-touch[data-legacy=tetris] .side-card{width:70px}
+}
+@media(max-height:520px) and (min-width:700px){
+ .legacy-touch .hint{display:none!important}
+ .legacy-touch .topbar{min-height:48px;padding-top:3px}
+ .legacy-touch .topbar h1{font-size:21px}
+ .legacy-touch .actions{padding-bottom:5px}
+ .legacy-touch[data-legacy=tetris] .side-card p{font-size:11px;padding:4px}
+ .legacy-touch[data-legacy=tetris] .side-card strong{font-size:18px}
+}

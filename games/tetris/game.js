@@ -94,8 +94,10 @@ let lastTime = 0;
 let fallElapsed = 0;
 let boardCell = 0;
 let soundOn = true;
-let holdTimer = 0;
-let holdInterval = 0;
+const heldInputs = new Map();
+const repeatTimes = new Map();
+let touchControls = null;
+let stickKeys = [];
 
 function readNumber(key) {
   try {
@@ -294,6 +296,7 @@ function lockPiece() {
 }
 
 function finishGame() {
+  stopHold();
   state = "over";
   pauseBtn.disabled = true;
   hintEl.textContent = "方块装满啦";
@@ -303,6 +306,7 @@ function finishGame() {
   overlayText.textContent = `这次得到 ${score} 分，已经很棒啦！`;
   overlay.hidden = false;
   againBtn.focus();
+  syncTouch();
 }
 
 function setPaused(paused, message = "暂停中") {
@@ -310,12 +314,13 @@ function setPaused(paused, message = "暂停中") {
   if (paused) stopHold();
   state = paused ? "paused" : "playing";
   pauseBtn.textContent = paused ? "继续" : "暂停";
-  hintEl.textContent = paused ? message : "左右滑动移动 · 上滑或轻点旋转 · 下滑落到底";
+  hintEl.textContent = paused ? message : "摇杆左右移动、下推慢降；右手旋转或落到底";
   if (!paused) {
     lastTime = performance.now();
     fallElapsed = 0;
   }
   drawBoard();
+  syncTouch();
 }
 
 function togglePause() {
@@ -337,11 +342,12 @@ function newGame() {
   lastTime = performance.now();
   pauseBtn.disabled = false;
   pauseBtn.textContent = "暂停";
-  hintEl.textContent = "左右滑动移动 · 上滑或轻点旋转 · 下滑落到底";
+  hintEl.textContent = "摇杆左右移动、下推慢降；右手旋转或落到底";
   overlay.hidden = true;
   spawnPiece();
   updateInfo();
   drawBoard();
+  syncTouch();
 }
 
 function roundedCell(context, x, y, size, color, alpha = 1) {
@@ -464,43 +470,66 @@ function perform(action) {
   unlockAudio();
   if (action === "left") moveHorizontal(-1);
   if (action === "right") moveHorizontal(1);
+  if (action === "down") moveDown(true);
   if (action === "rotate") rotatePiece();
   if (action === "drop") hardDrop();
 }
 
 function stopHold() {
-  window.clearTimeout(holdTimer);
-  window.clearInterval(holdInterval);
-  holdTimer = 0;
-  holdInterval = 0;
+  heldInputs.clear();
+  repeatTimes.clear();
+  touchControls?.reset();
   document.querySelectorAll(".controls .active").forEach((button) => button.classList.remove("active"));
 }
 
+function holdAction(source, action, pressed) {
+  if (!pressed) {
+    heldInputs.delete(source);
+    if (![...heldInputs.values()].includes(action)) repeatTimes.delete(action);
+    return;
+  }
+  if (state !== "playing" || heldInputs.has(source)) return;
+  const alreadyHeld = [...heldInputs.values()].includes(action);
+  heldInputs.set(source, action);
+  if (!alreadyHeld) {
+    perform(action);
+    repeatTimes.set(action, action === "down" ? 90 : 220);
+  }
+}
+
+function repeatHeld(delta) {
+  const actions = [...heldInputs.values()];
+  const horizontal = actions.filter(a => a === "left" || a === "right").at(-1);
+  for (const action of [horizontal, actions.includes("down") ? "down" : null]) {
+    if (!action) continue;
+    let remaining = (repeatTimes.get(action) ?? 0) - delta;
+    if (remaining <= 0) {
+      perform(action);
+      remaining = action === "down" ? 65 : 85;
+    }
+    repeatTimes.set(action, remaining);
+  }
+}
+
 document.querySelectorAll(".controls button").forEach((button) => {
-  let ignoreClickUntil = 0;
   button.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || state !== "playing") return;
     event.preventDefault();
-    stopHold();
     button.setPointerCapture?.(event.pointerId);
     button.classList.add("active");
-    ignoreClickUntil = performance.now() + 400;
-    const action = button.dataset.action;
-    perform(action);
-    if (action === "left" || action === "right") {
-      holdTimer = window.setTimeout(() => {
-        holdInterval = window.setInterval(() => perform(action), 80);
-      }, 220);
-    }
+    holdAction(`pointer:${event.pointerId}`, button.dataset.action, true);
   });
-  button.addEventListener("pointerup", stopHold);
-  button.addEventListener("pointercancel", stopHold);
-  button.addEventListener("lostpointercapture", stopHold);
-  button.addEventListener("click", () => {
-    if (performance.now() >= ignoreClickUntil) perform(button.dataset.action);
+  const release = event => {
+    holdAction(`pointer:${event.pointerId}`, button.dataset.action, false);
+    if (![...heldInputs.values()].includes(button.dataset.action)) button.classList.remove("active");
+  };
+  for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) button.addEventListener(type, release);
+  button.addEventListener("click", event => {
+    if (event.detail === 0) perform(button.dataset.action);
   });
 });
 
-bindSwipe(document.querySelector(".stage"), {
+bindSwipe(boardCanvas, {
   onInteract: unlockAudio,
   enabled: () => state === "playing",
   repeat: (direction) => direction === "left" || direction === "right",
@@ -513,21 +542,31 @@ window.addEventListener("keydown", (event) => {
   const action = {
     arrowleft: "left",
     arrowright: "right",
-    arrowdown: "drop",
+    arrowdown: "down",
     arrowup: "rotate",
     x: "rotate",
     " ": "drop",
   }[key];
   if (action) {
     event.preventDefault();
-    if (event.repeat && action === "drop") return;
-    perform(action);
+    if (event.repeat) return;
+    holdAction(`key:${event.key.toLowerCase()}`, action, true);
     return;
   }
   if (key === "p" || key === "escape") {
     event.preventDefault();
     togglePause();
   }
+});
+
+window.addEventListener("keyup", event => {
+  const source = `key:${event.key.toLowerCase()}`;
+  const action = heldInputs.get(source);
+  if (action) { event.preventDefault(); holdAction(source, action, false); }
+});
+window.addEventListener("blur", () => {
+  stopHold();
+  if (state === "playing") setPaused(true, "离开页面，已自动暂停");
 });
 
 pauseBtn.addEventListener("click", togglePause);
@@ -565,6 +604,7 @@ function gameLoop(timestamp) {
   const delta = Math.min(timestamp - lastTime, 100);
   lastTime = timestamp;
   if (state === "playing") {
+    repeatHeld(delta);
     fallElapsed += delta;
     const delay = dropDelay();
     while (fallElapsed >= delay && state === "playing") {
@@ -574,6 +614,30 @@ function gameLoop(timestamp) {
     drawBoard();
   }
   requestAnimationFrame(gameLoop);
+}
+
+function syncTouch() {
+  touchControls?.setEnabled(state !== "over");
+  touchControls?.setActions([
+    { id: "rotate", label: "↻ 旋转", primary: true, disabled: state !== "playing" },
+    { id: "drop", label: "⤓ 落到底", disabled: state !== "playing" },
+    { id: "pause", label: state === "paused" ? "继续" : "暂停" },
+  ]);
+}
+if (window.createTouchControls) {
+  touchControls = createTouchControls({
+    mount: document.querySelector("#touchDock"), axis: "four", label: "左右移动 · 下推慢降",
+    onMove: ({keys}) => {
+      for (const key of stickKeys) if (!keys.includes(key)) holdAction(`stick:${key}`, key === "up" ? "rotate" : key, false);
+      for (const key of keys) if (!stickKeys.includes(key)) holdAction(`stick:${key}`, key === "up" ? "rotate" : key, true);
+      stickKeys = keys.slice();
+    },
+    onAction: (id, pressed, source) => {
+      if (id === "pause") { if (pressed) togglePause(); return; }
+      holdAction(`touch:${source}`, id, pressed);
+    },
+  });
+  document.body.classList.add("touch-ready");
 }
 
 best = readNumber(BEST_KEY);
