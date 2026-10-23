@@ -1,4 +1,4 @@
-"""Original layered pops and sparkles for three puzzle games (deterministic PCM)."""
+"""Original layered pops and sparkles for puzzle games (deterministic PCM)."""
 import math
 import random
 import struct
@@ -7,7 +7,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1] / 'assets/audio'
 rate = 24000
-for game, base in [('birdblast', 600), ('candyland', 700), ('gemquest', 830)]:
+for game, base in [('birdblast', 600), ('candyland', 700), ('gemquest', 830), ('petlink', 540)]:
     target = root / game
     target.mkdir(parents=True, exist_ok=True)
     for name, duration in [('clear', .34), ('merge', .58), ('collect', .38), ('finish', .85), ('drop', .13)]:

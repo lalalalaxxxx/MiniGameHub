@@ -7,6 +7,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   const base = gameAudioBaseURL;
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
   const customEffects = {
+    petlink: ["clear", "merge", "collect", "finish", "drop"],
     birdblast: ["clear", "merge", "collect", "finish", "drop"],
     candyland: ["clear", "merge", "collect", "finish", "drop"],
     gemquest: ["clear", "merge", "collect", "finish", "drop"],

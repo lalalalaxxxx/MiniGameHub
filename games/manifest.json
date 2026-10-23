@@ -1,5 +1,14 @@
 [
   {
+    "id": "petlink",
+    "title": "宠物连连看",
+    "blurb": "绕个弯找到好朋友，十二关宠物配对与移动挑战",
+    "tags": ["宠物", "连连看", "配对", "动物", "观察", "消除"],
+    "category": "消除",
+    "cover": "games/petlink/cover.svg",
+    "entry": "games/petlink/index.html"
+  },
+  {
     "id": "birdblast",
     "title": "小鸟爆破",
     "blurb": "移动顶端小鸟，合成四种超能伙伴，体验五种模式",
