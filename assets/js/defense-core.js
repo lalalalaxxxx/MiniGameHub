@@ -15,7 +15,7 @@
   }
   function buildable(id, cell) { return Number.isInteger(cell) && cell >= 0 && cell < 40 && (id === 'gardenwatch' ? cell % 8 < 6 : !path.includes(cell)); }
   function fresh(id, difficulty = 'easy') {
-    return { version: 1, id, difficulty, coins: difficulty === 'easy' ? 210 : 180, hearts: difficulty === 'easy' ? 20 : 12, wave: 0, phase: 'ready', towers: [], enemies: [], projectiles: [], spawned: 0, spawnIn: 0, nextId: 1, cleared: 0 };
+    return { version: 1, id, difficulty, coins: difficulty === 'easy' ? 210 : 180, hearts: difficulty === 'easy' ? 20 : 12, wave: 0, phase: 'ready', breakLeft: 0, towers: [], enemies: [], projectiles: [], spawned: 0, spawnIn: 0, nextId: 1, cleared: 0 };
   }
   function build(s, cell, type) {
     if (!['ready', 'running'].includes(s.phase) || !buildable(s.id, cell) || !types[type] || s.towers.some(t => t.cell === cell) || s.coins < types[type].cost) return false;
@@ -35,17 +35,23 @@
   const count = s => 5 + s.wave * 2;
   function start(s) {
     if (s.phase !== 'ready' || s.wave >= 6) return false;
-    s.wave++; s.phase = 'running'; s.spawned = 0; s.spawnIn = 0; return true;
+    s.wave++; s.phase = 'running'; s.breakLeft = 0; s.spawned = 0; s.spawnIn = 0; return true;
   }
   function tick(s, dt) {
     const events = [];
-    if (s.phase !== 'running' || !Number.isFinite(dt) || dt <= 0) return events;
+    if (!Number.isFinite(dt) || dt <= 0) return events;
     dt = Math.min(dt, .1);
+    if (s.phase === 'ready' && s.wave > 0 && s.wave < 6) {
+      s.breakLeft = Math.max(0, (s.breakLeft ?? 10) - dt);
+      if (s.breakLeft <= .000001 && start(s)) events.push({ kind: 'start' });
+      return events;
+    }
+    if (s.phase !== 'running') return events;
     s.spawnIn = Math.max(0, s.spawnIn - dt);
     if (s.spawned < count(s) && s.spawnIn <= 0) {
       const hp = (16 + s.wave * 5) * (s.difficulty === 'easy' ? 1 : 1.3);
       s.enemies.push({ id: s.nextId++, p: 0, lane: (s.spawned + s.wave - 1) % 5, hp, max: hp, slow: 0 });
-      s.spawned++; s.spawnIn = 1.35;
+      s.spawned++; s.spawnIn = 1.35 - (s.wave - 1) * .06;
     }
     for (const e of s.enemies) { e.p += dt * (s.id === 'gardenwatch' ? .48 : .92) * (s.difficulty === 'easy' ? 1 : 1.15) * (e.slow > 0 ? .45 : 1); e.slow = Math.max(0, e.slow - dt); }
     for (const t of s.towers) {
@@ -86,7 +92,7 @@
     }
     s.enemies = s.enemies.filter(e => e.hp > 0 && e.p < (s.id === 'gardenwatch' ? 8.5 : path.length - 1));
     if (!s.hearts) { s.phase = 'lost'; s.projectiles = []; events.push({ kind: 'lost' }); }
-    else if (s.spawned >= count(s) && !s.enemies.length && !s.projectiles.length) { s.coins += 35; s.phase = s.wave === 6 ? 'won' : 'ready'; events.push({ kind: s.phase === 'won' ? 'won' : 'wave' }); }
+    else if (s.spawned >= count(s) && !s.enemies.length && !s.projectiles.length) { s.coins += 35; s.phase = s.wave === 6 ? 'won' : 'ready'; s.breakLeft = s.phase === 'ready' ? 10 : 0; events.push({ kind: s.phase === 'won' ? 'won' : 'wave' }); }
     return events;
   }
   const int = (n, a, b) => Number.isInteger(n) && n >= a && n <= b;
@@ -101,7 +107,8 @@
     if ((raw.phase === 'running' && (!raw.wave || !raw.hearts)) || (raw.phase === 'won' && raw.wave !== 6) || (raw.phase === 'lost' && raw.hearts !== 0) || (raw.phase === 'ready' && (raw.enemies.length || raw.wave >= 6))) return fallback();
     const shots = raw.projectiles ?? [];
     if (!Array.isArray(shots) || shots.length > 200 || shots.some(p => !p || !num(p.x, 0, 9) || !num(p.y, 0, 5) || !num(p.tx, 0, 9) || !num(p.ty, 0, 5) || !int(p.target, 1, 999) || !int(p.type, 0, 2) || !num(p.damage, 1, 30) || !num(p.life, 0, 3))) return fallback();
-    return { ...clone(raw), projectiles: clone(shots) };
+    if (raw.breakLeft !== undefined && !num(raw.breakLeft, 0, 10)) return fallback();
+    return { ...clone(raw), breakLeft: raw.breakLeft ?? (raw.phase === 'ready' && raw.wave > 0 ? 10 : 0), projectiles: clone(shots) };
   }
   const api = { clone, path, types, point, position, buildable, fresh, build, upgrade, sell, start, count, tick, restore };
   if (typeof module !== 'undefined') module.exports = api; else root.DefenseCore = api;

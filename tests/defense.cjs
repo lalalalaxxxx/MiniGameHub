@@ -2,6 +2,26 @@ const { test } = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http'), os = require('node:os');
 const { chromium, webkit } = require('playwright'), C = require('../assets/js/defense-core.js');
 const placements = id => id === 'gardenwatch' ? [0, 8, 16, 24, 32] : [9, 11, 13, 25, 27, 29];
+test('Automatic waves: initial preparation, ten-second breaks, legacy saves and rising difficulty',()=>{
+  for(const id of ['gardenwatch','toydefense']){
+    const s=C.fresh(id);for(let i=0;i<200;i++)C.tick(s,.1);assert.equal(s.wave,0);
+    for(const cell of placements(id))C.build(s,cell,0);C.start(s);
+    let previousHp=0,previousCount=0,previousGap=2;
+    for(let wave=1;wave<=6;wave++){
+      C.tick(s,.1);assert(s.enemies[0].max>previousHp);assert(C.count(s)>previousCount);assert(s.spawnIn<previousGap);
+      previousHp=s.enemies[0].max;previousCount=C.count(s);previousGap=s.spawnIn;
+      for(let i=0;i<10000&&s.phase==='running';i++)C.tick(s,.1);
+      assert.equal(s.phase,wave===6?'won':'ready');
+      if(wave===6)break;
+      assert.equal(s.breakLeft,10);
+      const old=C.clone(s);delete old.breakLeft;assert.equal(C.restore(id,old).breakLeft,10);
+      for(const t of s.towers)while(C.upgrade(s,t.cell)){}
+      for(let i=0;i<99;i++)assert(!C.tick(s,.1).some(e=>e.kind==='start'));
+      assert.equal(s.phase,'ready');assert(C.tick(s,.1).some(e=>e.kind==='start'));assert.equal(s.wave,wave+1);
+    }
+    const won=C.clone(s);for(let i=0;i<200;i++)C.tick(s,.1);assert.deepEqual(s,won);
+  }
+});
 test('Defense animation frames, impact lifetimes, reduced motion and bounded particles',()=>{
   const F=require('../assets/js/defense-fx.js'),fx=F.fresh();
   F.advance(fx,0,[{kind:'shot',cell:0,type:1,x:.5,y:.5,tx:5,ty:.5},{kind:'hurt',id:7},{kind:'impact',x:5,y:.5,type:1},{kind:'clear',x:5,y:.5}]);
@@ -59,7 +79,16 @@ test('Defense touch flows: full games, paused restore, upgrades, dialogs, layout
       await page.locator('#help').tap(); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused); await page.locator('#confirm').tap();
       await page.locator('#pause').tap(); await page.locator('#speed').tap();
       for (let wave = 1; wave <= 6; wave++) {
-        if (wave > 1) { for (const at of placements(id)) { await cell(at).tap(); while (await page.locator('#upgrade').isEnabled()) await page.locator('#upgrade').tap(); } await page.locator('#start').tap(); }
+        if (wave > 1) {
+          if(wave===2){
+            await page.locator('#pause').tap();const rest=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),rest);
+            await page.reload();assert(await page.evaluate(()=>DefenseGame.paused()));assert.deepEqual(await snap(),rest);
+            await page.locator('#pause').tap();await page.locator('#help').tap();const help=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
+          }
+          for (const at of placements(id)) { await cell(at).tap(); while (await page.locator('#upgrade').isEnabled()) await page.locator('#upgrade').tap(); }
+          await page.clock.runFor(4000);assert.equal((await snap()).phase,'ready');
+          await page.clock.runFor(6500);assert.equal((await snap()).wave,wave);assert.equal((await snap()).phase,'running');
+        }
         for (let i = 0; i < 70 && (await snap()).phase === 'running'; i++) await page.clock.runFor(1000);
         assert.equal((await snap()).phase, wave === 6 ? 'won' : 'ready');
       }
