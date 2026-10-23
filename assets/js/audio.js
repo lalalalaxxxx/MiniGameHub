@@ -7,6 +7,16 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   const base = gameAudioBaseURL;
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
   const customEffects = {
+    zumapath: ["shoot", "hit", "clear", "merge", "rotate", "finish", "over"],
+    slingblocks: ["shoot", "hit", "clear", "drop", "finish", "over"],
+    tripletown: ["drop", "merge", "clear", "rotate", "finish", "over"],
+    tankguard: ["shoot", "hit", "clear", "collect", "merge", "finish", "over"],
+    bombergarden: ["drop", "clear", "hit", "collect", "finish", "over"],
+    waterworks: ["drop", "collect", "move", "finish", "over"],
+    trafficpark: ["move", "drop", "finish", "over"],
+    fireice: ["drop", "collect", "rotate", "merge", "clear", "finish", "over"],
+    buildracer: ["drop", "rotate", "shoot", "hit", "collect", "finish", "over"],
+    mushroomwar: ["move", "hit", "collect", "clear", "merge", "finish", "over"],
     bubblepop: ["shoot", "hit", "drop", "clear", "merge", "finish", "over"],
     brickball: ["shoot", "hit", "clear", "collect", "finish", "over"],
     goldminer: ["shoot", "hit", "clear", "collect", "merge", "finish", "over"],

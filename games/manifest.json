@@ -1,5 +1,150 @@
 [
   {
+    "id": "fireice",
+    "title": "森林冰火伙伴",
+    "blurb": "切换冰火伙伴，跳过元素池，合作踩机关，一起走出森林神殿。",
+    "category": "冒险",
+    "tags": [
+      "双角色",
+      "机关",
+      "闯关",
+      "冰火人",
+      "森林冰火人"
+    ],
+    "cover": "games/fireice/cover.svg",
+    "entry": "games/fireice/index.html"
+  },
+  {
+    "id": "buildracer",
+    "title": "拼装小赛车",
+    "blurb": "用车框、轮子、引擎和火箭拼出小车，让真实重力检验你的设计。",
+    "category": "益智",
+    "tags": [
+      "拼装",
+      "物理",
+      "赛车",
+      "捣蛋猪",
+      "Bad Piggies"
+    ],
+    "cover": "games/buildracer/cover.svg",
+    "entry": "games/buildracer/index.html"
+  },
+  {
+    "id": "mushroomwar",
+    "title": "蘑菇小岛争夺战",
+    "blurb": "拖动派出蘑菇小队，抢占产兵小岛，升级据点并拦截对手。",
+    "category": "策略",
+    "tags": [
+      "策略",
+      "占领",
+      "即时",
+      "蘑菇战争"
+    ],
+    "cover": "games/mushroomwar/cover.svg",
+    "entry": "games/mushroomwar/index.html"
+  },
+  {
+    "id": "zumapath",
+    "title": "珠珠祖玛",
+    "blurb": "沿着花园小径滚动的珠链，瞄准插珠，回缩连击！",
+    "category": "消除",
+    "tags": [
+      "祖玛",
+      "瞄准",
+      "连击",
+      "Zuma"
+    ],
+    "cover": "games/zumapath/cover.svg",
+    "entry": "games/zumapath/index.html"
+  },
+  {
+    "id": "slingblocks",
+    "title": "弹弓砸积木",
+    "blurb": "拉动弹弓，抛物线飞行，撞倒支柱解救小怪！",
+    "category": "益智",
+    "tags": [
+      "弹弓",
+      "物理",
+      "闯关",
+      "愤怒的小鸟"
+    ],
+    "cover": "games/slingblocks/cover.svg",
+    "entry": "games/slingblocks/index.html"
+  },
+  {
+    "id": "bombergarden",
+    "title": "欢乐泡泡堂",
+    "blurb": "放下泡泡，躲到拐角后，连锁水花抓住捣蛋小怪！",
+    "category": "策略",
+    "tags": [
+      "泡泡堂",
+      "迷宫",
+      "策略",
+      "炸弹人"
+    ],
+    "cover": "games/bombergarden/cover.svg",
+    "entry": "games/bombergarden/index.html"
+  },
+  {
+    "id": "tankguard",
+    "title": "玩具坦克守基地",
+    "blurb": "驾驶玩具坦克，打碎砖墙，挡住子弹保护星星基地！",
+    "category": "射击",
+    "tags": [
+      "坦克",
+      "射击",
+      "守基地",
+      "坦克大战"
+    ],
+    "cover": "games/tankguard/cover.svg",
+    "entry": "games/tankguard/index.html"
+  },
+  {
+    "id": "tripletown",
+    "title": "合成小镇",
+    "blurb": "三棵小草变灌木，连锁建起童话小镇。",
+    "category": "策略",
+    "tags": [
+      "合成",
+      "空间规划",
+      "策略",
+      "三合镇",
+      "Triple Town"
+    ],
+    "cover": "games/tripletown/cover.svg",
+    "entry": "games/tripletown/index.html"
+  },
+  {
+    "id": "waterworks",
+    "title": "引水小工匠",
+    "blurb": "挖出弯弯水道，让清水绕过岩石找到小鸭子。",
+    "category": "益智",
+    "tags": [
+      "物理",
+      "画线",
+      "解谜",
+      "小鳄鱼爱洗澡",
+      "引水"
+    ],
+    "cover": "games/waterworks/cover.svg",
+    "entry": "games/waterworks/index.html"
+  },
+  {
+    "id": "trafficpark",
+    "title": "停车场挪车",
+    "blurb": "横车横着走，竖车竖着走，帮红色小车开出出口。",
+    "category": "益智",
+    "tags": [
+      "逻辑",
+      "空间规划",
+      "滑动",
+      "华容道",
+      "挪车"
+    ],
+    "cover": "games/trafficpark/cover.svg",
+    "entry": "games/trafficpark/index.html"
+  },
+  {
     "id": "bubblepop",
     "title": "萌宠泡泡龙",
     "blurb": "瞄准彩色泡泡，救出萌宠，体验整片掉落的连消",
