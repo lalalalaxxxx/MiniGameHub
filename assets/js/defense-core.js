@@ -60,7 +60,7 @@
       if (!candidates.length) continue;
       const target = candidates[0], at = position(s, target);
       s.projectiles.push({ x: origin.x, y: origin.y, target: target.id, tx: at.x, ty: at.y, type: t.type, damage: spec.damage * (1 + (t.level - 1) * .7), life: 3 });
-      t.cooldown = spec.delay; events.push({ kind: 'shot' });
+      t.cooldown = spec.delay; events.push({ kind: 'shot', cell: t.cell, type: t.type, x: origin.x, y: origin.y, tx: at.x, ty: at.y });
     }
     s.projectiles = s.projectiles.filter(p => {
       const target = s.enemies.find(e => e.id === p.target && e.hp > 0);
@@ -73,6 +73,7 @@
           const at = position(s, e);
           if (e === target || (types[p.type].splash && Math.hypot(at.x - p.tx, at.y - p.ty) < 1.5)) {
             e.hp -= p.damage; if (types[p.type].slow) e.slow = 2;
+            events.push({ kind: 'hurt', id: e.id });
           }
         }
         events.push({ kind: 'impact', x: p.tx, y: p.ty, type: p.type });
@@ -80,7 +81,7 @@
       return false;
     });
     for (const e of s.enemies) {
-      if (e.hp <= 0) { s.coins += 7; s.cleared++; events.push({ kind: 'clear' }); }
+      if (e.hp <= 0) { s.coins += 7; s.cleared++; events.push({ kind: 'clear', ...position(s, e) }); }
       else if (e.p >= (s.id === 'gardenwatch' ? 8.5 : path.length - 1)) { s.hearts = Math.max(0, s.hearts - 1); events.push({ kind: 'leak' }); }
     }
     s.enemies = s.enemies.filter(e => e.hp > 0 && e.p < (s.id === 'gardenwatch' ? 8.5 : path.length - 1));

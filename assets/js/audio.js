@@ -13,6 +13,8 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     shooter: ["hit"],
     watermelon: ["drop", "merge"],
     fruitcut: ["collect"],
+    gardenwatch: ["shoot", "rotate", "merge", "hit", "clear", "collect", "drop", "finish"],
+    toydefense: ["shoot", "rotate", "merge", "hit", "clear", "collect", "drop", "finish"],
   };
   const buffers = new Map();
   const voices = new Set();

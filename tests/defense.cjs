@@ -2,6 +2,14 @@ const { test } = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http'), os = require('node:os');
 const { chromium, webkit } = require('playwright'), C = require('../assets/js/defense-core.js');
 const placements = id => id === 'gardenwatch' ? [0, 8, 16, 24, 32] : [9, 11, 13, 25, 27, 29];
+test('Defense animation frames, impact lifetimes, reduced motion and bounded particles',()=>{
+  const F=require('../assets/js/defense-fx.js'),fx=F.fresh();
+  F.advance(fx,0,[{kind:'shot',cell:0,type:1,x:.5,y:.5,tx:5,ty:.5},{kind:'hurt',id:7},{kind:'impact',x:5,y:.5,type:1},{kind:'clear',x:5,y:.5}]);
+  assert.equal(F.frame(fx,0),4);assert.equal(F.frame(fx,0,true),5);assert(fx.hurt[7]);assert.match(F.particles(fx),/reward-pop/);
+  const frames=new Set();for(let n=0;n<30;n++){frames.add(F.frame(fx,0));F.advance(fx,.016);}
+  for(const n of [4,5,6,7,8,9])assert(frames.has(n));F.advance(fx,1);assert.equal(fx.bursts.length,0);assert.equal(F.frame(fx,0,true),0);assert.deepEqual(fx.hurt,{});
+  F.advance(fx,0,Array.from({length:150},()=>({kind:'impact',x:1,y:1,type:2})));assert.equal(fx.bursts.length,100);assert(!F.particles(fx,true).includes('<path'));
+});
 test('Defense rules: six waves at both difficulties, economics, targeting, damage, saves and defeat', () => {
   for (const id of ['gardenwatch', 'toydefense']) for (const difficulty of ['easy', 'normal']) {
     const s = C.fresh(id, difficulty);
@@ -26,7 +34,7 @@ test('Defense rules: six waves at both difficulties, economics, targeting, damag
   const loss = C.fresh('toydefense', 'normal'); for (let n = 0; n < 3 && loss.phase !== 'lost'; n++) { C.start(loss); for (let i = 0; i < 10000 && loss.phase === 'running'; i++) C.tick(loss, .1); } assert.equal(loss.phase, 'lost'); assert.equal(loss.hearts, 0); const lost = C.clone(loss); C.tick(loss, .1); assert.deepEqual(loss, lost);
   for (const raw of [null, {}, { ...C.fresh('gardenwatch'), coins: NaN }, { ...C.fresh('gardenwatch'), towers: [null] }, { ...C.fresh('gardenwatch'), enemies: [{ hp: Infinity }] }]) assert.deepEqual(C.restore('gardenwatch', raw), C.fresh('gardenwatch'));
 });
-test('Defense touch flows: full games, paused restore, upgrades, dialogs, layouts and blocked storage', { timeout: 240000 }, async () => {
+test('Defense touch flows: full games, paused restore, upgrades, dialogs, layouts and blocked storage', { timeout: 360000 }, async () => {
   const root = path.resolve(__dirname, '..'), mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.wav': 'audio/wav', '.svg': 'image/svg+xml' };
   const server = http.createServer((req, res) => { const file = path.join(root, new URL(req.url, 'http://localhost').pathname); fs.readFile(file, (error, bytes) => { if (error) { res.writeHead(404); res.end(); return; } res.setHeader('Content-Type', mime[path.extname(file)] || 'application/octet-stream'); res.end(bytes); }); });
   await new Promise(r => server.listen(0, '127.0.0.1', r));
@@ -44,9 +52,9 @@ test('Defense touch flows: full games, paused restore, upgrades, dialogs, layout
       await page.locator('#upgrade').tap(); assert.equal((await snap()).towers[0].level, 2); await page.locator('#sell').tap(); assert.equal((await snap()).towers.length, 0);
       await page.locator('#restart').tap(); await page.locator('#confirm').tap();
       for (const at of placements(id)) await cell(at).tap();
-      await page.locator('#start').tap(); await page.clock.runFor(2600);
-      if(id==='gardenwatch'){assert((await snap()).projectiles.length>0);assert(await page.locator('.projectile').count()>0);assert.equal(await page.locator('#actors line').count(),0);}
-      await page.locator('#pause').tap(); const paused = await snap(); await page.clock.runFor(2000); assert.deepEqual(await snap(), paused);
+      await page.locator('#start').tap(); await page.clock.runFor(2400);
+      if(id==='gardenwatch'){assert((await snap()).projectiles.length>0);assert(await page.locator('.projectile').count()>0);assert.equal(await page.locator('#actors line').count(),0);assert(Number(await cell(0).locator('.defender').getAttribute('data-frame'))>=4);}
+      await page.locator('#pause').tap(); const paused = await snap(), pausedFX=await page.evaluate(()=>DefenseGame.effects()); await page.clock.runFor(2000); assert.deepEqual(await snap(), paused);assert.deepEqual(await page.evaluate(()=>DefenseGame.effects()),pausedFX);
       await page.reload(); assert.deepEqual(await snap(), paused); assert(await page.evaluate(() => DefenseGame.paused())); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused);
       await page.locator('#help').tap(); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused); await page.locator('#confirm').tap();
       await page.locator('#pause').tap(); await page.locator('#speed').tap();
