@@ -4,7 +4,7 @@ const { chromium, webkit } = require('playwright'), C = require('../assets/js/de
 const placements = id => id === 'gardenwatch' ? [0, 8, 16, 24, 32] : [9, 11, 13, 25, 27, 29];
 test('Automatic waves: initial preparation, ten-second breaks, legacy saves and rising difficulty',()=>{
   for(const id of ['gardenwatch','toydefense']){
-    const s=C.fresh(id);for(let i=0;i<200;i++)C.tick(s,.1);assert.equal(s.wave,0);
+    const s=C.fresh(id,'easy');for(let i=0;i<200;i++)C.tick(s,.1);assert.equal(s.wave,0);
     for(const cell of placements(id))C.build(s,cell,0);C.start(s);
     let previousHp=0,previousCount=0,previousGap=2;
     for(let wave=1;wave<=6;wave++){
@@ -32,7 +32,7 @@ test('Defense animation frames, impact lifetimes, reduced motion and bounded par
 });
 test('Defense rules: six waves at both difficulties, economics, targeting, damage, saves and defeat', () => {
   for (const id of ['gardenwatch', 'toydefense']) for (const difficulty of ['easy', 'normal']) {
-    const s = C.fresh(id, difficulty);
+    const s = C.fresh(id, difficulty);if(difficulty==='normal')delete s.rules;
     assert(!C.build(s, id === 'gardenwatch' ? 7 : 0, 0));
     for (const cell of placements(id)) assert(C.build(s, cell, 0));
     assert(!C.build(s, placements(id)[0], 0));
@@ -45,7 +45,7 @@ test('Defense rules: six waves at both difficulties, economics, targeting, damag
     }
     const won = C.clone(s); C.tick(s, .1); assert(!C.start(s)); assert.deepEqual(s, won); assert.equal(s.cleared, 72);
   }
-  const economy = C.fresh('gardenwatch'); C.build(economy, 0, 0); C.upgrade(economy, 0); C.upgrade(economy, 0); assert(!C.upgrade(economy, 0)); assert(C.sell(economy, 0)); assert.equal(economy.coins, 189); assert(!C.sell(economy, 0));
+  const economy = C.fresh('gardenwatch','easy'); C.build(economy, 0, 0); C.upgrade(economy, 0); C.upgrade(economy, 0); assert(!C.upgrade(economy, 0)); assert(C.sell(economy, 0)); assert.equal(economy.coins, 189); assert(!C.sell(economy, 0));
   const enemy = (id, p, lane) => ({ id, p, lane, hp: 100, max: 100, slow: 0 });
   for (const type of [0, 1, 2]) {
     const s = C.fresh('gardenwatch'); C.build(s, 0, type); C.start(s); s.spawnIn = 1; s.enemies = [enemy(1, 2, 0), enemy(2, 2.2, 0), enemy(3, 2, 3)];
@@ -67,7 +67,7 @@ test('Defense touch flows: full games, paused restore, upgrades, dialogs, layout
     const snap = () => page.evaluate(() => DefenseGame.snapshot()), cell = n => page.locator(`[data-cell="${n}"]`);
     for (const id of ['gardenwatch', 'toydefense']) {
       await page.goto(`http://127.0.0.1:${server.address().port}/games/${id}/index.html`);
-      assert.equal(await page.locator('.cell').count(), 40);
+      assert.equal(await page.locator('.cell').count(), 40);await page.locator('#difficulty').selectOption('easy');await page.locator('#confirm').tap();
       await page.locator('[data-type="1"]').tap(); await cell(placements(id)[0]).tap(); assert.equal((await snap()).towers[0].type, 1);
       await page.locator('#upgrade').tap(); assert.equal((await snap()).towers[0].level, 2); await page.locator('#sell').tap(); assert.equal((await snap()).towers.length, 0);
       await page.locator('#restart').tap(); await page.locator('#confirm').tap();

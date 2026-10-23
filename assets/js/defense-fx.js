@@ -16,7 +16,7 @@
   function frame(fx,cell,reduced=false){const shot=fx.shots[cell];return shot?reduced?5:Math.min(9,4+Math.floor((.48-shot)/.08)):reduced?0:Math.floor(fx.time*3+cell)%4;}
   function particles(fx,reduced=false){return fx.bursts.map(b=>{
     const u=b.age/b.duration,x=b.x*100,y=b.y*100,color=colors[b.type]||'#f1c85d';
-    if(b.kind==='clear')return `<g class="reward-pop" transform="translate(${x},${y-u*45})" opacity="${1-u}"><circle r="${12+u*8}" fill="#f8dc73"/><text y="5" text-anchor="middle" fill="#795322" font-size="15" font-weight="bold">+7</text></g>`;
+    if(b.kind==='clear')return `<g class="reward-pop" transform="translate(${x},${y-u*45})" opacity="${1-u}"><circle r="${12+u*8}" fill="#f8dc73"/><text y="5" text-anchor="middle" fill="#795322" font-size="15" font-weight="bold">+${b.reward??7}</text></g>`;
     const radius=b.kind==='muzzle'?18:b.type===1?72:b.type===2?42:28;
     if(reduced)return `<circle cx="${x}" cy="${y}" r="14" fill="${color}" opacity="${(1-u)*.5}"/>`;
     let art=`<circle r="${radius*u}" fill="none" stroke="${color}" stroke-width="${5*(1-u)}"/>`;

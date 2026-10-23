@@ -6,3 +6,4 @@ body{--accent:#456f66;--pale:#dcead1}body[data-game=toydefense]{--accent:#67639a
 .cell .defender{position:absolute;inset:0;width:100%;height:100%}.cell small{z-index:1}.choice-sprite{grid-row:span 2;width:44px;height:44px;margin-left:-3px}.enemy-hit .enemy-icon{filter:brightness(1.25)}
 .battlefield{background-image:radial-gradient(circle at 20% 35%,#faffdf 0 2px,transparent 3px)}
 @media(prefers-reduced-motion:reduce){.enemy-hit .enemy-icon{filter:none}}
+.enemy-boss .enemy-icon{font-size:56px}.enemy-swarm .enemy-icon{font-size:34px}
