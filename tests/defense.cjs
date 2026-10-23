@@ -83,7 +83,7 @@ test('Defense touch flows: full games, paused restore, upgrades, dialogs, layout
           if(wave===2){
             await page.locator('#pause').tap();const rest=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),rest);
             await page.reload();assert(await page.evaluate(()=>DefenseGame.paused()));assert.deepEqual(await snap(),rest);
-            await page.locator('#pause').tap();await page.locator('#help').tap();const help=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
+            await page.locator('#pause').tap();await page.locator('#speed').tap();await page.locator('#help').tap();const help=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
           }
           for (const at of placements(id)) { await cell(at).tap(); while (await page.locator('#upgrade').isEnabled()) await page.locator('#upgrade').tap(); }
           await page.clock.runFor(4000);assert.equal((await snap()).phase,'ready');
