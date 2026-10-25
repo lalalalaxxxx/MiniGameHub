@@ -7,6 +7,11 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   const base = gameAudioBaseURL;
   const effects = ["move", "rotate", "drop", "collect", "merge", "clear", "hit", "crash", "start", "finish", "over", "shoot"];
   const customEffects = {
+    mirrorlight: ["move", "rotate", "drop", "collect", "clear", "hit", "finish", "over"],
+    firefly: ["move", "rotate", "drop", "collect", "clear", "hit", "finish", "over"],
+    boxtrail: ["move", "rotate", "drop", "collect", "clear", "hit", "finish", "over"],
+    colorsort: ["move", "rotate", "drop", "collect", "clear", "hit", "finish", "over"],
+    starpath: ["move", "rotate", "drop", "collect", "clear", "hit", "finish", "over"],
     zumapath: ["shoot", "hit", "clear", "merge", "rotate", "finish", "over"],
     slingblocks: ["shoot", "hit", "clear", "drop", "finish", "over"],
     tripletown: ["drop", "merge", "clear", "rotate", "finish", "over"],

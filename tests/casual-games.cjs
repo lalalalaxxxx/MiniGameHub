@@ -2,6 +2,44 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),os=require('node:os');
 const {chromium,webkit}=require('playwright');
 const {C,brickAim}=require('./helpers/casual');
+function minerTarget(s){
+ const firstHit=angle=>s.items.map(item=>{
+  const x=item.x-360,y=item.y-145,along=x*Math.sin(angle)+y*Math.cos(angle),across=x*Math.cos(angle)-y*Math.sin(angle),radius=item.r+12;
+  return{item,d:along>0&&Math.abs(across)<radius?along-Math.sqrt(radius*radius-across*across):Infinity};
+ }).sort((a,b)=>a.d-b.d)[0];
+ // Aim at the center of an unobstructed valuable item, never at a fixed ray.
+ for(const item of s.items.filter(item=>item.kind!=='stone').sort((a,b)=>b.value/b.weight-a.value/a.weight)){
+  const angle=Math.atan2(item.x-360,item.y-145);
+  if(Math.abs(angle)<=1.02&&firstHit(angle)?.item.uid===item.uid)return{item,angle};
+ }
+ return null;
+}
+async function completeMiner(h){
+ const {page,snap,tap}=h,shots=[];
+ async function advanceUntil(predicate,limit,label,step=32){
+  for(let elapsed=0;elapsed<=limit;elapsed+=step){const s=await snap();if(predicate(s))return s;assert.equal(s.phase,'playing',label+' ended before the expected event: '+JSON.stringify({phase:s.phase,shots}));await page.clock.runFor(step);}
+  assert.fail(label+' did not occur: '+JSON.stringify({state:await snap(),shots}));
+ }
+ try{
+  for(let i=0;i<10&&(await snap()).phase==='playing';i++){
+   // Returning to swing retains the old fired angle until the following tick.
+   // Advancing real RAF/physics under the Playwright clock removes that sample race.
+   await page.clock.runFor(32);
+   const current=await snap(),target=minerTarget(current);assert(target,'a valuable unobstructed target remains');
+   const aimed=await advanceUntil(s=>s.hook.mode==='swing'&&Math.abs(s.hook.angle-target.angle)<.02,8000,'aim at item '+target.item.uid);
+   await tap({x:360,y:300}); // Trusted touchscreen input; no simulation state is injected.
+   const fired=await snap();assert.equal(fired.moves,aimed.moves+1);assert.equal(fired.hook.mode,'out');
+   assert.equal(fired.hook.angle,aimed.hook.angle,'the frozen cursor preserves the measured firing direction');
+   const caught=await advanceUntil(s=>s.hook.mode==='back',4000,'capture item '+target.item.uid);
+   assert.equal(caught.hook.item,target.item.uid,'the aimed item is actually captured');
+   const retrieved=await advanceUntil(s=>s.phase==='won'||s.hook.mode==='swing',8000,'retrieve item '+target.item.uid,64);
+   assert.equal(retrieved.earned,current.earned+target.item.value);
+   shots.push({uid:target.item.uid,angle:fired.hook.angle,earned:retrieved.earned});
+  }
+  const end=await snap();assert.equal(end.phase,'won','geometric miner strategy completes the real level: '+JSON.stringify(shots));assert(end.earned>=end.target);
+  console.log('PASS miner aimed touch captures '+JSON.stringify(shots));
+ }finally{await page.clock.resume();}
+}
 async function setup(){
  const root=path.resolve(__dirname,'..'),types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.wav':'audio/wav','.json':'application/json','.svg':'image/svg+xml'};
  const server=http.createServer((req,res)=>{let f=new URL(req.url,'http://local').pathname.replace(/^\/minigames\//,'/');if(f.endsWith('/'))f+='index.html';fs.readFile(path.join(root,f),(e,b)=>{res.writeHead(e?404:200,{'Content-Type':types[path.extname(f)]||'application/octet-stream'});res.end(e?'':b);});});await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -42,10 +80,11 @@ test('Casual UI: all controls fit tablet landscape, portrait and phone; start/pa
 test('Casual UI: complete real opening levels with touch, show results and advance to next level',{timeout:120000},async()=>{
  const h=await setup(),{page,install,snap,tap,drag}=h;
  try{for(const id of Object.keys(C.META)){
-  await install(C.fresh(id,0,37));await page.locator('#resume').tap();
+  if(id==='goldminer'){await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.clock.pauseAt(new Date('2030-01-01T00:00:01Z'));}
+  await install(C.fresh(id,0,37));await page.locator('#resume').tap({force:id==='goldminer'});
   if(id==='bubblepop'){for(let i=0;i<24&&(await snap()).phase==='playing';i++){await tap(C.hint(await snap()));await page.waitForFunction(()=>!CasualGame.snapshot().shot);}}
   else if(id==='brickball'){await page.locator('#secondary').tap();for(let i=0;i<12&&(await snap()).phase==='playing';i++){await tap(brickAim(await snap()));await page.waitForFunction(()=>!CasualGame.snapshot().volley,{},{timeout:16000});}}
-  else if(id==='goldminer'){for(let i=0;i<10&&(await snap()).phase==='playing';i++){await page.waitForFunction(()=>{const s=CasualGame.snapshot();return s.phase!=='playing'||s.hook.mode==='swing'&&Math.abs(s.hook.angle)<.1;});if((await snap()).phase!=='playing')break;await tap({x:360,y:300});await page.waitForFunction(()=>CasualGame.snapshot().hook.mode==='back');if(!(await page.locator('#primary').isDisabled()))await page.locator('#primary').tap();await page.waitForFunction(()=>CasualGame.snapshot().hook.mode==='swing');}}
+  else if(id==='goldminer')await completeMiner(h);
   else if(id==='ropefeast')await drag({x:270,y:230},{x:460,y:230});
   else await tap({x:155,y:145});
   await h.result();assert((await snap()).score>0);await h.capture(id+'-result');

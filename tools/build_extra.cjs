@@ -1,10 +1,11 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'..'),ids=['zumapath','slingblocks','tripletown','tankguard','bombergarden','waterworks','trafficpark','fireice','buildracer','mushroomwar'];
-const catalogs=fs.readdirSync(__dirname).filter(f=>/^extra-.*-catalog\.(cjs|json)$/.test(f)).flatMap(f=>require(path.join(__dirname,f)));
-const entries=catalogs.filter(m=>ids.includes(m.id));
+const riddles=['mirrorlight','firefly','boxtrail','colorsort','starpath'];
+const root=path.resolve(__dirname,'..'),ids=[...riddles,'zumapath','slingblocks','tripletown','tankguard','bombergarden','waterworks','trafficpark','fireice','buildracer','mushroomwar'];
+const catalogs=fs.readdirSync(__dirname).filter(f=>/^(extra|riddle)-.*-catalog\.(cjs|json)$/.test(f)).flatMap(f=>require(path.join(__dirname,f)));
+const entries=[...catalogs.filter(m=>riddles.includes(m.id)).sort((a,b)=>riddles.indexOf(a.id)-riddles.indexOf(b.id)),...catalogs.filter(m=>ids.includes(m.id)&&!riddles.includes(m.id))];
 if(new Set(entries.map(m=>m.id)).size!==entries.length)throw new Error('Duplicate extra game catalog');
-if(!process.argv.includes('--partial')&&entries.length!==10)throw new Error('Missing catalogs: '+ids.filter(id=>!entries.some(m=>m.id===id)).join(', '));
+if(!process.argv.includes('--partial')&&entries.length!==ids.length)throw new Error('Missing catalogs: '+ids.filter(id=>!entries.some(m=>m.id===id)).join(', '));
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 for(const m of entries){
  const G=require('../assets/js/extras/'+m.id+'.js');if(G.id!==m.id||G.levels!==10||!G.validate(G.create(0,37)))throw new Error('Invalid module '+m.id);
@@ -19,5 +20,6 @@ for(const m of entries){
 }
 const file=path.join(root,'games/manifest.json'),old=JSON.parse(fs.readFileSync(file,'utf8')).filter(g=>!entries.some(m=>m.id===g.id));
 const aliases={zumapath:['祖玛','Zuma'],slingblocks:['愤怒的小鸟','弹弓'],tripletown:['三合镇','Triple Town'],tankguard:['坦克大战','守基地'],bombergarden:['泡泡堂','炸弹人'],waterworks:['小鳄鱼爱洗澡','引水'],trafficpark:['华容道','挪车'],fireice:['冰火人','森林冰火人'],buildracer:['捣蛋猪','Bad Piggies'],mushroomwar:['蘑菇战争','占领']};
-fs.writeFileSync(file,JSON.stringify([...entries.map(m=>({id:m.id,title:m.title,blurb:m.blurb,category:({'冒险闯关':'冒险','物理':'益智','解谜':'益智','创意建造':'益智','策略经营':'策略'}[m.category]||m.category),tags:[...new Set([...(m.tags||[]),...aliases[m.id]])],cover:`games/${m.id}/cover.svg`,entry:`games/${m.id}/index.html`})),...old],null,2)+'\n');
+Object.assign(aliases,{mirrorlight:['镜子','光线','反射'],firefly:['萤火虫','点灯','翻灯'],boxtrail:['推箱子','Sokoban','搬箱子'],colorsort:['倒水','分色','瓶子','Water Sort'],starpath:['一笔画','连线','星座']});
+fs.writeFileSync(file,JSON.stringify([...entries.map(m=>({id:m.id,title:m.title,blurb:m.blurb,category:riddles.includes(m.id)?'解谜':({'冒险闯关':'冒险','物理':'益智','解谜':'益智','创意建造':'益智','策略经营':'策略'}[m.category]||m.category),tags:[...new Set([...(m.tags||[]),...(aliases[m.id]||[])])],cover:`games/${m.id}/cover.svg`,entry:`games/${m.id}/index.html`})),...old],null,2)+'\n');
 console.log(`Generated ${entries.length} extra game pages, covers and lobby entries.`);

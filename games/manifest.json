@@ -1,5 +1,82 @@
 [
   {
+    "id": "mirrorlight",
+    "title": "星光镜子屋",
+    "blurb": "转动银色镜子，把温柔的光送进每一个星星罐。",
+    "category": "解谜",
+    "tags": [
+      "观察",
+      "光线",
+      "空间思维",
+      "镜子",
+      "反射"
+    ],
+    "cover": "games/mirrorlight/cover.svg",
+    "entry": "games/mirrorlight/index.html"
+  },
+  {
+    "id": "firefly",
+    "title": "萤火灯阵",
+    "blurb": "点亮小萤火虫和它的邻居，让整片夜色闪起星光。",
+    "category": "解谜",
+    "tags": [
+      "逻辑",
+      "规律",
+      "观察",
+      "萤火虫",
+      "点灯",
+      "翻灯"
+    ],
+    "cover": "games/firefly/cover.svg",
+    "entry": "games/firefly/index.html"
+  },
+  {
+    "id": "boxtrail",
+    "title": "小熊推箱子",
+    "blurb": "滑动小熊，把蜂蜜箱推到星星地垫，想好方向再出发。",
+    "category": "解谜",
+    "tags": [
+      "推箱子",
+      "空间思维",
+      "滑动",
+      "Sokoban",
+      "搬箱子"
+    ],
+    "cover": "games/boxtrail/cover.svg",
+    "entry": "games/boxtrail/index.html"
+  },
+  {
+    "id": "colorsort",
+    "title": "彩虹分装师",
+    "blurb": "抬起小瓶，让同色水流相遇，把彩虹一瓶瓶分好。",
+    "category": "解谜",
+    "tags": [
+      "颜色分类",
+      "逻辑规划",
+      "轻松",
+      "倒水",
+      "分色",
+      "瓶子",
+      "Water Sort"
+    ],
+    "cover": "games/colorsort/cover.svg",
+    "entry": "games/colorsort/index.html"
+  },
+  {
+    "id": "starpath",
+    "title": "一笔星旅",
+    "blurb": "点亮星星，沿着每条星光路走一次，画出自己的夜空。",
+    "category": "解谜",
+    "tags": [
+      "一笔画",
+      "路线规划",
+      "星座",
+      "连线"
+    ],
+    "cover": "games/starpath/cover.svg",
+    "entry": "games/starpath/index.html"
+  },
+  {
     "id": "fireice",
     "title": "森林冰火伙伴",
     "blurb": "切换冰火伙伴，跳过元素池，合作踩机关，一起走出森林神殿。",
