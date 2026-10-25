@@ -9,8 +9,9 @@
   const modeNames={classic:'经典挑战',ice:'顶部投放 · 破冰',pandora:'潘多拉宝盒',practice:'轻松练习',fever:'狂热冲分'};
   const notes={classic:'上方、侧边露出的小鸟都能抓。三消抖动时，快加同色伙伴！',ice:'点一下目标列，从顶部投下一只鸟。连起同色伙伴，震碎旁边的冰。',pandora:'合成超能鸟打开宝盒，集齐 BIRZZLE，赢取加时和超能伙伴。',practice:'没有倒计时，也没有自动掉排。慢慢练习自由拖动和超能合成。',fever:'两分钟内持续连消，填满能量条，进入双倍得分的狂热时刻。'};
   let s=C.fresh(),sound=true,bests={},paused=true,started=false,selected=null,drag=null,hints=[],pendingAction=null,wasPaused=true;
-  let last=0,vtime=0,raf=0,hudAt=0,saveAt=0,suppressClick=0,announcement='',announcementUntil=0,focusIndex=0;
-  const poses=new Map(),sprites=new Map(),particles=[],rings=[],beams=[],ghosts=[],cells=[];
+  let last=0,vtime=0,raf=0,paintRaf=0,hudAt=0,saveAt=0,suppressClick=0,announcement='',announcementUntil=0,focusIndex=0;
+  const poses=new Map(),sprites=new Map(),charging=new Map(),particles=[],rings=[],beams=[],ghosts=[],cells=[];
+  let savedState='',savedBests='';
   let background=document.createElement('canvas');
   try{const raw=JSON.parse(localStorage.getItem(KEY));if(raw){s=C.restore(raw);started=true;}sound=localStorage.getItem('childgame.sound')!=='off';bests=JSON.parse(localStorage.getItem(KEY+'.best'))||{};}catch{}
   const audio=createGameAudio({game:'birdblast',music:false,isEnabled:()=>sound,isPlaying:()=>s.phase==='playing',isPaused:()=>paused||$('dialog').open});
@@ -19,7 +20,7 @@
   const emit=(array,item,max)=>{if(array.length<max)array.push({...item,start:vtime});};
   const say=t=>text('feedback',t);
   function announce(t){announcement=t;announcementUntil=vtime+1.3;say(t);}
-  function save(){try{localStorage.setItem(KEY,JSON.stringify(s));bests[s.mode]=Math.max(Number(bests[s.mode])||0,s.score);localStorage.setItem(KEY+'.best',JSON.stringify(bests));text('save-status','进度已保存 · 支持离线');}catch{text('save-status','暂时无法保存进度');}}
+  function save(){try{const state=JSON.stringify(s);if(state!==savedState){localStorage.setItem(KEY,state);savedState=state;}bests[s.mode]=Math.max(Number(bests[s.mode])||0,s.score);const best=JSON.stringify(bests);if(best!==savedBests){localStorage.setItem(KEY+'.best',best);savedBests=best;}text('save-status','进度已保存 · 支持离线');}catch{text('save-status','暂时无法保存进度');}}
   function round(g,x,y,w,h,r,fill,stroke){g.beginPath();g.roundRect(x,y,w,h,r);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=2;g.stroke();}}
   function ellipse(g,x,y,rx,ry,color){g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=color;g.fill();}
   function sprite(b){
@@ -56,14 +57,14 @@
     round(g,6,4,688,90,19,'#fcf3d9','#c5ba87');g.fillStyle='#867444';g.font='bold 12px sans-serif';g.fillText(s.mode==='ice'?'下一只 →':'下一排小鸟',18,18);
     if(s.mode==='ice'){g.setLineDash([9,10]);g.strokeStyle='#d0f6fd90';g.lineWidth=3;g.beginPath();g.moveTo(12,100+(s.rows-2)*100);g.lineTo(688,100+(s.rows-2)*100);g.stroke();}
   }
-  function fit(){const box=document.querySelector('.stage').getBoundingClientRect(),h=(s.rows+1)*100,w=Math.max(1,Math.min(box.width,box.height*700/h));wrap.style.width=w+'px';wrap.style.height=w*h/700+'px';const dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(w*dpr);canvas.height=Math.round(w*h/700*dpr);grid.style.top=100/h*100+'%';grid.style.gridTemplateRows=`repeat(${s.rows},minmax(0,1fr))`;draw();}
+  function fit(){const box=document.querySelector('.stage').getBoundingClientRect(),h=(s.rows+1)*100,w=Math.max(1,Math.min(box.width,box.height*700/h));wrap.style.width=w+'px';wrap.style.height=w*h/700+'px';const dpr=Math.min(2,devicePixelRatio||1),cw=Math.round(w*dpr),ch=Math.round(w*h/700*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch;}grid.style.top=100/h*100+'%';grid.style.gridTemplateRows=`repeat(${s.rows},minmax(0,1fr))`;draw();requestPaint();}
   function syncCells(){
     if(cells.length!==s.board.length){grid.replaceChildren();cells.length=0;for(let i=0;i<s.board.length;i++){const el=document.createElement('button');el.type='button';el.dataset.cell=i;el.tabIndex=i===0?0:-1;grid.append(el);cells.push(el);}}
     for(let i=0;i<cells.length;i++){const el=cells[i],b=s.board[i];const label=`第${Math.floor(i/7)+1}行第${i%7+1}列，${!b?'空位':b.kind==='ice'?'冰块'+(b.loot==='egg'?'，金蛋':b.loot==='clock'?'，加时':''):b.kind==='box'?'潘多拉宝盒':names[b.color]+(b.special?'，'+powers[b.special]:'')+(b.lock?'，带锁':'')}`;
       if(el.getAttribute('aria-label')!==label)el.setAttribute('aria-label',label);el.classList.toggle('selected',!!b&&b.uid===selected);el.classList.toggle('hinted',hints.includes(i));el.classList.toggle('pickable',C.selectable(s,i));el.disabled=paused||s.phase!=='playing';
     }
   }
-  function status(){
+  function status(boardChanged=true){
     text('score',s.score.toLocaleString());text('level-label',s.mode==='ice'?'破冰波次':'森林等级');text('level',s.mode==='ice'?`${s.wave} · 蛋 ${s.eggs}`:s.level);
     text('mode-title',modeNames[s.mode]);text('mode-note',notes[s.mode]);$('mode').value=s.mode;$('pace').value=s.pace;
     text('clock-label',s.mode==='practice'?'练习记录':s.timeLeft!==null?'剩余时间':'下一排小鸟');
@@ -74,7 +75,7 @@
     const finished=s.phase!=='playing';$('overlay').hidden=!paused&&!finished;
     text('overlay-title',finished?(s.phase==='won'?'挑战完成！':'下次再来一场！'):started?'稍作休息':modeNames[s.mode]);
     text('overlay-text',finished?`这次获得 ${s.score.toLocaleString()} 分，解救 ${s.cleared} 只小鸟。`:notes[s.mode]);
-    text('resume',finished?'再玩一次':started?'继续游戏':'开始游戏');syncCells();
+    text('resume',finished?'再玩一次':started?'继续游戏':'开始游戏');if(boardChanged)syncCells();
   }
   function syncPoses(events=[]){
     const births=new Map();for(const e of events)if(e.type==='drop')for(const m of e.moved)births.set(m.uid,{x:(m.to%7+.5)*100,y:55});
@@ -103,12 +104,12 @@
       if(e.type==='wave')announce(`第 ${e.wave} 波${e.wave>1?' · +21 秒':''}`);
       if(e.type==='level'){announce(`森林等级 ${e.level}！`);audio.effect('collect',{volume:.4});}
       if(e.type==='end'){audio.effect(s.phase==='won'?'finish':'over',{volume:.6});save();}
-    }syncPoses(result.events);syncCells();status();save();
+    }syncPoses(result.events);status();save();
   }
   function draw(dt=0){
     if(!canvas.width||!background.width)return;const scale=canvas.width/700;ctx.setTransform(scale,0,0,scale,0,0);ctx.drawImage(background,0,0);
     for(let c=0;c<7;c++){const b=s.next[c];if(!b)continue;const size=s.mode==='ice'?(c===0?72:53):64,x=s.mode==='ice'?62+c*92:50+c*100;ctx.globalAlpha=s.mode==='ice'&&c>0?.65:1;ctx.drawImage(sprite(b),x-size/2,22,size,size);ctx.globalAlpha=1;}
-    const charging=new Map();for(const g of s.charges)for(const id of g.uids)charging.set(id,g.at-s.clock);
+    charging.clear();for(const g of s.charges)for(const id of g.uids)charging.set(id,g.at-s.clock);
     let aim=-1;if(drag&&drag.moved){const from=s.board.findIndex(b=>b?.uid===drag.uid);if(from>=0)aim=C.target(s,from,drag.target);}
     if(s.mode==='ice'&&hints.length)aim=hints[1];
     if(aim>=0){const p=point(aim);ctx.fillStyle='#fff5a92c';ctx.fillRect(aim%7*100,100,100,s.rows*100);round(ctx,p.x-43,p.y-43,86,86,18,null,'#fff1ad');}
@@ -137,14 +138,19 @@
   function loop(now){raf=0;const dt=last?Math.min(.05,(now-last)/1000):0;last=now;if(!paused&&!$('dialog').open&&s.phase==='playing'){vtime+=dt;consume(C.tick(s,dt));}
     else if(!paused&&s.phase!=='playing')vtime+=dt;
     for(const list of [ghosts,particles,rings,beams])for(let i=list.length-1;i>=0;i--)if(vtime-list[i].start>=list[i].life)list.splice(i,1);
-    draw(paused?0:dt);if(now-hudAt>100){hudAt=now;status();}if(now-saveAt>2000&&!paused){saveAt=now;save();}
-    if(!document.hidden)raf=requestAnimationFrame(loop);
+    draw(paused?0:dt);if(now-hudAt>100){hudAt=now;status(false);}if(now-saveAt>2000&&!paused&&s.phase==='playing'){saveAt=now;save();}
+    if(needsFrame())raf=requestAnimationFrame(loop);
   }
-  function wake(){if(!raf&&!document.hidden){last=0;raf=requestAnimationFrame(loop);}}
+  function needsFrame(){return !document.hidden&&!paused&&!$('dialog').open&&(s.phase==='playing'||particles.length||rings.length||beams.length||ghosts.length);}
+  // A paused board still needs one paint after layout/resize; never advance simulation here.
+  function paint(){paintRaf=0;draw();}
+  function requestPaint(){if(!paintRaf&&!document.hidden)paintRaf=requestAnimationFrame(paint);}
+  function stop(){if(raf)cancelAnimationFrame(raf);if(paintRaf)cancelAnimationFrame(paintRaf);raf=paintRaf=0;last=0;}
+  function wake(){if(!raf&&needsFrame()){last=0;raf=requestAnimationFrame(loop);}}
   function start(){if(s.phase!=='playing')reset(s.mode,s.pace);paused=false;started=true;audio.unlock();audio.sync();status();last=0;wake();}
-  function pause(){paused=true;drag=null;selected=null;audio.sync();status();save();}
+  function pause(){paused=true;drag=null;selected=null;stop();audio.sync();status();draw();save();}
   function reset(mode,pace){s=C.fresh(mode,undefined,pace);selected=null;drag=null;hints=[];poses.clear();for(const list of [particles,rings,beams,ghosts])list.length=0;vtime=0;announcementUntil=0;paused=true;started=false;drawBackground();syncPoses();status();fit();save();say(notes[s.mode]);}
-  function dialog(title,body,action){wasPaused=paused;paused=true;drag=null;pendingAction=action;text('dialog-title',title);text('dialog-text',body);$('cancel').hidden=!action;audio.sync();$('dialog').showModal();status();}
+  function dialog(title,body,action){wasPaused=paused;paused=true;drag=null;stop();pendingAction=action;text('dialog-title',title);text('dialog-text',body);$('cancel').hidden=!action;audio.sync();$('dialog').showModal();status();draw();}
   function closeDialog(accept){$('dialog').close();const action=pendingAction;pendingAction=null;if(accept&&action)action();else paused=wasPaused;audio.sync();last=0;status();wake();}
   function perform(from,to){const r=C.move(s,from,to);if(r.ok){hints=[];selected=null;consume(r);}else say(r.reason==='space'?'这里放不下，试试旁边的空位。':'找一只上方或侧边露出的小鸟。');}
   function tap(i){if(paused||s.phase!=='playing')return;if(s.mode==='ice'){const r=C.shoot(s,i%7);if(r.ok){hints=[];consume(r);}else if(r.reason==='space')say('这一列满啦，换一列试试。');return;}
@@ -167,8 +173,8 @@
   $('shuffle').onclick=()=>{const r=C.shuffle(s);if(r.ok){selected=null;hints=[];consume(r);say('小鸟换了位置，看看新的机会。');}};
   $('help').onclick=()=>dialog('怎么玩',notes[s.mode]+'\n\n3 只同色上下左右相连就开始抖动，斜角不算。趁短暂抖动再加同色鸟，可以合成超能鸟。\n\n4 只：发光，炸开周围一圈。\n5 只：燃火，向下烧穿并在底部爆炸。\n6 只：闪电，清除所在行和列。\n7 只以上：黑洞，大范围吸走小鸟。\n\n超能鸟再次参与同色消除，或被其他超能鸟击中时发动。爆破期间仍可移动其他小鸟。\n\n'+(s.mode==='ice'?'点击目标列投鸟，清除虚线以上的冰块自动进入下一波；沙漏加时，金蛋加分。':s.mode==='classic'?'新鸟定时从上方落下；鸟太少时底部补充。整盘填满且没有可消除组合才结束。带锁小鸟不能拖，同色匹配可解锁，超能爆破可以清除它。':s.mode==='pandora'?'宝盒不能普通三消，需用超能爆破打开。收集七个字母获得额外奖励。':'留出空列，练习同时安排几组连消。'),null);
   $('cancel').onclick=()=>closeDialog(false);$('confirm').onclick=()=>closeDialog(true);$('dialog').addEventListener('cancel',e=>{e.preventDefault();closeDialog(false);});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){pause();cancelAnimationFrame(raf);raf=0;}else wake();});window.addEventListener('pagehide',save);window.addEventListener('pageshow',wake);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else{requestPaint();wake();}});window.addEventListener('pagehide',pause);window.addEventListener('pageshow',()=>{requestPaint();wake();});
   new ResizeObserver(fit).observe(document.querySelector('.stage'));
-  window.BirdGame=window.MatchGame={snapshot:()=>C.clone(s),paused:()=>paused,busy:()=>s.charges.length>0||ghosts.length>0,effects:()=>({particles:particles.length,rings:rings.length,beams:beams.length,sprites:sprites.size,ghosts:ghosts.length})};
+  window.BirdGame=window.MatchGame={snapshot:()=>C.clone(s),paused:()=>paused,busy:()=>s.charges.length>0||ghosts.length>0,effects:()=>({particles:particles.length,rings:rings.length,beams:beams.length,sprites:sprites.size,ghosts:ghosts.length}),scheduling:()=>({raf:!!raf,paint:!!paintRaf})};
   drawBackground();syncPoses();status();fit();wake();
 })();

@@ -1,7 +1,8 @@
 /* Retained actors and one bounded particle canvas: no per-frame SVG rebuilding. */
 window.createDefenseRenderer = function (svg, garden) {
   const C = DefenseCore, FX = DefenseFX, ns = 'http://www.w3.org/2000/svg';
-  const enemies = new Map(), shots = new Map();
+  const enemies = new Map(), shots = new Map(), alive = new Set(), flying = new Set(), location = {};
+  const spokes = Array.from({length: 6}, (_, i) => ({x: Math.cos(i * Math.PI / 3), y: Math.sin(i * Math.PI / 3)}));
   const canvas = document.createElement('canvas');
   canvas.className = 'battle-effects'; canvas.setAttribute('aria-hidden', 'true');
   canvas.width = 800; canvas.height = 500; svg.after(canvas);
@@ -35,8 +36,8 @@ window.createDefenseRenderer = function (svg, garden) {
       const radius = b.kind === 'muzzle' ? 18 : b.type === 1 ? 72 : b.type === 2 ? 42 : 28;
       ctx.lineWidth = 5 * (1 - u); circle(x, y, radius * u, null, color);
       for (let i = 0; i < 6; i++) {
-        const a = i * Math.PI / 3, r = radius * (.25 + .75 * u);
-        const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+        const r = radius * (.25 + .75 * u);
+        const px = x + spokes[i].x * r, py = y + spokes[i].y * r;
         ctx.lineWidth = b.type === 2 ? 3 : 2;
         if (b.type === 2) {
           ctx.beginPath(); ctx.moveTo(px - 5, py); ctx.lineTo(px + 5, py);
@@ -57,7 +58,7 @@ window.createDefenseRenderer = function (svg, garden) {
       const p = C.point(t.cell); attr(range, 'cx', p.x * 100); attr(range, 'cy', p.y * 100);
       attr(range, 'r', (C.types[t.type].range + (t.level - 1) * .2) * 100);
     }
-    const alive = new Set(s.enemies);
+    alive.clear(); for (const e of s.enemies) alive.add(e);
     for (const [e, node] of enemies) if (!alive.has(e)) { node.el.remove(); enemies.delete(e); }
     for (const e of s.enemies) {
       let node = enemies.get(e);
@@ -68,13 +69,13 @@ window.createDefenseRenderer = function (svg, garden) {
         el.dataset.kind = kind;
         node = {el, health:el.querySelector('.enemy-health'), slow:el.querySelector('.enemy-slow'), kind}; enemies.set(e, node);
       }
-      const p = C.position(s, e), hurt = !!fx.hurt[e.id];
+      const p = C.position(s, e, location), hurt = !!fx.hurt[e.id];
       attr(node.el, 'transform', `translate(${(p.x * 100).toFixed(2)},${(p.y * 100).toFixed(2)}) scale(${hurt ? '1.13,.87' : '1'})`);
       attr(node.el, 'class', `enemy enemy-${node.kind}${hurt ? ' enemy-hit' : ''}`);
       attr(node.health, 'width', (46 * Math.max(0, e.hp / e.max)).toFixed(2));
       attr(node.health, 'fill', e.slow ? '#6bafe2' : '#71a969'); attr(node.slow, 'display', e.slow ? 'inline' : 'none');
     }
-    const flying = new Set(s.projectiles);
+    flying.clear(); for (const p of s.projectiles) flying.add(p);
     for (const [p, el] of shots) if (!flying.has(p)) { el.remove(); shots.delete(p); }
     for (const p of s.projectiles) {
       let el = shots.get(p);

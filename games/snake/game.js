@@ -41,6 +41,8 @@ let cell = 0;
 let soundOn = true;
 let touchControls = null;
 let padPointer = null;
+let frameId = 0;
+const boardImage = document.createElement("canvas");
 
 function loadBest() {
   try {
@@ -188,9 +190,11 @@ function update(dt) {
     }
   }
 
-  const hitBody = snake.slice(5).some(
-    (part) => Math.hypot(head.x - part.x, head.y - part.y) < BODY_HIT_DISTANCE,
-  );
+  let hitBody = false;
+  for (let i = 5; i < snake.length; i += 1) {
+    const dx = head.x - snake[i].x, dy = head.y - snake[i].y;
+    if (dx * dx + dy * dy < BODY_HIT_DISTANCE * BODY_HIT_DISTANCE) { hitBody = true; break; }
+  }
   if (hitBody) {
     finish("咬到自己啦", "身体变长以后，要给自己留一条路。");
     return;
@@ -239,12 +243,7 @@ function drawFood(x, y) {
 
 function draw() {
   if (!cell) return;
-  for (let y = 0; y < COLS; y += 1) {
-    for (let x = 0; x < COLS; x += 1) {
-      ctx.fillStyle = (x + y) % 2 === 0 ? "#fff7fb" : "#ffe8f3";
-      ctx.fillRect(x * cell, y * cell, cell + 0.5, cell + 0.5);
-    }
-  }
+  ctx.drawImage(boardImage, 0, 0, cell * COLS, cell * COLS);
   if (food) drawFood(food.x, food.y);
   snake.forEach((part, index) => {
     const pad = cell * 0.16;
@@ -285,10 +284,20 @@ function layout() {
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   cell = size / COLS;
+  if (boardImage.width !== bitmap || boardImage.height !== bitmap) {
+    boardImage.width = boardImage.height = bitmap;
+    const background = boardImage.getContext("2d");
+    background.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (let y = 0; y < COLS; y += 1) for (let x = 0; x < COLS; x += 1) {
+      background.fillStyle = (x + y) % 2 === 0 ? "#fff7fb" : "#ffe8f3";
+      background.fillRect(x * cell, y * cell, cell + .5, cell + .5);
+    }
+  }
   draw();
 }
 
 function loop(ts) {
+  frameId = 0;
   if (!lastTs) lastTs = ts;
   const dt = Math.min(ts - lastTs, 40);
   lastTs = ts;
@@ -296,7 +305,13 @@ function loop(ts) {
     update(dt);
     if (!over) draw();
   }
-  requestAnimationFrame(loop);
+  syncAnimation();
+}
+
+function syncAnimation() {
+  const active = running && !paused && !over && !document.hidden;
+  if (active && !frameId) frameId = requestAnimationFrame(loop);
+  else if (!active && frameId) { cancelAnimationFrame(frameId); frameId = 0; }
 }
 
 function clearControls() {
@@ -361,6 +376,7 @@ pauseBtn.addEventListener("click", () => {
   if (!running || over) return;
   clearControls();
   paused = !paused;
+  if (!paused) lastTs = performance.now();
   pauseBtn.textContent = paused ? "继续" : "暂停";
   hintEl.textContent = paused ? "暂停中" : "吃到粉色果子就会变长";
   syncTouch();
@@ -386,6 +402,7 @@ soundBtn.addEventListener("click", () => {
 });
 
 document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { lastTs = performance.now(); syncAnimation(); return; }
   if (!document.hidden || !running || over || paused) return;
   clearControls();
   paused = true;
@@ -404,6 +421,8 @@ window.addEventListener("blur", () => {
 });
 
 function syncTouch() {
+  gameAudio.sync();
+  syncAnimation();
   touchControls?.setEnabled(!over);
   touchControls?.setActions([{ id: "pause", label: paused ? "继续" : "暂停", primary: true, disabled: !running || over }]);
 }
@@ -431,4 +450,3 @@ reset();
 layout();
 new ResizeObserver(() => layout()).observe(boardWrap);
 requestAnimationFrame(() => layout());
-requestAnimationFrame(loop);

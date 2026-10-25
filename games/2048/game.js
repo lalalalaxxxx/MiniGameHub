@@ -244,6 +244,7 @@ function finishMove(plan, token) {
     queuedDirection = null;
     requestAnimationFrame(() => move(direction));
   }
+  gameAudio.sync();
 }
 
 function move(direction) {
@@ -284,6 +285,7 @@ function fresh() {
   setScore(0);
   spawn();
   spawn();
+  gameAudio.sync();
 }
 
 function buildBackground() {
@@ -340,6 +342,7 @@ continueBtn.addEventListener("click", () => {
     gameAudio.effect("over");
     showOverlay("没有空格啦", "再来一局，试试不同的顺序。", false);
   }
+  gameAudio.sync();
 });
 
 soundBtn.addEventListener("click", () => {

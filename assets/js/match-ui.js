@@ -9,12 +9,14 @@
   const palette = A.theme(id).colors;
   const modeNames = {practice:'慢慢练习',classic:'经典上升',pandora:'潘多拉',ice:'破冰挑战',fever:'狂热冲分'};
   let s = C.fresh(id), sound = true, progress = {}, history = [], selected = -1, hints = [], drag = null;
-  let view, active = null, queue = [], raf = 0, busy = false, paused = false, lastClock = 0, clockSave = 0;
+  let view, active = null, queue = [], raf = 0, busy = false, paused = false, lastClock = 0, clockSave = 0, clockTimer = 0;
   let messageTimer = 0, pending = null, suppressClick = 0, ratio = 1, lastGoals = '', lastResult = '';
   const particles = [], rings = [], beams = [], sprites = new Map(), cells = [];
   try { s = C.restore(id, JSON.parse(localStorage.getItem(key))); sound = localStorage.getItem('childgame.sound') !== 'off'; progress = JSON.parse(localStorage.getItem(progressKey)) || {}; } catch {}
   A.setTheme(id); view = clone(s);
   const timed = () => s.phase === 'playing' && (s.timeLeft != null || bird && s.mode === 'classic');
+  function stopClock(){clearTimeout(clockTimer);clockTimer=0;lastClock=0;}
+  function syncClock(){if(document.hidden||paused||$('dialog').open||busy||drag||!timed())stopClock();else if(!clockTimer){if(!lastClock)lastClock=performance.now();clockTimer=setTimeout(tickClock,200);}}
   // Restored timed rounds wait for a deliberate resume, including standalone Safari.
   paused = timed();
   const audio = createGameAudio({game:id,music:false,isEnabled:()=>sound,isPlaying:()=>s.phase==='playing',isPaused:()=>paused||$('dialog').open});
@@ -40,7 +42,7 @@
     })); $('levels').value=s.level;
     if($('mode')) $('mode').value=s.mode||'practice';
   }
-  function status() {
+  function status(boardChanged=true) {
     const conf=cfg(),shown=busy&&active?.frame.stats?{...s,...active.frame.stats}:s;
     text('level-title',`${s.level+1} / 12 · ${conf.name}`);
     text('level-note',bird?'移动各列最顶端的小鸟，同色连通 3 只就爆破。':id==='candyland'?'交换相邻糖果，四连、五连和 T/L 形能合成特殊糖果。':'先解开锁链，再消除宝箱下方的宝石，让宝箱落到底部。');
@@ -69,7 +71,7 @@
       text('result-text',s.phase==='won'?`获得 ${s.score} 分${s.level===11?' · 十二关都体验过后，还可以挑战更高分。':'，准备好再出发吧。'}`:`这次获得 ${s.score} 分。调整顺序，特殊组合会很有帮助。`);
       text('next',s.level<11?'下一关 →':'回到第一关');$('next').hidden=s.phase!=='won';
     }
-    updateCells();
+    if(boardChanged)updateCells();syncClock();
   }
   function updateCells() {
     for(let i=0;i<49;i++) {
@@ -181,7 +183,8 @@
   function playFrames(frames) {
     selected=-1;hints=[];
     if(reduced.matches||document.hidden||!frames?.length){finishAnimation();saveWin();populateLevels();audio.effect(s.phase==='won'?'finish':'clear',{volume:.35});return;}
-    queue=frames.map(frame=>clone(frame));busy=true;status();nextFrame(performance.now());requestDraw();
+    // Core frames already own snapshots; only the queue itself is consumed here.
+    queue=frames.slice();busy=true;status();nextFrame(performance.now());requestDraw();
   }
   function flash(value){clearTimeout(messageTimer);text('board-message',value);messageTimer=setTimeout(()=>text('board-message',''),1100);}
   function act(a,b) {
@@ -214,6 +217,7 @@
     const el=event.target.closest('[data-cell]');if(!el)return;const source=Number(el.dataset.cell);
     if(!s.board[source]||bird&&(top(s.board,source%7)!==source||s.covers[source]))return;
     const r=canvas.getBoundingClientRect();drag={pointer:event.pointerId,source,x:event.clientX,y:event.clientY,rect:r,moved:false,wx:(source%7+.5)*100,wy:(Math.floor(source/7)+.5)*100};
+    stopClock();
     // Synthetic accessibility/test events may have no active native pointer.
     try{el.setPointerCapture(event.pointerId);}catch{}
   });
@@ -225,20 +229,20 @@
     requestDraw();
   });
   $('cells').addEventListener('pointerup',event=>{
-    if(!drag||drag.pointer!==event.pointerId)return;const p=drag;drag=null;cells.forEach(el=>el.classList.remove('drop-column'));
+    if(!drag||drag.pointer!==event.pointerId)return;const p=drag;drag=null;syncClock();cells.forEach(el=>el.classList.remove('drop-column'));
     if(!p.moved)return;suppressClick=Date.now()+400;
     const dx=event.clientX-p.x,dy=event.clientY-p.y;
     if(bird){const col=Math.floor((event.clientX-p.rect.x)/p.rect.width*7);if(col>=0&&col<7&&event.clientY>=p.rect.y&&event.clientY<=p.rect.bottom)act(p.source,col);else requestDraw();}
     else{const dest=p.source+(Math.abs(dx)>Math.abs(dy)?dx>0?1:-1:dy>0?7:-7);if(dest>=0&&dest<49&&(Math.abs(dest-p.source)===7||Math.floor(dest/7)===Math.floor(p.source/7)))act(p.source,dest);else requestDraw();}
   });
-  function cancelDrag(event){if(!drag||event&&event.pointerId!==drag.pointer)return;drag=null;cells.forEach(el=>el.classList.remove('drop-column'));requestDraw();}
+  function cancelDrag(event){if(!drag||event&&event.pointerId!==drag.pointer)return;drag=null;syncClock();cells.forEach(el=>el.classList.remove('drop-column'));requestDraw();}
   for(const name of ['pointercancel','lostpointercapture'])$('cells').addEventListener(name,cancelDrag);
   $('cells').addEventListener('keydown',event=>{
     const el=event.target.closest('[data-cell]');if(!el)return;const i=Number(el.dataset.cell),step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7}[event.key];
     if(step){event.preventDefault();const n=i+step;if(n>=0&&n<49&&(Math.abs(step)===7||Math.floor(n/7)===Math.floor(i/7))){cells[i].tabIndex=-1;cells[n].tabIndex=0;cells[n].focus();}}
     if(event.key==='Escape'){selected=-1;status();requestDraw();}
   });
-  function ask(title,description,fn) {cancelDrag();finishAnimation();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();audio.sync();}
+  function ask(title,description,fn) {cancelDrag();finishAnimation();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();stopClock();audio.sync();}
   function reset(level=s.level,mode=s.mode) {cancelDrag();s=bird?C.fresh(id,level,undefined,mode):C.fresh(id,level);history=[];selected=-1;hints=[];paused=false;lastResult='';save();populateLevels();finishAnimation();say('准备好了就开始吧。');}
   $('hint').onclick=()=>{if(busy||paused)return;const move=C.hint(s);if(move){hints=move;selected=-1;say(bird?'亮起的小鸟可以移到提示列顶部。':'试着交换亮起的两个位置。');status();requestDraw();}else say('暂时没有可用的组合，可以点“换个排列”。');};
   $('shuffle').onclick=()=>{if(busy||paused)return;const before=clone(s),result=C.shuffle(s);if(result.ok){history.push(before);history=history.slice(-24);save();playFrames(result.frames);say('换好了排列，目标进度和特殊图块都保留。');}};
@@ -250,21 +254,22 @@
   if($('mode'))$('mode').onchange=event=>{const mode=event.target.value;event.target.value=s.mode;if(mode!==s.mode)ask(`进入${modeNames[mode]}？`,'当前这一局会重新开始。计时模式可以随时暂停，离开页面也会暂停。',()=>reset(s.level,mode));};
   $('pause').onclick=()=>{if(s.phase!=='playing')return;finishAnimation();paused=!paused;lastClock=performance.now();status();requestDraw();audio.sync();};
   $('help').onclick=()=>ask('怎么玩',bird?'只能移动各列最顶端的小鸟，拖到任意另一列顶部；也可以先点小鸟，再点目标列。上下左右连通的同色小鸟达到 3 只就爆破。4 / 5 / 6 / 7 只分别合成发光、燃火、闪电和黑旋风小鸟，再次与同色连通时释放超能力。\n慢慢练习没有倒计时；经典模式会从底部升起新行；潘多拉与狂热限时冲分；破冰模式要清除冰块。':id==='candyland'?'滑动交换相邻糖果，或依次点两个相邻位置。三只同色糖果连成直线才能消除，无效交换会弹回。四连合成条纹，T / L 形合成包装糖，直线五连合成彩色炸弹。包装糖会爆炸两次。两个特殊糖果交换，会触发强力组合。\n各关目标包括得分、果冻、收集果实和指定颜色。注意剩余步数；计时关也可以暂停。':'滑动交换相邻宝石，三颗同色连成直线就消除。锁链上的宝石不能交换或下落，要先通过匹配或爆破解锁。宝箱要靠消除下方宝石落到底部收集。四连、T / L 形、五连和特殊组合都能帮忙。\n随时可以看提示、换排列或撤销，没有体力和付费道具。',null);
-  $('cancel').onclick=()=>{pending=null;$('dialog').close();};$('confirm').onclick=()=>{const fn=pending;pending=null;$('dialog').close();fn?.();};$('dialog').addEventListener('cancel',()=>{pending=null;});$('dialog').addEventListener('close',()=>{lastClock=performance.now();audio.sync();});
+  $('cancel').onclick=()=>{pending=null;$('dialog').close();};$('confirm').onclick=()=>{const fn=pending;pending=null;$('dialog').close();fn?.();};$('dialog').addEventListener('cancel',()=>{pending=null;});$('dialog').addEventListener('close',()=>{lastClock=performance.now();syncClock();audio.sync();});
   $('sound').onclick=()=>{sound=audio.toggle();if(sound)audio.unlock(true);try{localStorage.setItem('childgame.sound',sound?'on':'off');}catch{}audio.sync();};
   function suspend(){cancelDrag();if(timed())paused=true;finishAnimation();save();audio.sync();lastClock=0;}
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)suspend();else{lastClock=performance.now();requestDraw();}});window.addEventListener('pagehide',suspend);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)suspend();else{lastClock=performance.now();syncClock();requestDraw();}});window.addEventListener('pagehide',suspend);
   reduced.addEventListener('change',()=>{if(reduced.matches)finishAnimation();});
   const resize=new ResizeObserver(()=>{const r=canvas.getBoundingClientRect(),dpr=Math.min(2,devicePixelRatio||1),size=Math.max(1,Math.round(r.width*dpr));if(canvas.width!==size){canvas.width=canvas.height=size;ratio=size/W;}draw();requestDraw();});resize.observe(canvas);
-  setInterval(()=>{
+  function tickClock(){
+    clockTimer=0;
     const now=performance.now(),dt=lastClock?Math.min(.5,(now-lastClock)/1000):0;lastClock=now;
     if(document.hidden||paused||$('dialog').open||busy||drag||!timed())return;
-    const before=clone(s),result=C.tick(s,dt);clockSave+=dt;
+    const before=bird?clone(s):null,phase=s.phase,result=C.tick(s,dt);clockSave+=dt;
     if(result?.frames?.length){view=before;playFrames(result.frames);save();}
-    else if(s.phase!==before.phase){save();saveWin();finishAnimation();audio.effect(s.phase==='won'?'finish':'over',{volume:.4});}
-    else status();
-    if(clockSave>=2){save();clockSave=0;}
-  },200);
-  window.MatchGame={snapshot:()=>clone(s),busy:()=>busy,paused:()=>paused,effects:()=>({particles:particles.length,rings:rings.length,beams:beams.length,sprites:sprites.size})};
+    else if(s.phase!==phase){save();saveWin();finishAnimation();audio.effect(s.phase==='won'?'finish':'over',{volume:.4});}
+    else status(false);
+    if(clockSave>=2){save();clockSave=0;}syncClock();
+  }
+  window.MatchGame={snapshot:()=>clone(s),busy:()=>busy,paused:()=>paused,effects:()=>({particles:particles.length,rings:rings.length,beams:beams.length,sprites:sprites.size}),scheduling:()=>({clock:!!clockTimer,raf:!!raf})};
   populateLevels();status();save();draw();requestDraw();say(paused?'欢迎回来，点“继续”恢复这一局。':bird?'拖动最顶端的小鸟，放到另一列顶部。':'交换相邻图块，试试特殊组合的威力。');
 })();

@@ -55,7 +55,7 @@
     if (s.hammer) { if (s.board[i] <= 0 || !s.hammers) return { ok: false, events: [] }; s.board[i] = 0; s.hammers--; s.hammer = false; s.moves++; return { ok: true, events: [{ type: 'clear', ...pos(i), color: '#ffe2a3', count: 12 }] }; }
     return place(s, i);
   }
-  function step(s, dt) { if (s.phase !== 'playing' || !Number.isFinite(dt) || dt <= 0) return []; s.t += Math.min(dt, .1); for (const a of s.anims) a.t += dt; s.anims = s.anims.filter(a => a.t < .32); return []; }
+  function step(s, dt) { if (s.phase !== 'playing' || !Number.isFinite(dt) || dt <= 0) return []; s.t += Math.min(dt, .1); for (const a of s.anims) a.t += dt; if(s.anims.length)s.anims = s.anims.filter(a => a.t < .32); return []; }
   function inspectPlacement(s, i) { const t = copy(s); t.anims = []; const before = t.score; place(t, i); const near = neighbors(i).filter(j => t.board[j] === t.current).length; return { state: t, gain: t.score - before, value: (t.score - before) * 8 + t.board.filter(v => v === 0).length * 6 + near * 3 }; }
   function best(s) {
     let choice = null;
@@ -70,7 +70,7 @@
   }
   function hint(s) { const b = best(s); if (!b) return { text: s.hammers ? '点小锤子，再点一个建筑，腾出一格空间。' : '这一片已经满了，试试撤销上一步。' }; return { text: b.gain ? '试试这里！三个相同元素会合成，升级后还可能连锁。' : '把同样的元素放在相邻位置，给下一次合成留出空地。', targets: [pos(b.index)] }; }
   function rounded(c, x, y, w, h, r, fill) { c.fillStyle = fill; c.beginPath(); c.roundRect(x, y, w, h, r); c.fill(); }
-  function tile(c, value, x, y, scale, time) {
+  function paintTile(c, value, x, y, scale, time) {
     c.save(); c.translate(x, y); c.scale(scale, scale);
     c.fillStyle = '#234d2a22'; c.beginPath(); c.ellipse(0, 26, 31, 10, 0, 0, Math.PI * 2); c.fill();
     if (value === -1) { c.fillStyle = '#81969c'; c.beginPath(); c.moveTo(-30, 20); c.lineTo(-22, -16); c.lineTo(-4, -27); c.lineTo(23, -15); c.lineTo(32, 22); c.closePath(); c.fill(); c.strokeStyle = '#b1c3c8'; c.lineWidth = 4; c.beginPath(); c.moveTo(-17, -8); c.lineTo(0, -17); c.lineTo(18, -6); c.stroke(); }
@@ -80,16 +80,21 @@
     else { const wide = value >= 5 ? 62 : 49; rounded(c, -wide / 2, -6, wide, 37, 5, COLORS[value]); c.fillStyle = value >= 6 ? '#8062ae' : '#c96f56'; c.beginPath(); c.moveTo(-wide / 2 - 7, -5); c.lineTo(0, -36); c.lineTo(wide / 2 + 7, -5); c.closePath(); c.fill(); rounded(c, -7, 9, 14, 23, 4, '#72553d'); for (const a of [-19, 19]) rounded(c, a - 5, 2, 10, 11, 2, '#fff3a9'); if (value >= 6) { for (const a of [-31, 31]) { rounded(c, a - 9, -20, 18, 53, 4, '#c1a3e2'); c.fillStyle = '#8062ae'; c.beginPath(); c.moveTo(a - 13, -19); c.lineTo(a, -42); c.lineTo(a + 13, -19); c.fill(); } } if (value === 7) { c.font = 'bold 30px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#ffe885'; c.fillText('★', 0, -27); } }
     c.restore();
   }
+  function tile(c,value,x,y,scale,time){if(value===1||!root.ExtraRender){paintTile(c,value,x,y,scale,time);return;}c.save();c.translate(x,y);c.scale(scale,scale);root.ExtraRender.sprite(c,'town:'+value,104,104,g=>paintTile(g,value,52,52,1,0),-52,-52);c.restore();}
+  function paintBackground(c){
+    c.fillStyle = '#e7f3dd'; c.fillRect(0, 0, 720, 800);
+    rounded(c, 24, 20, 672, 116, 25, '#ffffffd9');
+    rounded(c, X - 7, Y - 7, CELL * 6 + 14, CELL * 6 + 14, 24, '#b4cda7');
+    for(let i=0;i<36;i++){const p=pos(i);rounded(c,p.x-48,p.y-48,96,96,15,(Math.floor(i/6)+i%6)%2?'#d7e8c5':'#e0edce');}
+  }
   function draw(c, s, view = {}) {
     const time = view.reduced ? 0 : view.time || s.t;
     let endAge = 0; if (s.phase !== 'playing') { if (!endingAt.has(s) && view.dt) endingAt.set(s, view.time || 0); endAge = endingAt.has(s) ? Math.max(0, (view.time || 0) - endingAt.get(s)) : 1; }
-    c.fillStyle = '#e7f3dd'; c.fillRect(0, 0, 720, 800);
-    rounded(c, 24, 20, 672, 116, 25, '#ffffffd9');
+    if(!root.ExtraRender?.layer(c,'tripletown',paintBackground))paintBackground(c);
     c.fillStyle = '#3d6044'; c.font = 'bold 20px sans-serif'; c.textAlign = 'left'; c.fillText('现在放置', 43, 49); tile(c, s.current, 99, 92, .7, time);
     c.fillStyle = '#6c836d'; c.font = '17px sans-serif'; c.fillText('接下来', 190, 49); s.queue.forEach((v, i) => tile(c, v, 217 + i * 79, 91, .55, time));
     c.textAlign = 'center'; c.fillText('暂存格', 596, 49); rounded(c, 556, 58, 82, 68, 14, '#e7eddc'); if (s.bank) tile(c, s.bank, 597, 91, .65, time); else { c.fillStyle = '#9eaf95'; c.font = '28px sans-serif'; c.fillText('+', 596, 102); }
-    rounded(c, X - 7, Y - 7, CELL * 6 + 14, CELL * 6 + 14, 24, '#b4cda7');
-    for (let i = 0; i < 36; i++) { const p = pos(i); rounded(c, p.x - 48, p.y - 48, 96, 96, 15, (Math.floor(i / 6) + i % 6) % 2 ? '#d7e8c5' : '#e0edce'); if (s.board[i]) tile(c, s.board[i], p.x, p.y + 4, .98, time); }
+    for (let i = 0; i < 36; i++) { const p = pos(i); if (s.board[i]) tile(c, s.board[i], p.x, p.y + 4, .98, time); }
     if (view.pointer) { const i = index(view.pointer.target.x, view.pointer.target.y); if (i >= 0 && (!s.board[i] || s.hammer)) { const p = pos(i); c.save(); c.globalAlpha = .55; tile(c, s.hammer ? -1 : s.current, p.x, p.y, 1.06, time); c.restore(); c.strokeStyle = '#ffffff'; c.lineWidth = 4; c.strokeRect(p.x - 48, p.y - 48, 96, 96); } }
     if (!view.reduced) for (const a of s.anims) { const f = Math.min(1, (a.t + endAge) / .32), k = 1 - f; if (!k) continue; c.save(); c.globalAlpha = k; tile(c, a.value, a.x + (a.tx - a.x) * f, a.y + (a.ty - a.y) * f - Math.sin(f * Math.PI) * 28, k, time); c.restore(); }
   }

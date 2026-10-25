@@ -8,10 +8,11 @@
     { cost: 40, damage: 4, range: 2.8, delay: .9, slow: true }
   ];
   const point = cell => ({ x: cell % 8 + .5, y: Math.floor(cell / 8) + .5 });
-  function position(s, e) {
-    if (s.id === 'gardenwatch') return { x: 8.5 - e.p, y: e.lane + .5 };
-    const n = Math.min(path.length - 1, Math.floor(e.p)), a = point(path[n]), b = point(path[Math.min(n + 1, path.length - 1)]), t = e.p - n;
-    return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+  const pathPoints = path.map(point), workspaces = new WeakMap();
+  function position(s, e, out = {}) {
+    if (s.id === 'gardenwatch') { out.x = 8.5 - e.p; out.y = e.lane + .5; return out; }
+    const n = Math.min(path.length - 1, Math.floor(e.p)), a = pathPoints[n], b = pathPoints[Math.min(n + 1, path.length - 1)], t = e.p - n;
+    out.x = a.x + (b.x - a.x) * t; out.y = a.y + (b.y - a.y) * t; return out;
   }
   function buildable(id, cell) { return Number.isInteger(cell) && cell >= 0 && cell < 40 && (id === 'gardenwatch' ? cell % 8 < 6 : !path.includes(cell)); }
   function fresh(id, difficulty = 'normal') {
@@ -62,38 +63,49 @@
       s.spawned++; s.spawnIn = advanced(s)?Math.max(.28,1.05-s.wave*.055)*(kind==='swarm'?.48:1)*(s.difficulty==='hard'?.85:1):1.35-(s.wave-1)*.06;
     }
     for (const e of s.enemies) { e.p += dt * (advanced(s)?(s.id==='gardenwatch'?.48:1.15)*(1+s.wave*.035)*(kinds[e.kind]?.speed||1)*(s.difficulty==='hard'?1.06:1):(s.id==='gardenwatch'?.48:.92)*(s.difficulty==='easy'?1:1.15)) * (e.slow > 0 ? e.kind==='boss'?.7:.45 : 1); e.slow = Math.max(0, e.slow - dt); }
+    // Reuse positions throughout this tick; combat never moves enemies during impact resolution.
+    let work = workspaces.get(s);
+    if (!work) { work = { byId: new Map(), positions: new WeakMap() }; workspaces.set(s, work); }
+    work.byId.clear();
+    for (const e of s.enemies) {
+      let at = work.positions.get(e); if (!at) { at = {}; work.positions.set(e, at); }
+      position(s, e, at); work.byId.set(e.id, e);
+    }
     for (const t of s.towers) {
       t.cooldown = Math.max(0, t.cooldown - dt);
       if (t.cooldown > 0) continue;
       const spec = types[t.type], origin = point(t.cell);
-      const candidates = s.enemies.filter(e => {
-        if (e.hp <= 0) return false;
-        const at = position(s, e);
-        return s.id === 'gardenwatch' ? e.lane === Math.floor(t.cell / 8) && at.x >= origin.x - .15 && at.x - origin.x <= 7 : Math.hypot(at.x - origin.x, at.y - origin.y) <= spec.range + (t.level - 1) * .2;
-      }).sort((a, b) => b.p - a.p);
-      if (!candidates.length) continue;
-      const target = candidates[0], at = position(s, target);
+      const range = spec.range + (t.level - 1) * .2;
+      let target = null;
+      for (const e of s.enemies) {
+        if (e.hp <= 0 || target && e.p <= target.p) continue;
+        const at = work.positions.get(e), dx = at.x - origin.x, dy = at.y - origin.y;
+        if (s.id === 'gardenwatch' ? e.lane === Math.floor(t.cell / 8) && at.x >= origin.x - .15 && dx <= 7 : dx * dx + dy * dy <= range * range) target = e;
+      }
+      if (!target) continue;
+      const at = work.positions.get(target);
       s.projectiles.push({ x: origin.x, y: origin.y, target: target.id, tx: at.x, ty: at.y, type: t.type, damage: spec.damage * (1 + (t.level - 1) * .7), life: 3 });
       t.cooldown = spec.delay; events.push({ kind: 'shot', cell: t.cell, type: t.type, x: origin.x, y: origin.y, tx: at.x, ty: at.y });
     }
-    s.projectiles = s.projectiles.filter(p => {
-      const target = s.enemies.find(e => e.id === p.target && e.hp > 0);
-      if (target) { const at = position(s, target); p.tx = at.x; p.ty = at.y; }
+    let liveShots = 0;
+    for (const p of s.projectiles) {
+      const found = work.byId.get(p.target), target = found && found.hp > 0 ? found : undefined;
+      if (target) { const at = work.positions.get(target); p.tx = at.x; p.ty = at.y; }
       const dx = p.tx - p.x, dy = p.ty - p.y, distance = Math.hypot(dx, dy), travel = dt * 7;
       p.life -= dt;
-      if (distance > travel + .12 && p.life > 0) { p.x += dx / distance * travel; p.y += dy / distance * travel; return true; }
+      if (distance > travel + .12 && p.life > 0) { p.x += dx / distance * travel; p.y += dy / distance * travel; s.projectiles[liveShots++] = p; continue; }
       if (distance <= travel + .12) {
-        for (const e of s.enemies) {
-          const at = position(s, e);
-          if (e === target || (types[p.type].splash && Math.hypot(at.x - p.tx, at.y - p.ty) < 1.5)) {
+        if (types[p.type].splash) for (const e of s.enemies) {
+          const at = work.positions.get(e), dx = at.x - p.tx, dy = at.y - p.ty;
+          if (e === target || dx * dx + dy * dy < 2.25) {
             e.hp -= damage(s,p,e); if (types[p.type].slow) e.slow = 2;
             events.push({ kind: 'hurt', id: e.id });
           }
-        }
+        } else if (target) { target.hp -= damage(s,p,target); if (types[p.type].slow) target.slow = 2; events.push({ kind: 'hurt', id: target.id }); }
         events.push({ kind: 'impact', x: p.tx, y: p.ty, type: p.type });
       }
-      return false;
-    });
+    }
+    s.projectiles.length = liveShots;
     for (const e of s.enemies) {
       if (e.hp <= 0) { const reward=advanced(s)?e.kind==='boss'?30:5:7;s.coins += reward; s.cleared++; events.push({ kind: 'clear', reward, ...position(s, e) }); }
       else if (e.p >= (s.id === 'gardenwatch' ? 8.5 : path.length - 1)) { s.hearts = Math.max(0, s.hearts - (kinds[e.kind]?.leak||1)); events.push({ kind: 'leak' }); }

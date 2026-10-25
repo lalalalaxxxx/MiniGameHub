@@ -52,6 +52,8 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   let musicStarted = 0;
   let leaving = false;
   let paintedState;
+  let prepared = false;
+  const trackNames = [...new Set([...effects, ...(customEffects[game] || []), ...(music ? ["music"] : [])])];
 
   function status() {
     if (!isEnabled()) return "off";
@@ -89,7 +91,8 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     paintStatus();
     if (!context) return;
     const allowed = audible();
-    effectGain.gain.value = allowed ? .9 : 0;
+    const gain = allowed ? .9 : 0;
+    if (effectGain.gain.value !== gain) effectGain.gain.value = gain;
     if (!allowed) {
       for (const voice of voices) voice.stop();
       voices.clear();
@@ -138,6 +141,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   function prepare(retry = false) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext || !isEnabled()) return;
+    if (prepared && !retry) return;
     if (!context) {
       context = new AudioContext();
       musicGain = context.createGain();
@@ -148,7 +152,8 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
       effectGain.connect(context.destination);
       context.addEventListener("statechange", sync);
     }
-    for (const name of new Set([...effects, ...(customEffects[game] || []), ...(music ? ["music"] : [])])) {
+    prepared = true;
+    for (const name of trackNames) {
       if (!retry && failures.has(name)) continue;
       const folder = customEffects[game]?.includes(name) ? game + "/" : gentleGames.includes(game) && gentleEffects.includes(name) ? "feedback/" : "";
       load(name, name === "music" ? game + ".mp3" : folder + name + ".wav");
@@ -172,6 +177,8 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   }
 
   function effect(name, { rate = 1, volume = 1 } = {}) {
+    // A terminal event must stop music even when its effect has not downloaded.
+    sync();
     if (!context || context.state !== "running" || !audible()) return;
     const buffer = buffers.get(name);
     if (!buffer) return; // Do not replay stale actions when downloads finish.
@@ -203,11 +210,13 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
       queueMicrotask(sync);
     });
   }
-  document.addEventListener("visibilitychange", sync);
+  document.addEventListener("visibilitychange", () => { sync(); queueMicrotask(sync); });
+  window.addEventListener("blur", () => queueMicrotask(sync));
+  // Dialog state and automatic game transitions notify the mixer directly;
+  // idle lessons and paused games must not wake the main thread every 100 ms.
+  for (const type of ["close", "cancel"]) document.addEventListener(type, () => queueMicrotask(sync), true);
   window.addEventListener("pagehide", () => { leaving = true; sync(); });
   window.addEventListener("pageshow", () => { leaving = false; sync(); });
-  // Includes automatic game-over and pauses, without modifying physics loops.
-  window.setInterval(sync, 100);
   // Decode before the first move, but never call resume outside a user gesture.
   queueMicrotask(() => { prepare(); sync(); });
   return {

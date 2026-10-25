@@ -4,14 +4,15 @@
   function fresh(){return {time:0,shots:{},hurt:{},bursts:[]};}
   function advance(fx,dt,events=[]){
     fx.time+=dt;
-    for(const table of [fx.shots,fx.hurt])for(const key of Object.keys(table)){table[key]-=dt;if(table[key]<=0)delete table[key];}
-    fx.bursts=fx.bursts.filter(b=>(b.age+=dt)<b.duration);
+    for(const table of [fx.shots,fx.hurt])for(const key in table){table[key]-=dt;if(table[key]<=0)delete table[key];}
+    let count=0;for(const b of fx.bursts)if((b.age+=dt)<b.duration)fx.bursts[count++]=b;
+    fx.bursts.length=count;
     for(const e of events){
       if(e.kind==='shot'){fx.shots[e.cell]=.48;const angle=Math.atan2(e.ty-e.y,e.tx-e.x);fx.bursts.push({kind:'muzzle',x:e.x+Math.cos(angle)*.32,y:e.y+Math.sin(angle)*.32,type:e.type,age:0,duration:.2});}
       if(e.kind==='hurt')fx.hurt[e.id]=.18;
       if(e.kind==='impact'||e.kind==='clear')fx.bursts.push({...e,age:0,duration:e.kind==='clear'?.7:.42});
     }
-    fx.bursts=fx.bursts.slice(-100);
+    if(fx.bursts.length>100)fx.bursts.splice(0,fx.bursts.length-100);
   }
   function frame(fx,cell,reduced=false){const shot=fx.shots[cell];return shot?reduced?5:Math.min(9,4+Math.floor((.48-shot)/.08)):reduced?0:Math.floor(fx.time*3+cell)%4;}
   function particles(fx,reduced=false){return fx.bursts.map(b=>{

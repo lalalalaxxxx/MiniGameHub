@@ -32,6 +32,7 @@ let endAt = 0;
 let pausedAt = 0;
 let shownSecond = 45;
 let spawnTimer = 0;
+let clockTimer = 0;
 let active = null;
 let previousHole = -1;
 let soundOn = loadSound();
@@ -231,12 +232,16 @@ function startGame() {
   overlay.hidden = true;
   setHint("只点圆脸小地鼠，粉色刺球和炸弹不要点");
   scheduleSpawn(300);
+  scheduleClock();
   gameAudio.effect("start");
+  gameAudio.sync();
 }
 
 function pauseGame(automatic = false) {
   if (state !== "running") return;
   clearSpawnTimer();
+  clearTimeout(clockTimer);
+  clockTimer = 0;
   hideActive();
   state = "paused";
   pausedAt = performance.now();
@@ -247,6 +252,7 @@ function pauseGame(automatic = false) {
     automatic ? "页面藏起来时，游戏会帮你停住计时。" : "准备好了再继续，剩余时间已经停住。",
     "继续游戏",
   );
+  gameAudio.sync();
 }
 
 function resumeGame() {
@@ -258,12 +264,16 @@ function resumeGame() {
   overlay.hidden = true;
   setHint("继续！找圆脸小地鼠");
   scheduleSpawn(220);
+  scheduleClock();
   gameAudio.effect("start");
+  gameAudio.sync();
 }
 
 function finishGame() {
   if (state !== "running") return;
   clearSpawnTimer();
+  clearTimeout(clockTimer);
+  clockTimer = 0;
   hideActive();
   state = "ended";
   timeEl.textContent = "0";
@@ -280,6 +290,7 @@ function finishGame() {
       : `你拿到 ${score} 分，眼睛和小手配合得真棒！`;
   showOverlay("时间到啦", message, "再玩一局");
   gameAudio.effect("finish");
+  gameAudio.sync();
 }
 
 function updateClock(now) {
@@ -293,9 +304,17 @@ function updateClock(now) {
   if (remaining <= 0) finishGame();
 }
 
-function loop(now) {
+function scheduleClock() {
+  clearTimeout(clockTimer);
+  clockTimer = 0;
+  if (state !== "running" || document.hidden) return;
+  const now = performance.now();
   updateClock(now);
-  requestAnimationFrame(loop);
+  if (state !== "running") return;
+  const remaining = Math.max(0, endAt - now);
+  // Only the displayed second needs updating; mole animation stays in CSS.
+  const untilNextSecond = remaining - (Math.ceil(remaining / 1000) - 1) * 1000;
+  clockTimer = setTimeout(scheduleClock, Math.max(16, untilNextSecond + 1));
 }
 
 holes.forEach((hole, index) => {
@@ -332,4 +351,3 @@ document.addEventListener("touchmove", (event) => {
 
 bestEl.textContent = String(best);
 paintSound();
-requestAnimationFrame(loop);

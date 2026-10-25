@@ -8,15 +8,15 @@
   const names = garden ? ['阳光花', '泡泡花', '冰雪花'] : ['积木箭塔', '泡泡塔', '冰雪塔'];
   const enemyNames={plain:'普通队',runner:'快跑队',armor:'护甲队',swarm:'密集小队',boss:'首领混合队'};
   const tactics={plain:'先覆盖入口，再升级火力',runner:'速度快，搭配冰雪减速',armor:'抵挡普通弹，泡泡群攻能破甲',swarm:'成群冲来，泡泡群攻更合适',boss:'首领漏过扣 3 颗心，集中火力并减速'};
-  let s = C.fresh(id), selected = -1, type = 0, paused = false, speed = 1, pending = null, sound = true, elapsed = 0, last = 0, paintIn = 0;
+  let s = C.fresh(id), selected = -1, type = 0, paused = false, speed = 1, pending = null, sound = true, elapsed = 0, last = 0, paintIn = 0, raf = 0, savedState = '';
   try { s = C.restore(id, JSON.parse(localStorage.getItem(key))); sound = localStorage.getItem('childgame.sound') !== 'off'; } catch {}
   const activeRound = () => s.phase === 'running' || (s.phase === 'ready' && s.wave > 0);
   paused = activeRound();
   const audio = createGameAudio({ game: id, music: false, isEnabled: () => sound, isPlaying: () => s.phase === 'running', isPaused: () => paused || $('dialog').open });
   const setText = (id, value) => { const el = $(id); if (el.textContent !== value) el.textContent = value; };
   const say = text => { setText('feedback', text); };
-  function save() { try { localStorage.setItem(key, JSON.stringify(s)); setText('save-status', '进度已保存 · 离开后战斗会暂停'); } catch { setText('save-status', '暂时无法保存，关闭页面会丢失进度'); } }
-  function ask(title, description, fn) { pending = fn; setText('dialog-title', title); setText('dialog-text', description); $('cancel').hidden = !fn; $('dialog').showModal(); }
+  function save() { try { const next = JSON.stringify(s); if (next !== savedState) { localStorage.setItem(key, next); savedState = next; } setText('save-status', '进度已保存 · 离开后战斗会暂停'); } catch { setText('save-status', '暂时无法保存，关闭页面会丢失进度'); } }
+  function ask(title, description, fn) { pending = fn; setText('dialog-title', title); setText('dialog-text', description); $('cancel').hidden = !fn; $('dialog').showModal(); stop(); }
   function drawCells() {
     $('cells').innerHTML = Array.from({ length: 40 }, (_, cell) => {
       const t = s.towers.find(v => v.cell === cell), can = C.buildable(id, cell);
@@ -45,7 +45,7 @@
   const renderer = createDefenseRenderer($('actors'), garden);
   function drawActors() { renderer.draw(s, fx, selected, reducedMotion.matches); }
   function render() { drawCells(); panel(); status(); drawActors(); }
-  function changed(text) { save(); render(); say(text); audio.effect('drop', { volume: .12 }); }
+  function changed(text) { save(); render(); say(text); audio.effect('drop', { volume: .12 }); wake(); }
   $('cells').addEventListener('click', event => {
     const el = event.target.closest('[data-cell]'); if (!el || el.disabled) return;
     const cell = Number(el.dataset.cell);
@@ -60,7 +60,7 @@
     if (event.target.id === 'sell' && C.sell(s, selected)) { selected = -1; changed('已经收回，返还了八成星星。'); }
   });
   $('start').onclick = () => { if (C.start(s)) { paused = false; changed(`第 ${s.wave} 波出发啦！`); } };
-  $('pause').onclick = () => { if (!activeRound()) return; paused = !paused; save(); status(); drawActors(); audio.sync(); };
+  $('pause').onclick = () => { if (!activeRound()) return; paused = !paused; if (paused) stop(); else wake(); save(); status(); drawActors(); audio.sync(); };
   $('speed').onclick = () => { speed = speed === 1 ? 2 : 1; status(); };
   function restart(difficulty) { s = C.fresh(id, difficulty); selected = -1; type = 0; paused = false; speed = 1; Object.assign(fx,FX.fresh()); changed('新一轮开始，先把伙伴放到空地上吧。'); }
   $('restart').onclick = () => ask('重新开始这一轮吗？', '将清空本轮的地图和星星，从第一波重新布置。', () => restart(s.difficulty));
@@ -69,11 +69,16 @@
   $('cancel').onclick = () => { pending = null; $('dialog').close(); };
   $('confirm').onclick = () => { const fn = pending; pending = null; $('dialog').close(); fn?.(); };
   $('dialog').addEventListener('cancel', () => { pending = null; });
+  $('dialog').addEventListener('close', wake);
   $('sound').onclick = () => { sound = audio.toggle(); if (sound) audio.unlock(true); try { localStorage.setItem('childgame.sound', sound ? 'on' : 'off'); } catch {} audio.sync(); };
-  function suspend() { if (activeRound()) paused = true; save(); status(); }
-  document.addEventListener('visibilitychange', () => { if (document.hidden) suspend(); last = 0; });
-  window.addEventListener('pagehide', suspend); window.addEventListener('pageshow', () => { last = 0; status(); });
+  function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; }
+  function needsFrame() { return !paused && !$('dialog').open && !document.hidden && (activeRound() || s.phase === 'ready' && s.towers.length > 0 || fx.bursts.length || Object.keys(fx.shots).length || Object.keys(fx.hurt).length); }
+  function wake() { if (!raf && needsFrame()) { last = 0; raf = requestAnimationFrame(frame); } }
+  function suspend() { if (activeRound()) paused = true; stop(); save(); status(); }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) suspend(); else wake(); });
+  window.addEventListener('pagehide', suspend); window.addEventListener('pageshow', () => { status(); wake(); });
   function frame(now) {
+    raf = 0;
     const dt = last ? Math.min((now - last) / 1000, .1) : 0; last = now;
     if (!paused && !$('dialog').open && !document.hidden ) {
       let events = [];
@@ -90,10 +95,10 @@
       elapsed += dt; paintIn += dt;
       drawActors();
       if (paintIn >= .08) { status(); paintIn = 0; const t = s.towers.find(t => t.cell === selected); const button = $('upgrade'); if (button && t) button.disabled = !['ready', 'running'].includes(s.phase) || t.level >= 3 || s.coins < t.level * 25; }
-      if (elapsed > 2) { save(); elapsed = 0; }
+      if (elapsed > 2) { if (activeRound()) save(); elapsed = 0; }
     }
-    requestAnimationFrame(frame);
+    if (needsFrame()) raf = requestAnimationFrame(frame);
   }
-  window.DefenseGame = { effects: () => C.clone(fx), snapshot: () => C.clone(s), paused: () => paused };
-  render(); save(); say(paused ? '欢迎回来，进度保留好了。点“继续”再玩。' : '先选伙伴，再点空地。准备好了再开始，不用着急。'); requestAnimationFrame(frame);
+  window.DefenseGame = { effects: () => C.clone(fx), snapshot: () => C.clone(s), paused: () => paused, scheduling: () => ({raf: !!raf}) };
+  render(); save(); say(paused ? '欢迎回来，进度保留好了。点“继续”再玩。' : '先选伙伴，再点空地。准备好了再开始，不用着急。'); wake();
 })();

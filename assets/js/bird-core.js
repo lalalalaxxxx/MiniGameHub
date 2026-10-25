@@ -12,6 +12,10 @@
   const threshold=s=>30+Math.min(90,(s.level-1)*5);
   const tier=n=>n>=7?'whirlwind':n===6?'lightning':n===5?'fire':n===4?'glow':'';
   const tile=(s,color=random(s,colors(s)),kind='bird')=>({uid:s.nextId++,kind,color,special:'',lock:0,hp:kind==='ice'?1:0,loot:''});
+  // Board scans are expensive flood fills. Remember only matching inputs, outside saved state.
+  const scanned=new WeakMap();
+  function remember(s){let memo=scanned.get(s);if(!memo){memo={uids:[],colors:[],kinds:[]};scanned.set(s,memo);}memo.length=s.board.length;memo.charges=s.charges;for(let i=0;i<s.board.length;i++){const b=s.board[i];memo.uids[i]=b?.uid;memo.colors[i]=b?.color;memo.kinds[i]=b?.kind;}}
+  function scanChanged(s){const memo=scanned.get(s);if(memo&&memo.length===s.board.length&&memo.charges===s.charges){let same=true;for(let i=0;i<s.board.length;i++){const b=s.board[i];if(memo.uids[i]!==b?.uid||memo.colors[i]!==b?.color||memo.kinds[i]!==b?.kind){same=false;break;}}if(same)return;}scan(s);}
   const event=(events,type,data={})=>events.push({type,...data});
   const top=(s,c)=>{for(let i=c;i<s.board.length;i+=7)if(s.board[i])return i;return -1;};
   const landing=(s,c)=>{const t=top(s,c);return t<0?s.board.length-7+c:t-7;};
@@ -48,6 +52,7 @@
       const uids=cells.map(i=>s.board[i].uid),prev=old.filter(g=>g.uids.some(id=>uids.includes(id)));
       return{uids,at:prev.length?Math.min(...prev.map(g=>g.at)):s.clock+(s.mode==='ice'?.9:WINDOW),anchor:cells.includes(preferred)?s.board[preferred].uid:prev.find(g=>uids.includes(g.anchor))?.anchor||uids[0]};
     });
+    remember(s);
   }
   function fresh(mode='classic',seed=Math.floor(Math.random()*4294967296),pace='gentle'){
     if(!MODES.includes(mode)||!integer(seed,0,4294967295)||!['gentle','normal'].includes(pace))throw new RangeError('Invalid bird game');
@@ -121,7 +126,7 @@
     if(s.mode!=='ice')while(s.levelCleared>=threshold(s)){s.levelCleared-=threshold(s);s.level++;event(events,'level',{level:s.level});}s.supplyLeft=.4;
   }
   function addBox(s,events){
-    if(s.board.filter(b=>b?.kind==='box').length>=2)return;const cols=Array.from({length:7},(_,i)=>i).filter(c=>landing(s,c)>=0);if(!cols.length)return;
+    let boxes=0;for(const b of s.board)if(b?.kind==='box'&&++boxes>=2)return;const cols=[];for(let c=0;c<7;c++)if(landing(s,c)>=0)cols.push(c);if(!cols.length)return;
     const col=cols[random(s,cols.length)],i=landing(s,col),b=tile(s,-1,'box');s.board[i]=b;event(events,'drop',{moved:[{uid:b.uid,from:col-7,to:i}]});
   }
   function drop(s,events){const moved=[];for(let c=0;c<7;c++){const i=landing(s,c);if(i<0)continue;const b=s.next[c];s.board[i]=b;moved.push({uid:b.uid,from:c-7,to:i});s.next[c]=nextBird(s);}if(moved.length)event(events,'drop',{moved});scan(s);}
@@ -138,8 +143,9 @@
     if(s.timeLeft===0){s.phase=s.mode==='ice'?'lost':'won';event(events,'end');return{ok:true,events};}
     if(s.mode==='classic'||s.mode==='pandora'){s.dropLeft=Math.max(-1,s.dropLeft-dt);if(s.dropLeft<=0&&!s.charges.length){drop(s,events);s.dropLeft=interval(s);if(s.mode==='pandora')addBox(s,events);}}
     if(!s.charges.length&&!s.supplyLeft){if(s.mode==='ice'){
-      if(!s.board.slice(0,s.board.length-14).some(b=>b?.kind==='ice')){s.wave++;s.level=s.wave;iceWave(s,events);s.supplyLeft=.8;}
-    }else{for(let n=0;n<3&&s.board.filter(Boolean).length<21;n++)if(!rise(s,events))break;scan(s);if(s.mode==='pandora')addBox(s,events);}}
+      let ice=false;for(let i=0;i<s.board.length-14;i++)if(s.board[i]?.kind==='ice'){ice=true;break;}
+      if(!ice){s.wave++;s.level=s.wave;iceWave(s,events);s.supplyLeft=.8;}
+    }else{let count=0;for(const b of s.board)if(b)count++;for(let n=0;n<3&&count<21;n++){if(!rise(s,events))break;count+=7;}scanChanged(s);if(s.mode==='pandora')addBox(s,events);}}
     if(!s.charges.length&&s.board.every(Boolean)){s.phase='lost';event(events,'end');}return{ok:events.length>0,events};
   }
   function hint(s){

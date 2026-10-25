@@ -177,7 +177,8 @@
     {name:'空中换桥',tip:'先送蜗牛上楼，再用绿色开关轮流连接两座小桥。',floor:[[35,180,660],[300,380,430],[450,535,430],[605,695,430]],lift:{x:180,w:120,bottom:660,top:430,key:0},bridges:[{x:380,w:70,y:430,key:1,on:true},{x:535,w:70,y:430,key:1,on:false}],switches:['升降台','换桥'],start:[75,660],exit:[665,430]},
     {name:'机关大师',tip:'过第一道门后换门，站稳升降台再上楼，最后打开绿桥。',floor:[[35,280,660],[400,490,430],[580,695,430]],lift:{x:280,w:120,bottom:660,top:430,key:0},bridges:[{x:490,w:90,y:430,key:1,on:true}],gates:[{x:180,y:660,key:2,open:true},{x:630,y:430,key:2,open:false}],switches:['升降台','绿桥','换门'],start:[75,660],exit:[670,430]}
   ];
-  function surfaces(s){const l=SLEVELS[s.level],out=l.floor.map(([a,b,y])=>({x:a,w:b-a,y}));for(const b of l.bridges||[])if(s.switches[b.key]===b.on)out.push(b);if(l.lift)out.push({x:l.lift.x,w:l.lift.w,y:s.liftY,lift:true});return out;}
+  const floors=SLEVELS.map(l=>l.floor.map(([a,b,y])=>({x:a,w:b-a,y}))),liftGround={lift:true};
+  function surfaceAt(s,x,y){const l=SLEVELS[s.level];for(const p of floors[s.level])if(x>=p.x&&x<=p.x+p.w&&Math.abs(p.y-y)<4)return p;for(const p of l.bridges||[])if(s.switches[p.key]===p.on&&x>=p.x&&x<=p.x+p.w&&Math.abs(p.y-y)<4)return p;const lift=l.lift;if(lift&&x>=lift.x&&x<=lift.x+lift.w&&Math.abs(s.liftY-y)<4)return liftGround;return null;}
   games.snailquest={
     init(s){const l=SLEVELS[s.level];s.title=l.name;s.tip=l.tip;s.switches=l.switches.map(()=>false);s.snail={x:l.start[0],y:l.start[1],walk:true,waiting:false};s.liftY=l.lift?.bottom??0;s.riding=false;s.tokens=[.25,.53,.8].map((f,i)=>({uid:i,x:l.start[0]+(l.exit[0]-l.start[0])*f,got:false}));s.wait=0;},
     act(s,type,p,e){if(type==='switch'&&integer(p?.index,0,s.switches.length-1)){s.switches[p.index]=!s.switches[p.index];s.moves++;emit(e,'lever',{index:p.index});return true;}if(type==='walk'){s.snail.walk=!s.snail.walk;return true;}return false;},
@@ -185,7 +186,7 @@
       if(lift){const target=s.switches[lift.key]?lift.top:lift.bottom;s.liftY+=clamp(target-s.liftY,-100*dt,100*dt);if(s.riding)b.y+=s.liftY-oldLift;}
       b.waiting=false;if(!b.walk)return;
       if(s.riding&&lift&&s.liftY>lift.top+1){b.waiting=true;return;}
-      const nx=b.x+46*dt,ground=surfaces(s).find(p=>nx+15>=p.x&&nx+15<=p.x+p.w&&Math.abs(p.y-b.y)<4);
+      const nx=b.x+46*dt,ground=surfaceAt(s,nx+15,b.y);
       const gate=(l.gates||[]).find(g=>s.switches[g.key]!==g.open&&g.x>b.x&&g.x-nx<48&&Math.abs(g.y-b.y)<8);
       if(!ground||gate){b.waiting=true;s.wait+=dt;return;}
       b.x=nx;s.riding=!!ground.lift;if(s.riding&&b.x<lift.x+lift.w/2){s.riding=false;}

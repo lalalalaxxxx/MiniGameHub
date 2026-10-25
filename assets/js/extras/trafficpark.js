@@ -40,7 +40,7 @@
     if (c.axis === 'v' && (type === 'up' || type === 'down')) return slide(s, c.id, type === 'up' ? -1 : 1);
     return { ok: false, events: [] };
   }
-  function step(s, dt) { if (s.phase !== 'playing' || !Number.isFinite(dt) || dt <= 0) return []; dt = Math.min(dt, .1); s.t += dt; for (const a of s.anims) a.t += dt; s.anims = s.anims.filter(a => a.t < .2); return []; }
+  function step(s, dt) { if (s.phase !== 'playing' || !Number.isFinite(dt) || dt <= 0) return []; dt = Math.min(dt, .1); s.t += dt; for (const a of s.anims) a.t += dt; if(s.anims.length)s.anims = s.anims.filter(a => a.t < .2); return []; }
   function solve(s, cap = 60000) {
     const cars = s.cars, start = cars.map(c => c.axis === 'h' ? c.x : c.y), queue = [start], prev = [-1], edges = [null], seen = new Set([start.join('')]);
     for (let h = 0; h < queue.length && queue.length <= cap; h++) {
@@ -55,10 +55,7 @@
   function center(c) { return { x: X + (c.x + (c.axis === 'h' ? c.len / 2 : .5)) * CELL, y: Y + (c.y + (c.axis === 'v' ? c.len / 2 : .5)) * CELL }; }
   function hint(s) { const path = solve(s); if (!path || !path.length) return { text: '先给挡住红色小车的车辆腾出空间，再把红车送到右侧出口。' }; const m = path[0], c = s.cars[m.id], p = center(c); return { text: `${m.id === 0 ? '红色小车' : `${m.id + 1}号车`}向${c.axis === 'h' ? m.delta > 0 ? '右' : '左' : m.delta > 0 ? '下' : '上'}移动 ${Math.abs(m.delta)} 格。`, targets: [p, { x: p.x + (c.axis === 'h' ? m.delta * CELL : 0), y: p.y + (c.axis === 'v' ? m.delta * CELL : 0) }] }; }
   function round(c, x, y, w, h, r, fill) { c.fillStyle = fill; c.beginPath(); c.roundRect(x, y, w, h, r); c.fill(); }
-  function drawCar(c, car, x, y, selected, time, reduced) {
-    const horizontal = car.axis === 'h', len = car.len * CELL - 16, breadth = CELL - 16;
-    c.save(); c.translate(X + (x + (horizontal ? car.len / 2 : .5)) * CELL, Y + (y + (horizontal ? .5 : car.len / 2)) * CELL); if (!horizontal) c.rotate(Math.PI / 2);
-    const bob = reduced ? 0 : Math.sin(time * 2 + car.id) * .55; c.translate(0, bob);
+  function paintCar(c,car){const horizontal=car.axis==='h',len=car.len*CELL-16,breadth=CELL-16;
     round(c, -len / 2 + 2, -breadth / 2 + 7, len, breadth, 23, '#192d3430');
     for (const wx of [-len * .32, len * .32]) for (const wy of [-breadth * .48, breadth * .48]) round(c, wx - 14, wy - 7, 28, 14, 5, '#334754');
     round(c, -len / 2, -breadth / 2, len, breadth, 22, COLORS[car.id % COLORS.length]);
@@ -66,18 +63,27 @@
     round(c, len * .13, -breadth / 2 + 13, 20, breadth - 26, 8, '#347787'); round(c, -len * .23, -breadth / 2 + 13, 14, breadth - 26, 6, '#347787');
     round(c, len / 2 - 10, -breadth / 2 + 12, 7, 17, 3, '#fff3b0'); round(c, len / 2 - 10, breadth / 2 - 29, 7, 17, 3, '#fff3b0');
     c.fillStyle = '#fff'; c.font = 'bold 24px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.save(); if (!horizontal) c.rotate(-Math.PI / 2); c.fillText(car.id === 0 ? '★' : String(car.id + 1), 0, 1); c.restore();
+  }
+  function drawCar(c, car, x, y, selected, time, reduced) {
+    const horizontal = car.axis === 'h', len = car.len * CELL - 16, breadth = CELL - 16;
+    c.save(); c.translate(X + (x + (horizontal ? car.len / 2 : .5)) * CELL, Y + (y + (horizontal ? .5 : car.len / 2)) * CELL); if (!horizontal) c.rotate(Math.PI / 2);
+    const bob = reduced ? 0 : Math.sin(time * 2 + car.id) * .55; c.translate(0, bob);
+    paintCar(c,car);
     if (selected) { c.strokeStyle = '#fff5ae'; c.lineWidth = 5; c.beginPath(); c.roundRect(-len / 2 - 2, -breadth / 2 - 2, len + 4, breadth + 4, 24); c.stroke(); }
     c.restore();
   }
-  function draw(c, s, view = {}) {
-    const time = view.reduced ? 0 : view.time || s.t;
-    let endAge = 0; if (s.phase !== 'playing') { if (!endingAt.has(s) && view.dt) endingAt.set(s, view.time || 0); endAge = endingAt.has(s) ? Math.max(0, (view.time || 0) - endingAt.get(s)) : 1; }
+  function paintBackground(c){
     c.fillStyle = '#eaf0f6'; c.fillRect(0, 0, 720, 800); round(c, 27, 24, 666, 96, 24, '#fff');
     c.fillStyle = '#425e77'; c.font = 'bold 25px sans-serif'; c.textAlign = 'left'; c.fillText('让红色小车开出停车场', 51, 61); c.fillStyle = '#7c91a2'; c.font = '18px sans-serif'; c.fillText('横车左右滑 · 竖车上下滑 · 不能穿过别的车', 51, 96);
     round(c, X - 10, Y - 10, 620, 620, 23, '#bbc9d2'); round(c, X, Y, 600, 600, 14, '#8fabb5');
     for (let row = 0; row < 6; row++) for (let col = 0; col < 6; col++) { c.fillStyle = (row + col) % 2 ? '#98b1bb' : '#a1b9c2'; c.fillRect(X + col * 100 + 2, Y + row * 100 + 2, 96, 96); }
     round(c, 649, Y + 205, 71, 90, 4, '#e8c970'); c.fillStyle = '#fff9d6'; c.font = 'bold 30px sans-serif'; c.textAlign = 'center'; c.fillText('›', 690, Y + 262);
     c.fillStyle = '#7d8990'; c.font = '16px sans-serif'; c.fillText('出口', 689, Y + 318);
+  }
+  function draw(c, s, view = {}) {
+    const time = view.reduced ? 0 : view.time || s.t;
+    let endAge = 0; if (s.phase !== 'playing') { if (!endingAt.has(s) && view.dt) endingAt.set(s, view.time || 0); endAge = endingAt.has(s) ? Math.max(0, (view.time || 0) - endingAt.get(s)) : 1; }
+    if(!root.ExtraRender?.layer(c,'trafficpark',paintBackground))paintBackground(c);
     let preview = null;
     if (view.pointer) { const id = under(s, view.pointer.start); if (id >= 0) { const car = s.cars[id], limit = range(s.cars, id), delta = (car.axis === 'h' ? view.pointer.target.x - view.pointer.start.x : view.pointer.target.y - view.pointer.start.y) / CELL; preview = { id, delta: clamp(delta, limit.min, limit.max) }; } }
     for (const car of s.cars) {

@@ -5,12 +5,12 @@
   let s=C.fresh(),progress={},sound=true;
   try{s=C.restore(JSON.parse(localStorage.getItem(key)));sound=localStorage.getItem('childgame.sound')!=='off';const p=JSON.parse(localStorage.getItem(key+'.progress'));if(p&&typeof p==='object'&&!Array.isArray(p))progress=p;}catch{}
   let paused=s.mode==='timed'&&s.phase==='playing',started=s.pairs>0,view=C.clone(s.board),queue=[],active=null,busy=false,raf=0;
-  let selected=-1,hinted=null,pointer=null,pending=null,history=[],lastClock=performance.now(),saveClock=0,messageTimer=0;
+  let selected=-1,hinted=null,pointer=null,pending=null,history=[],lastClock=performance.now(),saveClock=0,messageTimer=0,clockTimer=0;
   let width=800,height=600,scale=1,cells=[],sprites=new Map(),particles=[],rings=[],fxPeak=0;
   const audio=createGameAudio({game:'petlink',music:false,isEnabled:()=>sound,isPlaying:()=>s.phase==='playing',isPaused:()=>paused||$('dialog').open});
   const text=(id,value)=>{const el=$(id);if(el.textContent!==String(value))el.textContent=value;};
   const point=i=>({x:(i%s.cols+1.5)*100,y:(Math.floor(i/s.cols)+1.5)*100});
-  const pathPoint=p=>({x:(p.x+1.5)*100,y:(p.y+1.5)*100});
+  const pathPoint=p=>({x:(p.x+1.5)*100,y:(p.y+1.5)*100}),routes=new WeakMap(),background=document.createElement('canvas');
   const say=value=>text('feedback',value);
   function save(){try{localStorage.setItem(key,JSON.stringify(s));text('save-status','进度已保存 · 支持离线游玩');}catch{text('save-status','暂时无法保存，请先不要关闭页面');}}
   function record(){if(s.phase!=='won')return;const k=`${s.mode}:${s.level}`;progress[k]=Math.max(Number(progress[k])||0,s.score);try{localStorage.setItem(key+'.progress',JSON.stringify(progress));}catch{}}
@@ -21,9 +21,12 @@
   function clock(){
     const cfg=C.level(s.level),remaining=s.timeLeft===null?1:s.timeLeft/cfg.maxSeconds;
     text('timer',s.timeLeft===null?'不限时':`${Math.ceil(s.timeLeft)} 秒`);text('clock-label',s.timeLeft===null?'慢慢观察':'剩余时间');
-    $('time-fill').style.transform=`scaleX(${remaining})`;
-    const bar=$('time-fill').parentElement;bar.setAttribute('aria-valuenow',Math.ceil(remaining*100));bar.setAttribute('aria-valuetext',s.timeLeft===null?'不限时':`${Math.ceil(s.timeLeft)} 秒`);
+    const transform=`scaleX(${remaining})`;if($('time-fill').style.transform!==transform)$('time-fill').style.transform=transform;
+    const bar=$('time-fill').parentElement,value=String(Math.ceil(remaining*100)),description=s.timeLeft===null?'不限时':`${Math.ceil(s.timeLeft)} 秒`;
+    if(bar.getAttribute('aria-valuenow')!==value)bar.setAttribute('aria-valuenow',value);if(bar.getAttribute('aria-valuetext')!==description)bar.setAttribute('aria-valuetext',description);
   }
+  function stopClock(){clearTimeout(clockTimer);clockTimer=0;lastClock=0;}
+  function syncClock(){const active=!paused&&!busy&&!document.hidden&&!$('dialog').open&&s.phase==='playing'&&(s.timeLeft!==null||s.comboLeft>0);if(!active)stopClock();else if(!clockTimer){if(!lastClock)lastClock=performance.now();clockTimer=setTimeout(tickClock,100);}}
   function status(){
     const cfg=C.level(s.level);text('level-title',`${s.level+1} / 12 · ${cfg.name}`);text('flow',C.flows[cfg.flow]);
     text('level-note',cfg.flow==='none'?'最多两个拐角，也能从棋盘外围绕行。':`配对后${C.flows[cfg.flow]}，看看新的相遇路线。`);
@@ -44,18 +47,21 @@
     // Leave one remaining tile in the keyboard tab order after a pair disappears.
     const focused=cells.findIndex(el=>el.tabIndex===0&&!el.disabled),first=s.board.findIndex(Boolean);
     if(focused<0)cells.forEach((el,i)=>el.tabIndex=i===first?0:-1);
-    clock();document.querySelector('.pet-clock').classList.toggle('urgent',s.timeLeft!==null&&s.timeLeft<=20);
+    clock();document.querySelector('.pet-clock').classList.toggle('urgent',s.timeLeft!==null&&s.timeLeft<=20);syncClock();
   }
   function build(){
     width=(s.cols+2)*100;height=(s.rows+2)*100;
+    background.width=width;background.height=height;const g=background.getContext('2d');
+    g.strokeStyle='#ecf6dd30';g.lineWidth=2;g.setLineDash([5,12]);g.beginPath();g.roundRect(49,49,width-98,height-98,24);g.stroke();g.setLineDash([]);
+    g.fillStyle='#d9edd214';for(let i=0;i<s.board.length;i++){const p=point(i);g.beginPath();g.roundRect(p.x-45,p.y-45,90,90,16);g.fill();}
     const grid=$('cells');grid.style.left=`${100/width*100}%`;grid.style.top=`${100/height*100}%`;grid.style.width=`${s.cols*100/width*100}%`;grid.style.height=`${s.rows*100/height*100}%`;
     grid.style.gridTemplateColumns=`repeat(${s.cols},minmax(0,1fr))`;grid.style.gridTemplateRows=`repeat(${s.rows},minmax(0,1fr))`;
     cells=Array.from({length:s.board.length},(_,i)=>{const el=document.createElement('button');el.type='button';el.dataset.cell=i;el.tabIndex=i===0?0:-1;return el;});grid.replaceChildren(...cells);resize();
   }
   function sprite(pet){if(!sprites.has(pet))sprites.set(pet,A.sprite(pet));return sprites.get(pet);}
   function routeLine(path,progress=1,alpha=1,dashed=false){
-    const points=path.map(pathPoint),lengths=points.slice(1).map((p,i)=>Math.hypot(p.x-points[i].x,p.y-points[i].y));
-    let left=lengths.reduce((a,b)=>a+b,0)*progress,head=points[0];const visible=[head];
+    let route=routes.get(path);if(!route){const points=path.map(pathPoint),lengths=points.slice(1).map((p,i)=>Math.hypot(p.x-points[i].x,p.y-points[i].y));route={points,lengths,total:lengths.reduce((a,b)=>a+b,0)};routes.set(path,route);}
+    const {points,lengths}=route;let left=route.total*progress,head=points[0];const visible=[head];
     for(let i=0;i<lengths.length&&left>0;i++){const a=points[i],b=points[i+1],t=Math.min(1,left/lengths[i]);head={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};visible.push(head);left-=lengths[i];}
     ctx.save();ctx.globalAlpha=alpha;ctx.lineCap='round';ctx.lineJoin='round';if(dashed)ctx.setLineDash([12,10]);
     for(const [color,lineWidth] of [['#f2bd62',14],['#fff4c4',6]]){ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.beginPath();visible.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();}
@@ -63,12 +69,9 @@
   }
   function draw(now=performance.now()){
     ctx.setTransform(scale,0,0,scale,0,0);ctx.clearRect(0,0,width,height);
-    ctx.strokeStyle='#ecf6dd30';ctx.lineWidth=2;ctx.setLineDash([5,12]);ctx.beginPath();ctx.roundRect(49,49,width-98,height-98,24);ctx.stroke();ctx.setLineDash([]);
+    ctx.drawImage(background,0,0);
     const frame=active?.frame,u=active?Math.min(1,(now-active.start)/active.duration):1,board=frame?.board||view;
     const moving=frame&&['shift','shuffle'].includes(frame.kind);
-    for(let i=0;i<board.length;i++){
-      const p=point(i);ctx.fillStyle='#d9edd214';ctx.beginPath();ctx.roundRect(p.x-45,p.y-45,90,90,16);ctx.fill();
-    }
     if(hinted&&!busy)routeLine(hinted.path,1,.65,true);
     for(let i=0;i<board.length;i++){
       const tile=board[i];if(!tile)continue;const p=point(i);let x=p.x,y=p.y,zoom=1,opacity=1;
@@ -126,7 +129,7 @@
     if(event.key==='Escape'){selected=-1;hinted=null;status();requestDraw();}
   });
   function reset(level=s.level,mode=s.mode){pointer=null;s=C.fresh(level,undefined,mode);history=[];selected=-1;hinted=null;paused=mode==='timed';started=false;clearTimeout(messageTimer);text('board-message','');populate();finish();build();status();save();lastClock=performance.now();say('先找相邻的小伙伴，也可以沿棋盘外侧绕行。');audio.sync();}
-  function ask(title,description,fn){pointer=null;finish();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();audio.sync();}
+  function ask(title,description,fn){pointer=null;finish();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();stopClock();audio.sync();}
   function pause(){if(s.phase!=='playing')return;pointer=null;finish();paused=!paused;started=true;lastClock=performance.now();status();draw();audio.sync();}
   $('pause').onclick=pause;$('resume').onclick=pause;
   $('hint').onclick=()=>{if(paused||busy)return;const found=C.useHint(s);if(found){hinted=found;selected=-1;save();status();draw();audio.effect('collect',{volume:.2});say('这两个小伙伴可以连接，看看亮起的路线。');}};
@@ -137,7 +140,7 @@
   $('levels').onchange=event=>{const n=Number(event.target.value);event.target.value=s.level;if(n!==s.level)ask('切换关卡？','当前这一关会重新开始。',()=>reset(n));};
   $('mode').onchange=event=>{const mode=event.target.value;event.target.value=s.mode;if(mode!==s.mode)ask(mode==='practice'?'进入慢慢练习？':'进入计时挑战？','当前这一关会重新开始。慢慢练习没有时间限制。',()=>reset(s.level,mode));};
   $('help').onclick=()=>ask('小伙伴怎么相遇？','先点一只宠物，再点另一只相同的宠物。连线不能穿过其他宠物，最多转弯 2 次，也可以绕过棋盘外围。\n\n计时挑战每配对成功一次加 2 秒，连续配对加时更多；时间条有上限。慢慢练习不限时。\n\n每关有 3 次提示、3 次重排。完全没有可消除的配对时，会免费自动重排。\n\n后面的关卡会在配对后向下、向左、向右或向上移动，留意棋盘上方的方向说明。离开页面会暂停，回来点「继续」即可。',null);
-  $('cancel').onclick=()=>{pending=null;$('dialog').close();};$('confirm').onclick=()=>{const fn=pending;pending=null;$('dialog').close();fn?.();};$('dialog').addEventListener('cancel',()=>pending=null);$('dialog').addEventListener('close',()=>{lastClock=performance.now();audio.sync();});
+  $('cancel').onclick=()=>{pending=null;$('dialog').close();};$('confirm').onclick=()=>{const fn=pending;pending=null;$('dialog').close();fn?.();};$('dialog').addEventListener('cancel',()=>pending=null);$('dialog').addEventListener('close',()=>{lastClock=performance.now();syncClock();audio.sync();});
   $('sound').onclick=()=>{sound=audio.toggle();if(sound)audio.unlock(true);try{localStorage.setItem('childgame.sound',sound?'on':'off');}catch{}audio.sync();};
   function suspend(){pointer=null;if(s.phase==='playing')paused=true;finish();save();audio.sync();lastClock=performance.now();}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)suspend();else{lastClock=performance.now();draw();}});window.addEventListener('pagehide',suspend);
@@ -149,15 +152,14 @@
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}scale=w/width;draw();
   }
   new ResizeObserver(resize).observe(document.querySelector('.board-stage'));
-  setInterval(()=>{
-    const now=performance.now(),dt=Math.min(1,(now-lastClock)/1000);lastClock=now;
+  function tickClock(){
+    clockTimer=0;const now=performance.now(),dt=Math.min(1,(now-lastClock)/1000);lastClock=now;
     if(paused||busy||document.hidden||$('dialog').open||s.phase!=='playing')return;
-    const combo=s.combo;C.tick(s,dt);saveClock+=dt;clock();
-    document.querySelector('.pet-clock').classList.toggle('urgent',s.timeLeft!==null&&s.timeLeft<=20);
+    const combo=s.combo;C.tick(s,dt);saveClock+=dt;if(s.timeLeft!==null){clock();document.querySelector('.pet-clock').classList.toggle('urgent',s.timeLeft<=20);}
     if(combo!==s.combo)text('combo',s.combo>1?`连消 ×${s.combo}`:'找到好朋友');
     if(s.phase!=='playing'){save();finish();audio.effect('over',{volume:.35});}
-    if(saveClock>=2){save();saveClock=0;}
-  },100);
-  window.PetLinkGame={snapshot:()=>C.clone(s),busy:()=>busy,paused:()=>paused,effects:()=>({particles:particles.length,rings:rings.length,sprites:sprites.size,peak:fxPeak,raf:!!raf})};
+    if(saveClock>=2||combo!==s.combo){save();saveClock=0;}syncClock();
+  }
+  window.PetLinkGame={snapshot:()=>C.clone(s),busy:()=>busy,paused:()=>paused,effects:()=>({particles:particles.length,rings:rings.length,sprites:sprites.size,peak:fxPeak,raf:!!raf}),scheduling:()=>({clock:!!clockTimer})};
   populate();build();status();save();draw();
 })();

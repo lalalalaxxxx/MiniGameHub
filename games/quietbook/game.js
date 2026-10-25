@@ -25,7 +25,12 @@
     }
   } catch (_) {}
   let category=categories[state.scene][0], picked=null, selected=null, drag=null, chewing=false, eatTimer, trayPage=0;
-  const history=[];
+  const history=[],markupKeys=new Map(),shapes=new Map(),icons=new Map(),stickerNodes=new Map();
+  let dragFrame=0;
+  const shape=id=>{if(!shapes.has(id))shapes.set(id,A.shape(A.catalog[id]));return shapes.get(id);};
+  const icon=item=>{if(!icons.has(item.id))icons.set(item.id,A.icon(item));return icons.get(item.id);};
+  function markup(id,key,build){if(markupKeys.get(id)===key)return;$(id).innerHTML=build();markupKeys.set(id,key);}
+  function attribute(el,name,value){if(el.getAttribute(name)!==value)el.setAttribute(name,value);}
   let soundOn=true;
   try{soundOn=localStorage.getItem('childgame.sound')!=='off';}catch(_){}
   const audio=createGameAudio({game:'quietbook',music:false,isPlaying:()=>true,isEnabled:()=>soundOn});
@@ -45,24 +50,33 @@
   }
   function choose(id){if(slots.includes(A.catalog[id].type)){equip(id);return;}picked=id;selected=null;render();hint('选好了，再点角色或场景就能放下。');}
   function actorTransform(){if(state.scene==='wardrobe')return 'translate(420 165) scale(1.2)';if(state.scene==='dining')return 'translate(145 155) scale(1.1)';if(state.pose==='sleep')return 'translate(620 300) rotate(75 110 170) scale(.85)';if(state.pose==='sit')return 'translate(150 200)';return 'translate(390 190) scale(1.1)';}
-  function sticker(x,ghost=false){const item=A.catalog[x.id],w=item.width||95;return `<g ${ghost?'class="drag-ghost"':`class="sticker" data-uid="${x.uid}"`} transform="translate(${x.x-w/2} ${x.y-w/2}) scale(${w/100})"><rect width="100" height="100" fill="transparent"/>${A.shape(item)}${!ghost&&selected?.uid===x.uid?'<rect class="selected-ring" x="0" y="0" width="100" height="100" rx="15"/>':''}${x.bites&&x.bites<3?`<text x="80" y="96" fill="#655344" font-size="16">${x.bites}</text>`:''}</g>`;}
+  function sticker(x,ghost=false){const item=A.catalog[x.id],w=item.width||95;return `<g ${ghost?'class="drag-ghost"':`class="sticker" data-uid="${x.uid}"`} transform="translate(${x.x-w/2} ${x.y-w/2}) scale(${w/100})"><rect width="100" height="100" fill="transparent"/>${shape(x.id)}${!ghost&&selected?.uid===x.uid?'<rect class="selected-ring" x="0" y="0" width="100" height="100" rx="15"/>':''}${x.bites&&x.bites<3?`<text x="80" y="96" fill="#655344" font-size="16">${x.bites}</text>`:''}</g>`;}
+  function drawStickers(){
+    const parent=$('stickers'),items=[...room()].sort((a,b)=>(['plate','rug'].includes(A.catalog[b.id].shape)?1:0)-(['plate','rug'].includes(A.catalog[a.id].shape)?1:0)),alive=new Set();
+    items.forEach((x,i)=>{alive.add(x.uid);let entry=stickerNodes.get(x.uid);if(!entry){const el=document.createElementNS('http://www.w3.org/2000/svg','g');el.setAttribute('class','sticker');el.dataset.uid=x.uid;entry={el,key:''};stickerNodes.set(x.uid,entry);}
+      const key=x.id+':'+x.bites+':'+(selected?.uid===x.uid);if(entry.key!==key){const svg=sticker(x);entry.el.innerHTML=svg.slice(svg.indexOf('>')+1,-4);entry.key=key;}
+      const w=A.catalog[x.id].width||95;attribute(entry.el,'transform',`translate(${x.x-w/2} ${x.y-w/2}) scale(${w/100})`);
+      if(parent.children[i]!==entry.el)parent.insertBefore(entry.el,parent.children[i]||null);
+    });
+    for(const [uid,entry]of stickerNodes)if(!alive.has(uid)){entry.el.remove();stickerNodes.delete(uid);}
+  }
   function drawActor(){
-    $('actor').setAttribute('transform',actorTransform());$('actor').innerHTML=A.character(state.theme,state.actor,look(),state.pose==='sit'&&state.scene==='home'?'sit':'stand',chewing);
+    attribute($('actor'),'transform',actorTransform());markup('actor',JSON.stringify([state.theme,state.actor,look(),state.pose,state.scene,chewing]),()=>A.character(state.theme,state.actor,look(),state.pose==='sit'&&state.scene==='home'?'sit':'stand',chewing));
+    $('actor').querySelectorAll('.selected-clothing').forEach(el=>el.classList.remove('selected-clothing'));
     if(selected?.slot)$('actor').querySelector(`[data-slot="${selected.slot}"]`)?.classList.add('selected-clothing');
   }
   function render(){
     document.body.dataset.theme=state.theme;
     for(const key of ['theme','scene'])document.querySelectorAll(`button[data-${key}]`).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset[key]===state[key])));
-    $('backdrop').innerHTML=A.background(state.scene,state.theme);
+    markup('backdrop',state.scene+':'+state.theme,()=>A.background(state.scene,state.theme));
     drawActor();
-    $('stickers').innerHTML=[...room()].sort((a,b)=>(['plate','rug'].includes(A.catalog[b.id].shape)?1:0)-(['plate','rug'].includes(A.catalog[a.id].shape)?1:0)).map(x=>sticker(x)).join('');
-    $('night').innerHTML=state.scene==='home'&&!state.light?'<rect width="1000" height="650" fill="#253652" opacity=".28" pointer-events="none"/>':'';
-    $('characters').innerHTML=A.themes[state.theme].names.map((name,i)=>`<button type="button" data-actor="${i}" aria-pressed="${i===state.actor}">${name}</button>`).join('');
-    $('categories').innerHTML=categories[state.scene].map(c=>`<button type="button" data-category="${c}" aria-pressed="${c===category}">${labels[c]}</button>`).join('');
+    drawStickers();
+    markup('night',state.scene+':'+state.light,()=>state.scene==='home'&&!state.light?'<rect width="1000" height="650" fill="#253652" opacity=".28" pointer-events="none"/>':'');
+    markup('characters',state.theme+':'+state.actor,()=>A.themes[state.theme].names.map((name,i)=>`<button type="button" data-actor="${i}" aria-pressed="${i===state.actor}">${name}</button>`).join(''));
     const items=A.items.filter(x=>x.type===category), pageSize=innerWidth<=600?4:6, pageCount=Math.ceil(items.length/pageSize);
     trayPage%=pageCount;
-    if(pageCount>1)$('categories').innerHTML+=`<button type="button" data-more="true" aria-label="下一组贴纸">更多 ${trayPage+1}/${pageCount} ›</button>`;
-    $('tray').innerHTML=items.slice(trayPage*pageSize,(trayPage+1)*pageSize).map(x=>`<button type="button" class="item" data-item="${x.id}" aria-pressed="${picked===x.id||look().slots[x.type]===x.id}">${A.icon(x)}<span>${x.name}</span></button>`).join('');
+    markup('categories',`${state.scene}:${category}:${trayPage}:${pageCount}`,()=>categories[state.scene].map(c=>`<button type="button" data-category="${c}" aria-pressed="${c===category}">${labels[c]}</button>`).join('')+(pageCount>1?`<button type="button" data-more="true" aria-label="下一组贴纸">更多 ${trayPage+1}/${pageCount} ›</button>`:''));
+    markup('tray',JSON.stringify([category,trayPage,pageSize,picked,look().slots]),()=>items.slice(trayPage*pageSize,(trayPage+1)*pageSize).map(x=>`<button type="button" class="item" data-item="${x.id}" aria-pressed="${picked===x.id||look().slots[x.type]===x.id}">${icon(x)}<span>${x.name}</span></button>`).join(''));
     $('item-count').textContent=items.length+' 件';
     $('pose').hidden=$('light').hidden=state.scene!=='home';
     $('pose').textContent={stand:'坐一坐',sit:'躺下来',sleep:'站起来'}[state.pose];$('light').textContent=state.light?'关灯':'开灯';
@@ -87,17 +101,18 @@
     if(['food','drink'].includes(item.type)){const plate=room().find(s=>A.catalog[s.id].type==='plate'&&Math.hypot(s.x-x,s.y-y)<85);if(plate){x=plate.x;y=plate.y-12;}}
     picked=null;change(()=>{let entry=room().find(s=>s.uid===uid);if(entry)Object.assign(entry,{x,y});else{entry={uid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),id,x,y,bites:3};room().push(entry);}selected={uid:entry.uid};});hint('摆好啦！点选后可以收回，拖动可以换位置。');
   }
-  function cancel(){if(!drag)return;const old=drag;drag=null;$('drag-layer').innerHTML='';if(old.capture.hasPointerCapture?.(old.pointer))old.capture.releasePointerCapture(old.pointer);}
+  function cancel(){cancelAnimationFrame(dragFrame);dragFrame=0;if(!drag)return;const old=drag;drag=null;$('drag-layer').replaceChildren();if(old.capture.hasPointerCapture?.(old.pointer))old.capture.releasePointerCapture(old.pointer);}
+  function drawDrag(){dragFrame=0;if(!drag?.moved||!drag.id)return;const p=new DOMPoint(drag.clientX,drag.clientY).matrixTransform(drag.matrix),w=A.catalog[drag.id].width||95;if(!drag.ghost){$('drag-layer').innerHTML=sticker({id:drag.id,x:0,y:0},true);drag.ghost=$('drag-layer').firstElementChild;}drag.ghost.setAttribute('transform',`translate(${p.x+drag.offset.x-w/2} ${p.y+drag.offset.y-w/2}) scale(${w/100})`);}
   function start(e){
     if(drag||e.isPrimary===false||e.button!==0||!$('confirm').hidden)return;
     const palette=e.target.closest('[data-item]'),entry=e.target.closest('[data-uid]');
     if(!palette&&!e.target.closest('#scene'))return;
     const p=point(e),existing=entry&&room().find(x=>x.uid===entry.dataset.uid);
-    drag={pointer:e.pointerId,capture:palette||$('scene'),id:palette?.dataset.item||existing?.id,uid:existing?.uid,startX:e.clientX,startY:e.clientY,offset:existing?{x:existing.x-p.x,y:existing.y-p.y}:{x:0,y:0},moved:false,palette:!!palette,target:e.target};
+    drag={pointer:e.pointerId,capture:palette||$('scene'),id:palette?.dataset.item||existing?.id,uid:existing?.uid,startX:e.clientX,startY:e.clientY,matrix:$('scene').getScreenCTM().inverse(),offset:existing?{x:existing.x-p.x,y:existing.y-p.y}:{x:0,y:0},moved:false,palette:!!palette,target:e.target};
     drag.capture.setPointerCapture(e.pointerId);e.preventDefault();
   }
   document.addEventListener('pointerdown',start);
-  document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pointer)return;const p=point(e);if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>8)drag.moved=true;if(drag.moved&&drag.id)$('drag-layer').innerHTML=sticker({id:drag.id,x:p.x+drag.offset.x,y:p.y+drag.offset.y},true);});
+  document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pointer)return;if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>8)drag.moved=true;drag.clientX=e.clientX;drag.clientY=e.clientY;if(drag.moved&&drag.id&&!dragFrame)dragFrame=requestAnimationFrame(drawDrag);});
   document.addEventListener('pointerup',e=>{
     if(!drag||e.pointerId!==drag.pointer)return;const d=drag,p=point(e);cancel();
     if(d.moved){if(d.id)drop(d.id,{x:p.x+d.offset.x,y:p.y+d.offset.y},d.uid);return;}

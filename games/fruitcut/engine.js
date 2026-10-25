@@ -15,18 +15,19 @@
     if(!s.time){s.status='over';s.fruits=[];return;}
     s.spawn-=dt;if(s.spawn<=0){launch(s,random);s.spawn=1.35+random()*.35;}
     for(const f of s.fruits){f.vy+=740*dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.angle+=f.spin*dt;if(f.y-f.r<H)f.entered=true;}
-    s.fruits=s.fruits.filter(f=>f.y<H+120&&f.x>-100&&f.x<W+100);
+    let alive=0;for(const f of s.fruits)if(f.y<H+120&&f.x>-100&&f.x<W+100)s.fruits[alive++]=f;s.fruits.length=alive;
   }
   function slash(s,a,b,stroke){
     if(s.status!=='playing'||![a.x,a.y,b.x,b.y].every(Number.isFinite))return [];
     const hits=[];
     // Fruit stays inside the playable field; starting below the screen cannot cut it.
+    let alive=0;
     for(const f of s.fruits){
-      if(!f.entered||!intersects(a,b,f))continue;
+      if(!f.entered||!intersects(a,b,f)){s.fruits[alive++]=f;continue;}
       if(f.kind==='bomb'){s.bombs++;s.score=Math.max(0,s.score-20);stroke.combo=0;hits.push({...f,points:-20});}
       else{stroke.combo=s.elapsed-(stroke.lastAt??-Infinity)<.4?(stroke.combo||0)+1:1;stroke.lastAt=s.elapsed;const points=10+(stroke.combo>1?5:0);s.score+=points;s.cut++;s.bestCombo=Math.max(s.bestCombo,stroke.combo);hits.push({...f,points,combo:stroke.combo});}
     }
-    const removed=new Set(hits.map(f=>f.id));s.fruits=s.fruits.filter(f=>!removed.has(f.id));
+    s.fruits.length=alive;
     if(s.bombs>=3){s.status='over';s.fruits=[];}
     return hits;
   }

@@ -98,6 +98,9 @@ const heldInputs = new Map();
 const repeatTimes = new Map();
 let touchControls = null;
 let stickKeys = [];
+let frameId = 0;
+const settledImage = document.createElement("canvas");
+let settledDirty = true;
 
 function readNumber(key) {
   try {
@@ -163,12 +166,11 @@ function cellsOf(piece, rotation = piece.rotation, x = piece.x, y = piece.y) {
 }
 
 function collides(piece, rotation = piece.rotation, x = piece.x, y = piece.y) {
-  return cellsOf(piece, rotation, x, y).some((cell) => (
-    cell.x < 0
-    || cell.x >= COLS
-    || cell.y >= ROWS
-    || (cell.y >= 0 && board[cell.y][cell.x])
-  ));
+  for (const offset of SHAPES[piece.type][rotation]) {
+    const cx = x + offset[0], cy = y + offset[1];
+    if (cx < 0 || cx >= COLS || cy >= ROWS || (cy >= 0 && board[cy][cx])) return true;
+  }
+  return false;
 }
 
 function spawnPiece() {
@@ -280,6 +282,7 @@ function clearLines() {
 }
 
 function lockPiece() {
+  settledDirty = true;
   const cells = cellsOf(active);
   if (cells.some((cell) => cell.y < 0)) {
     finishGame();
@@ -331,6 +334,7 @@ function togglePause() {
 
 function newGame() {
   stopHold();
+  settledDirty = true;
   board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
   bag = [];
   score = 0;
@@ -377,16 +381,20 @@ function drawBoard() {
   if (!boardCell) return;
   const width = boardCell * COLS;
   const height = boardCell * ROWS;
-  boardCtx.clearRect(0, 0, width, height);
-
-  for (let row = 0; row < ROWS; row += 1) {
-    for (let col = 0; col < COLS; col += 1) {
-      boardCtx.fillStyle = (row + col) % 2 ? "#fbf5ff" : "#fff9fc";
-      boardCtx.fillRect(col * boardCell, row * boardCell, boardCell + 0.5, boardCell + 0.5);
+  if (settledDirty) {
+    settledImage.width = boardCanvas.width;
+    settledImage.height = boardCanvas.height;
+    const background = settledImage.getContext("2d");
+    background.setTransform(boardCanvas.width / width, 0, 0, boardCanvas.height / height, 0, 0);
+    for (let row = 0; row < ROWS; row += 1) for (let col = 0; col < COLS; col += 1) {
+      background.fillStyle = (row + col) % 2 ? "#fbf5ff" : "#fff9fc";
+      background.fillRect(col * boardCell, row * boardCell, boardCell + .5, boardCell + .5);
       const type = board[row][col];
-      if (type) roundedCell(boardCtx, col * boardCell, row * boardCell, boardCell, COLORS[type]);
+      if (type) roundedCell(background, col * boardCell, row * boardCell, boardCell, COLORS[type]);
     }
+    settledDirty = false;
   }
+  boardCtx.drawImage(settledImage, 0, 0, width, height);
 
   if (!active || state === "over") return;
   const drawX = visualX();
@@ -459,6 +467,7 @@ function layout() {
   if (boardCanvas.width !== bitmapWidth || boardCanvas.height !== bitmapHeight) {
     boardCanvas.width = bitmapWidth;
     boardCanvas.height = bitmapHeight;
+    settledDirty = true;
   }
   boardCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   boardCell = width / COLS;
@@ -592,6 +601,7 @@ soundBtn.addEventListener("click", () => {
 });
 
 document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { lastTime = performance.now(); syncAnimation(); return; }
   if (document.hidden && state === "playing") setPaused(true, "离开页面，已自动暂停");
 });
 
@@ -600,6 +610,7 @@ document.addEventListener("touchmove", (event) => {
 }, { passive: false });
 
 function gameLoop(timestamp) {
+  frameId = 0;
   if (!lastTime) lastTime = timestamp;
   const delta = Math.min(timestamp - lastTime, 100);
   lastTime = timestamp;
@@ -613,10 +624,18 @@ function gameLoop(timestamp) {
     }
     drawBoard();
   }
-  requestAnimationFrame(gameLoop);
+  syncAnimation();
+}
+
+function syncAnimation() {
+  const active = state === "playing" && !document.hidden;
+  if (active && !frameId) frameId = requestAnimationFrame(gameLoop);
+  else if (!active && frameId) { cancelAnimationFrame(frameId); frameId = 0; }
 }
 
 function syncTouch() {
+  gameAudio.sync();
+  syncAnimation();
   touchControls?.setEnabled(state !== "over");
   touchControls?.setActions([
     { id: "rotate", label: "↻ 旋转", primary: true, disabled: state !== "playing" },
@@ -647,4 +666,3 @@ newGame();
 layout();
 new ResizeObserver(layout).observe(document.querySelector(".game-area"));
 requestAnimationFrame(layout);
-requestAnimationFrame(gameLoop);

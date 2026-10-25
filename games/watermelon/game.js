@@ -57,6 +57,13 @@ let lastTime = 0;
 let accumulator = 0;
 let dangerTime = 0;
 let lastDropAt = -1000;
+let frameId = 0;
+const fruitImages = new Map();
+let backgroundImage = null;
+let drawOrder = [];
+let drawOrderDirty = true;
+const mergePairs = [];
+const reserved = new Set();
 
 function safeNumber(value) {
   const number = Number(value);
@@ -135,6 +142,7 @@ function updateNext() {
 
 function reset() {
   bodies = [];
+  drawOrderDirty = true;
   nextId = 1;
   nextLevel = randomStarterLevel();
   aimX = WORLD_W / 2;
@@ -153,6 +161,8 @@ function reset() {
   saveScore();
   updateNext();
   draw();
+  syncAnimation();
+  gameAudio.sync();
 }
 
 function dropFruit() {
@@ -161,12 +171,15 @@ function dropFruit() {
   const level = nextLevel;
   const x = clampAim(aimX, level);
   bodies.push(makeBody(level, x, DROP_Y));
+  drawOrderDirty = true;
   lastDropAt = performance.now();
   nextLevel = randomStarterLevel();
   aimX = clampAim(x);
   hintEl.textContent = "相同水果碰在一起，会长成更大的水果";
   gameAudio.effect("drop", { rate: 1 + level * .05 });
   updateNext();
+  if (!frameId) lastTime = performance.now();
+  syncAnimation();
 }
 
 function resolveBounds(body) {
@@ -263,12 +276,13 @@ function mergeBodies(mergePairs, reserved) {
 
   bodies = bodies.filter((body) => !reserved.has(body.id));
   bodies.push(...merged);
+  drawOrderDirty = true;
   saveScore();
 }
 
 function physicsStep(dt) {
-  const mergePairs = [];
-  const reserved = new Set();
+  mergePairs.length = 0;
+  reserved.clear();
 
   bodies.forEach((body) => {
     body.age += dt;
@@ -308,6 +322,7 @@ function physicsStep(dt) {
 function finishGame() {
   if (gameOver) return;
   gameOver = true;
+  syncAnimation();
   pointerId = null;
   pauseBtn.disabled = true;
   saveScore();
@@ -317,6 +332,7 @@ function finishGame() {
   overlayText.textContent = `这次得到 ${score} 分，最高纪录 ${best} 分。`;
   overlay.hidden = false;
   againBtn.focus();
+  gameAudio.sync();
 }
 
 function drawLeaf(target, x, y, radius, level) {
@@ -331,6 +347,26 @@ function drawLeaf(target, x, y, radius, level) {
 }
 
 function drawFruit(target, x, y, radius, level, alpha = 1) {
+  let sprite = fruitImages.get(level);
+  const nativeRadius = FRUITS[level].radius;
+  if (!sprite) {
+    const extent = Math.ceil(nativeRadius * 1.35 + 4);
+    const image = document.createElement("canvas");
+    image.width = image.height = extent * 4;
+    const buffer = image.getContext("2d");
+    buffer.scale(2, 2);
+    paintFruit(buffer, extent, extent, nativeRadius, level);
+    sprite = { image, extent };
+    fruitImages.set(level, sprite);
+  }
+  const extent = sprite.extent * radius / nativeRadius;
+  target.save();
+  target.globalAlpha = alpha;
+  target.drawImage(sprite.image, x - extent, y - extent, extent * 2, extent * 2);
+  target.restore();
+}
+
+function paintFruit(target, x, y, radius, level, alpha = 1) {
   const fruit = FRUITS[level];
   target.save();
   target.globalAlpha = alpha;
@@ -403,21 +439,8 @@ function drawFruit(target, x, y, radius, level, alpha = 1) {
 }
 
 function drawBackground() {
-  const sky = ctx.createLinearGradient(0, 0, 0, WORLD_H);
-  sky.addColorStop(0, "#fff7ed");
-  sky.addColorStop(0.5, "#fffaf5");
-  sky.addColorStop(1, "#f8e9dc");
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, WORLD_W, WORLD_H);
-
-  ctx.fillStyle = "rgba(255,255,255,.38)";
-  for (let y = 22; y < WORLD_H; y += 56) {
-    for (let x = (y / 56) % 2 ? 25 : 53; x < WORLD_W; x += 84) {
-      ctx.beginPath();
-      ctx.arc(x, y, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
+  if (!backgroundImage) backgroundImage = makeBackground();
+  ctx.drawImage(backgroundImage, 0, 0, WORLD_W, WORLD_H);
 
   const warning = Math.min(1, dangerTime / 2.2);
   ctx.save();
@@ -436,6 +459,29 @@ function drawBackground() {
   ctx.font = "700 13px ui-rounded, sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(warning > 0 ? "快到危险线啦" : "危险线", 14, DANGER_Y - 9);
+}
+
+function makeBackground() {
+  const image = document.createElement("canvas");
+  image.width = WORLD_W * 2;
+  image.height = WORLD_H * 2;
+  const ctx = image.getContext("2d");
+  ctx.scale(2, 2);
+  const sky = ctx.createLinearGradient(0, 0, 0, WORLD_H);
+  sky.addColorStop(0, "#fff7ed");
+  sky.addColorStop(0.5, "#fffaf5");
+  sky.addColorStop(1, "#f8e9dc");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+  ctx.fillStyle = "rgba(255,255,255,.38)";
+  for (let y = 22; y < WORLD_H; y += 56) {
+    for (let x = (y / 56) % 2 ? 25 : 53; x < WORLD_W; x += 84) {
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
   ctx.strokeStyle = "rgba(169, 111, 100, .2)";
   ctx.lineWidth = 5;
@@ -445,13 +491,16 @@ function drawBackground() {
   ctx.lineTo(WORLD_W - 2.5, WORLD_H - 2.5);
   ctx.lineTo(WORLD_W - 2.5, 0);
   ctx.stroke();
+  return image;
 }
 
 function draw() {
-  ctx.clearRect(0, 0, WORLD_W, WORLD_H);
   drawBackground();
-  const ordered = [...bodies].sort((a, b) => a.radius - b.radius || a.id - b.id);
-  ordered.forEach((body) => drawFruit(ctx, body.x, body.y, body.radius, body.level));
+  if (drawOrderDirty) {
+    drawOrder = bodies.slice().sort((a, b) => a.radius - b.radius || a.id - b.id);
+    drawOrderDirty = false;
+  }
+  drawOrder.forEach((body) => drawFruit(ctx, body.x, body.y, body.radius, body.level));
 
   if (!gameOver) {
     const radius = FRUITS[nextLevel].radius;
@@ -500,6 +549,7 @@ function resizeCanvas() {
 }
 
 function loop(timestamp) {
+  frameId = 0;
   if (!lastTime) lastTime = timestamp;
   const frameTime = Math.min((timestamp - lastTime) / 1000, 0.05);
   lastTime = timestamp;
@@ -518,7 +568,13 @@ function loop(timestamp) {
   }
 
   draw();
-  requestAnimationFrame(loop);
+  syncAnimation();
+}
+
+function syncAnimation() {
+  const active = !paused && !gameOver && bodies.length > 0 && !document.hidden;
+  if (active && !frameId) frameId = requestAnimationFrame(loop);
+  else if (!active && frameId) { cancelAnimationFrame(frameId); frameId = 0; }
 }
 
 function pointerWorldX(event) {
@@ -533,12 +589,14 @@ canvas.addEventListener("pointerdown", (event) => {
   pointerId = event.pointerId;
   canvas.setPointerCapture(event.pointerId);
   aimX = clampAim(pointerWorldX(event));
+  if (!frameId) draw();
 });
 
 canvas.addEventListener("pointermove", (event) => {
   if (event.pointerId !== pointerId) return;
   event.preventDefault();
   aimX = clampAim(pointerWorldX(event));
+  if (!frameId) draw();
 });
 
 canvas.addEventListener("pointerup", (event) => {
@@ -562,6 +620,10 @@ pauseBtn.addEventListener("click", () => {
   pauseBtn.textContent = paused ? "继续" : "暂停";
   hintEl.textContent = paused ? "暂停中" : "在果篮顶部点击或拖动，松手投放";
   lastTime = performance.now();
+  accumulator = 0;
+  draw();
+  syncAnimation();
+  gameAudio.sync();
 });
 
 function restart() {
@@ -585,11 +647,16 @@ soundBtn.addEventListener("click", () => {
 });
 
 document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { lastTime = performance.now(); syncAnimation(); return; }
   if (!document.hidden || paused || gameOver) return;
   paused = true;
   pointerId = null;
   pauseBtn.textContent = "继续";
   hintEl.textContent = "暂停中";
+  accumulator = 0;
+  draw();
+  syncAnimation();
+  gameAudio.sync();
 });
 
 document.addEventListener("touchmove", (event) => {
@@ -610,4 +677,3 @@ reset();
 resizeCanvas();
 new ResizeObserver(resizeCanvas).observe(boardWrap);
 requestAnimationFrame(resizeCanvas);
-requestAnimationFrame(loop);

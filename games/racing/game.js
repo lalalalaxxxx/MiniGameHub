@@ -53,6 +53,7 @@ const steeringInputs = new Map();
 let steeringDirection = 0;
 let steeringWait = 0;
 let touchControls = null;
+let frameId = 0;
 
 function loadNumber(key) {
   try {
@@ -253,7 +254,9 @@ function update(delta) {
       hitObstacle(obstacle);
     }
   }
-  obstacles = obstacles.filter((obstacle) => !obstacle.remove);
+  let alive = 0;
+  for (const obstacle of obstacles) if (!obstacle.remove) obstacles[alive++] = obstacle;
+  obstacles.length = alive;
   updateScore();
 }
 
@@ -549,11 +552,18 @@ function resizeCanvas() {
 }
 
 function frame(timestamp) {
+  frameId = 0;
   const delta = Math.min(0.05, Math.max(0, (timestamp - lastTime) / 1000));
   lastTime = timestamp;
   update(delta);
   draw();
-  requestAnimationFrame(frame);
+  syncAnimation();
+}
+
+function syncAnimation() {
+  const active = !paused && !gameOver && !document.hidden;
+  if (active && !frameId) frameId = requestAnimationFrame(frame);
+  else if (!active && frameId) { cancelAnimationFrame(frameId); frameId = 0; }
 }
 
 document.querySelectorAll(".steer").forEach((button) => {
@@ -632,6 +642,7 @@ soundBtn.addEventListener("click", () => {
 });
 
 document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { lastTime = performance.now(); syncAnimation(); return; }
   if (document.hidden && !paused && !gameOver) {
     setPaused(true, false);
     hintEl.textContent = "页面离开时已自动暂停";
@@ -639,6 +650,8 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function syncTouch() {
+  gameAudio.sync();
+  syncAnimation();
   touchControls?.setEnabled(!gameOver);
   touchControls?.setActions([
     { id: "pause", label: paused ? "继续" : "暂停", primary: true },
@@ -659,7 +672,3 @@ resetGame();
 resizeCanvas();
 new ResizeObserver(resizeCanvas).observe(roadWrap);
 window.addEventListener("resize", resizeCanvas);
-requestAnimationFrame((timestamp) => {
-  lastTime = timestamp;
-  requestAnimationFrame(frame);
-});

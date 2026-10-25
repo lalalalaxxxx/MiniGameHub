@@ -2,6 +2,16 @@
 
 一个面向 iPad 和儿童触摸操作的纯静态小游戏集合。
 
+## 性能维护
+
+全站音频由输入、加载完成和页面生命周期事件同步，不再每 100 毫秒轮询。暂停、结束、后台及真正静止的棋盘停止动画调度，输入后恢复；鱼游动、角色待机、弹道、连消和结算动画继续正常播放。Canvas 静态地图和图稿按尺寸缓存，地图破坏后失效，缓存数量有上限；拖动绘制合并到下一帧，数独和安静书复用已有节点。塔防复用目标位置并减少排序，小鸟匹配只在相关棋盘状态变化时重新扫描；物理步长、游戏规则和音效素材保持不变。
+
+`tests/performance-*.cjs` 检查循环休眠与唤醒、缓存刷新、密集战斗规则一致性、拖动节点复用和音频状态。原有 `tests/extra-performance.cjs`、`tests/match-performance.cjs`、`tests/animation-performance.cjs` 检查复杂场景帧耗时与效果数量；发布仍须运行完整 `npm test`。
+
+可在同一台机器串行测量优化前后的全部 53 款游戏：`node tools/profile_games.cjs --root <代码目录> --out <报告.json>`。脚本默认使用 1024×650 触屏视口、Chrome 4 倍 CPU 降速，记录启动后、暂停或帮助页面、模拟隐藏时的 RAF、绘制、定时器、存储写入和主线程时间。用 `--ids snake,tetris` 可筛选游戏。报告包含采样与插桩开销，适合同条件比较，不代表 iPad 真机帧率；没有暂停按钮的游戏会标为 `idle`，不能将其解释为暂停。
+
+背景缓存另可用 `node tools/profile_extra_cache.cjs --ids fireice,zumapath,slingblocks,tankguard,bombergarden,trafficpark,tripletown,waterworks --out <报告.json>` 做同页面、同状态、同画布尺寸的三轮交替对照。报告分别记录绘制提交和完成栅格化的成本，避免只因绘制调用减少就误判提速；不要与其他浏览器测试同时运行。
+
 ## 新增休闲游戏（第二批十款）
 
 大厅现有 53 款游戏。这批十款各有 10 个关卡，共 100 关，保留各自经典玩法的核心规则，使用独立实现的 Canvas 美术与 62 个原创短音效。

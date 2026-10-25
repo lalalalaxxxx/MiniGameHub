@@ -52,6 +52,8 @@ let pointerOrigin = null;
 let touchControls = null;
 const touchVector = { x: 0, y: 0 };
 let soundOn = loadSound();
+let frameId = 0;
+let skyGradient = null;
 
 function loadNumber(key) {
   try {
@@ -144,6 +146,7 @@ function setPaused(paused) {
     ? "\u6682\u505c\u4e2d\uff0c\u51c6\u5907\u597d\u518d\u7ee7\u7eed"
     : "按住摇杆飞行，自动发射；也可在画面任意处拖动";
   if (!paused) lastTime = performance.now();
+  draw();
   syncTouch();
 }
 
@@ -256,8 +259,9 @@ function update(dt) {
     enemy.x = Math.max(enemy.radius, Math.min(WORLD.width - enemy.radius, enemy.x));
     if (enemy.y > WORLD.height + enemy.radius) enemy.dead = true;
 
-    const playerDistance = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-    if (!enemy.dead && playerDistance < enemy.radius * 0.72 + PLAYER_RADIUS * 0.72) {
+    const dx = enemy.x - player.x, dy = enemy.y - player.y;
+    const hitRadius = enemy.radius * .72 + PLAYER_RADIUS * .72;
+    if (!enemy.dead && dx * dx + dy * dy < hitRadius * hitRadius) {
       hitPlayer(enemy);
     }
   });
@@ -266,7 +270,8 @@ function update(dt) {
     if (bullet.dead) continue;
     for (const enemy of enemies) {
       if (enemy.dead) continue;
-      if (Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y) > enemy.radius + 14) continue;
+      const dx = bullet.x - enemy.x, dy = bullet.y - enemy.y, radius = enemy.radius + 14;
+      if (dx * dx + dy * dy > radius * radius) continue;
       bullet.dead = true;
       enemy.hp -= 1;
       burst(bullet.x, bullet.y, "#ffe472", 5);
@@ -282,25 +287,26 @@ function update(dt) {
     }
   }
 
+  const dragX = Math.pow(.08, dt), dragY = Math.pow(.18, dt);
+  let aliveSparks = 0;
   sparks.forEach((spark) => {
     spark.x += spark.vx * dt;
     spark.y += spark.vy * dt;
-    spark.vx *= Math.pow(0.08, dt);
-    spark.vy = spark.vy * Math.pow(0.18, dt) + 75 * dt;
+    spark.vx *= dragX;
+    spark.vy = spark.vy * dragY + 75 * dt;
     spark.life -= dt;
+    if (spark.life > 0) sparks[aliveSparks++] = spark;
   });
+  sparks.length = aliveSparks;
 
   removeDead(bullets);
   removeDead(enemies);
-  for (let index = sparks.length - 1; index >= 0; index -= 1) {
-    if (sparks[index].life <= 0) sparks.splice(index, 1);
-  }
 }
 
 function removeDead(items) {
-  for (let index = items.length - 1; index >= 0; index -= 1) {
-    if (items[index].dead) items.splice(index, 1);
-  }
+  let count = 0;
+  for (const item of items) if (!item.dead) items[count++] = item;
+  items.length = count;
 }
 
 function drawRoundRect(x, y, width, height, radius) {
@@ -328,11 +334,13 @@ function starPath(x, y, outer, inner, rotation = -Math.PI / 2) {
 }
 
 function drawSky() {
-  const gradient = ctx.createLinearGradient(0, 0, 0, WORLD.height);
-  gradient.addColorStop(0, "#b9e8ff");
-  gradient.addColorStop(0.55, "#d9ddff");
-  gradient.addColorStop(1, "#ffe4f3");
-  ctx.fillStyle = gradient;
+  if (!skyGradient) {
+    skyGradient = ctx.createLinearGradient(0, 0, 0, WORLD.height);
+    skyGradient.addColorStop(0, "#b9e8ff");
+    skyGradient.addColorStop(.55, "#d9ddff");
+    skyGradient.addColorStop(1, "#ffe4f3");
+  }
+  ctx.fillStyle = skyGradient;
   ctx.fillRect(0, 0, WORLD.width, WORLD.height);
 
   skyDots.forEach((dot) => {
@@ -528,16 +536,24 @@ function resizeCanvas() {
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
+    skyGradient = null;
   }
   draw();
 }
 
 function frame(now) {
+  frameId = 0;
   const dt = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
   lastTime = now;
   if (gameState === "playing") update(dt);
   draw();
-  requestAnimationFrame(frame);
+  syncAnimation();
+}
+
+function syncAnimation() {
+  const active = gameState === "playing" && !document.hidden;
+  if (active && !frameId) frameId = requestAnimationFrame(frame);
+  else if (!active && frameId) { cancelAnimationFrame(frameId); frameId = 0; }
 }
 
 canvas.addEventListener("pointerdown", (event) => {
@@ -631,6 +647,7 @@ soundBtn.addEventListener("click", () => {
 });
 
 document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { lastTime = performance.now(); syncAnimation(); return; }
   if (document.hidden && gameState === "playing") setPaused(true);
 });
 
@@ -639,6 +656,8 @@ document.addEventListener("touchmove", (event) => {
 }, { passive: false });
 
 function syncTouch() {
+  gameAudio.sync();
+  syncAnimation();
   touchControls?.setEnabled(gameState !== "over");
   touchControls?.setActions([{ id: "pause", label: gameState === "paused" ? "继续" : "暂停", primary: true }]);
 }
@@ -666,4 +685,3 @@ if ("ResizeObserver" in window) {
   window.addEventListener("resize", resizeCanvas);
 }
 requestAnimationFrame(resizeCanvas);
-requestAnimationFrame(frame);
