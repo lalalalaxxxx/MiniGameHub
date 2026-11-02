@@ -38,3 +38,5 @@ def main():
     manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
 if __name__ == '__main__':
     main()
+    from build_game_ux import build as build_game_ux
+    build_game_ux()

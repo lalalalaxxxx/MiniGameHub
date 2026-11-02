@@ -23,3 +23,5 @@ for(const [id,m]of Object.entries(C.META)){
 const manifestFile=path.join(root,'games/manifest.json'),old=JSON.parse(fs.readFileSync(manifestFile,'utf8')).filter(g=>!C.META[g.id]);
 const entries=Object.entries(C.META).map(([id,m])=>({id,title:m.title,blurb:descriptions[id],tags:tags[id],category:m.category,cover:`games/${id}/cover.svg`,entry:`games/${id}/index.html`}));fs.writeFileSync(manifestFile,JSON.stringify([...entries,...old],null,2)+'\n');
 console.log('Generated five casual game pages, original SVG covers and lobby entries.');
+
+require('node:child_process').execFileSync(process.platform==='win32'?'python':'python3',[require('node:path').join(__dirname,'build_game_ux.py')],{stdio:'inherit'});

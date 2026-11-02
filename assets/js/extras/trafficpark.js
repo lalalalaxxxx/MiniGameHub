@@ -94,7 +94,7 @@
       drawCar(c, car, x, y, car.id === s.selected, time, view.reduced);
     }
   }
-  function hud(s) { return { scoreLabel: '已用步数', score: s.moves, statLabel: '三星参考', stat: `${s.par + 2} 步`, goal: '把带星星的红车送到右侧出口', progress: Math.min(1, s.cars[0].x / 4), message: '点一下车可选中，再滑动或使用方向按钮。一次滑动算一步。' }; }
+  function hud(s) { return { scoreLabel: '已用步数', score: s.moves, statLabel: '三星参考', stat: `${s.par + 2} 步`, goal: '把带星星的红车送到右侧出口', progress: Math.min(1, s.cars[0].x / 4), message: '沿车身方向拖动即可挪车。一次滑动算一步。' }; }
   function controls(s) { const c = s.cars[s.selected], r = range(s.cars, s.selected); return c.axis === 'h' ? [{ id: 'left', label: '向左一格', disabled: !r.min }, { id: 'right', label: '向右一格', disabled: !r.max }] : [{ id: 'up', label: '向上一格', disabled: !r.min }, { id: 'down', label: '向下一格', disabled: !r.max }]; }
   function validate(s) {
     const nat = (v, max) => Number.isInteger(v) && v >= 0 && v <= max, finite = (v, max) => Number.isFinite(v) && v >= 0 && v <= max;
@@ -108,6 +108,6 @@
     if (s.phase !== 'won' && (s.stars !== 0 || s.score !== 0 || s.cars[0].x === 4)) return false;
     if (s.phase === 'lost') return false; return true;
   }
-  const G = { id: ID, meta: { title: '停车场挪车', category: '解谜', blurb: '横车横着走，竖车竖着走，帮红色小车开出出口。', tags: ['逻辑', '空间规划', '滑动'], color: '#e88273', instructions: '沿车身方向拖动汽车：横车只能左右移动，竖车只能上下移动，不能穿过别的车辆。把带星星的红色小车滑到右侧出口即可过关。一次滑动算一步，少走几步可以得到三星。点选车辆后也可以使用方向按钮。' }, levels: 10, create, act, step, draw, hud, controls, hint, validate, solve, range, center };
+  const G = { id: ID, meta: { title: '停车场挪车', category: '解谜', blurb: '横车横着走，竖车竖着走，帮红色小车开出出口。', tags: ['逻辑', '空间规划', '滑动'], color: '#e88273', instructions: '沿车身方向拖动汽车：横车只能左右移动，竖车只能上下移动，不能穿过别的车辆。把带星星的红色小车滑到右侧出口即可过关。一次滑动算一步，少走几步可以得到三星。键盘用户可点选车辆后使用方向键。' }, levels: 10, create, act, step, draw, hud, controls, hint, validate, solve, range, center };
   if (typeof module !== 'undefined' && module.exports) module.exports = G; else (root.ExtraGames || (root.ExtraGames = {}))[ID] = G;
 })(typeof window !== 'undefined' ? window : globalThis);

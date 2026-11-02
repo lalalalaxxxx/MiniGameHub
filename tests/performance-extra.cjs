@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const test=require('node:test'),assert=require('node:assert/strict');
 const {setup}=require('./helpers/extra-browser.cjs');
 const Racer=require('../assets/js/extras/buildracer'),C=require('../assets/js/casual-core');
@@ -37,11 +38,11 @@ async function pointerBatch(b){
 
 test('extra/casual static boards sleep, coalesce gestures, and wake for actual play',{timeout:35000},async()=>{
  const b=await setup();try{
-  await instrument(b);await b.install(Racer.create(0,37));await b.page.locator('#resume').click();await stable(b,'ExtraGame');
+  await instrument(b);await b.install(Racer.create(0,37));await (await uxControl(b.page,'#resume')).click();await stable(b,'ExtraGame');
   for(const viewport of [{width:820,height:560},{width:768,height:500},{width:768,height:1024},{width:1024,height:650}]){
    await b.page.setViewportSize(viewport);
    await b.page.waitForFunction(()=>{const c=document.querySelector('#board'),r=document.querySelector('.stage').getBoundingClientRect(),w=Math.min(r.width,r.height*.9),d=Math.min(2,devicePixelRatio);return c.width===Math.round(w*d)&&c.height===Math.round(w/.9*d);},null,{timeout:1500});
-   const bounds=await b.page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,sleeping:!ExtraGame.effects().raf,controls:[...document.querySelectorAll('#mechanisms button,#pause,#help,#restart')].map(b=>{const r=b.getBoundingClientRect();return{y:r.y,bottom:r.bottom,w:r.width,h:r.height};})}));
+   const bounds=await b.page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,sleeping:!ExtraGame.effects().raf,controls:[...document.querySelectorAll('#mechanisms button,#pause,#undo,#game-more')].map(b=>{const r=b.getBoundingClientRect();return{y:r.y,bottom:r.bottom,w:r.width,h:r.height};})}));
    assert.ok(bounds.scroll<=bounds.height+1,'sleeping workshop fits resized viewport '+viewport.width+'x'+viewport.height);
    assert.ok(bounds.controls.every(r=>r.y>=0&&r.bottom<=bounds.height+1&&r.w>=32&&r.h>=32),'sleeping workshop controls remain visible');
    assert.equal(bounds.sleeping,true,'resize redraws without restarting the idle game loop');
@@ -50,9 +51,9 @@ test('extra/casual static boards sleep, coalesce gestures, and wake for actual p
   assert.equal((await b.snap()).parts[6],'frame','sleeping editor installs a part on touch');await stable(b,'ExtraGame');
   await b.page.locator('#undo').click();assert.equal((await b.snap()).parts[6],null,'undo wakes editor');
   for(const id of ['bubblepop','brickball']){
-   await installCasual(b,id);await b.page.locator('#resume').click();await stable(b,'CasualGame');
+   await installCasual(b,id);await (await uxControl(b.page,'#resume')).click();await stable(b,'CasualGame');
    await pointerBatch(b);await stable(b,'CasualGame');
-   await b.page.locator('#primary').click();
+   await b.tap({x:360,y:180});
    await b.page.waitForFunction(()=>{const s=CasualGame.snapshot();return !!(s.shot||s.volley);});
    assert.equal(await b.page.evaluate(()=>CasualGame.effects().raf),true,id+' resumes simulation after launch');
    await b.page.locator('#pause').click();await stable(b,'CasualGame');
@@ -101,11 +102,12 @@ test('extra backgrounds match large iPad portrait pixels at DPR 2 and 3 after ro
     for(const size of [{width:820,height:1180},{width:1024,height:1366},{width:1180,height:820}]){
      await page.setViewportSize(size);
      await page.waitForFunction(()=>{const c=document.querySelector('#board'),r=document.querySelector('.stage').getBoundingClientRect(),w=Math.min(r.width,r.height*.9),d=Math.min(2,devicePixelRatio);return c.width===Math.round(w*d)&&c.height===Math.round(w/.9*d);});
+     await page.waitForFunction(()=>!document.querySelector('#board').getContext('2d').isContextLost?.());
      const report=await page.evaluate(()=>{
       const c=document.querySelector('#board'),g=c.getContext('2d'),draw=g.drawImage,images=[];
       g.drawImage=function(image,...args){if(args.length===4&&args[0]===0&&args[1]===0&&args[2]===720&&args[3]===800)images.push([image.width,image.height]);return draw.call(this,image,...args);};
       try{g.setTransform(c.width/720,0,0,c.height/800,0,0);ExtraGames.fireice.draw(g,ExtraGame.snapshot(),{time:0,dt:0,reduced:false});}finally{g.drawImage=draw;}
-      const r=c.getBoundingClientRect();return{dpr:devicePixelRatio,canvas:[c.width,c.height],css:[r.width,r.height],images,stats:ExtraRender.stats()};
+      const r=c.getBoundingClientRect();return{dpr:devicePixelRatio,canvas:[c.width,c.height],css:[r.width,r.height],transform:[g.getTransform().a,g.getTransform().d],contextLost:g.isContextLost?.(),images,stats:ExtraRender.stats()};
      });
      t.diagnostic(JSON.stringify({viewport:size,...report}));
      assert.equal(report.dpr,dpr);assert.equal(report.images.length,1);assert.deepEqual(report.images[0],report.canvas,'cached background matches the physical canvas exactly');
@@ -116,5 +118,14 @@ test('extra backgrounds match large iPad portrait pixels at DPR 2 and 3 after ro
    }finally{await context.close();}
   }
   assert.deepEqual(errors,[]);
+ }finally{await b.close();}
+});
+
+test('restoring a cleared canvas repaints sleeping puzzles without changing saved play',{timeout:30000},async()=>{
+ const b=await setup();try{
+  await instrument(b);await b.install(require('../assets/js/extras/colorsort').create(2,37));await b.page.locator('#resume').tap();await stable(b,'ExtraGame');
+  const before=await b.snap();
+  const report=await b.page.evaluate(()=>{const c=document.querySelector('#board'),g=c.getContext('2d');g.reset();const count=()=>{const p=g.getImageData(0,0,c.width,c.height).data,colors=new Set();for(let i=0;i<p.length;i+=128)colors.add([p[i]>>4,p[i+1]>>4,p[i+2]>>4].join(','));return colors.size;};const blank=count();c.dispatchEvent(new Event('contextrestored'));return {blank,painted:count()};});
+  assert.equal(report.blank,1);assert.ok(report.painted>20,'restored surface contains the actual game drawing');assert.deepEqual(await b.snap(),before);await stable(b,'ExtraGame');
  }finally{await b.close();}
 });

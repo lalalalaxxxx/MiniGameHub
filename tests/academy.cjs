@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),os=require('node:os');
 const {chromium,webkit}=require('playwright');
@@ -31,7 +32,7 @@ test('Academy touch flows: both ages, mistakes, explanations, saves, rewards, au
       const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));const url=`http://127.0.0.1:${server.address().port}/games/${id}/index.html`;
       const saved=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),`childgame.academy.${id}.v1`);
       for(const level of [0,1]){
-        await page.goto(url);if(level===1){await page.locator('[data-level="1"]').tap();}await page.locator('[data-action="start"], [data-action="again"]').tap();
+        await page.goto(url);if(level===1){await (await uxControl(page,'[data-level="1"]')).tap();}await page.locator('[data-action="start"], [data-action="again"]').tap();
         let s=await saved();assert.equal(s.level,level);assert(s.started);const qs=C.questions(config,s.level,s.seed);
         for(let i=0;i<6;i++){
           const q=qs[i];
@@ -39,9 +40,9 @@ test('Academy touch flows: both ages, mistakes, explanations, saves, rewards, au
           if(i===0){
             if(engine===chromium){await page.waitForFunction(()=>window.__plays.length>0&&window.__voice.duration>0&&!window.__voice.paused);}
             await page.locator('[data-action="hint"]').tap();assert((await page.evaluate(()=>window.__clips.at(-1))).endsWith(`${q.id}-hint.mp3`));
-            await page.locator('#sound').tap();assert(await page.evaluate(()=>window.__voice.paused));
-            await page.locator('#sound').tap();
-            await page.locator('#help').tap();assert(await page.locator('#dialog').evaluate(el=>el.open));assert(await page.evaluate(()=>window.__voice.paused));await page.locator('#confirm').tap();
+            await (await uxControl(page,'#sound')).tap();assert(await page.evaluate(()=>window.__voice.paused));
+            await (await uxControl(page,'#sound')).tap();
+            await (await uxControl(page,'#help')).tap();assert(await page.locator('#dialog').evaluate(el=>el.open));assert(await page.evaluate(()=>window.__voice.paused));await page.locator('#confirm').tap();
           }
           if(id==='mathtrain'){
             // Submit an incorrect load, then adjust by real one/ten-box buttons.
@@ -63,14 +64,14 @@ test('Academy touch flows: both ages, mistakes, explanations, saves, rewards, au
           if(i===0){const before=await saved();await page.reload();assert.deepEqual(await saved(),before);assert(await page.locator('.answer-note').isVisible());}
           if(i===1){for(const viewport of [{width:820,height:1180},{width:390,height:844},{width:1180,height:820}]){await page.setViewportSize(viewport);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));const bounds=await page.locator('#listen').boundingBox();assert(bounds.height>=44);}
             await page.screenshot({path:path.join(os.tmpdir(),`${id}-${level}.png`),fullPage:true});}
-          await page.locator('#next-question').tap();assert.equal((await saved()).index,i+1);
+          await (await uxControl(page,'#next-question')).tap();assert.equal((await saved()).index,i+1);
         }
         assert(await page.locator('#finish-title').isVisible());await page.locator('[data-action="sticker"][data-value="2"]').tap();assert.equal((await saved()).sticker,2);await page.reload();assert.equal(await page.locator('[data-action="sticker"][aria-pressed="true"]').getAttribute('data-value'),'2');
         // Leave an unstarted session for the next age group.
         if(level===0){await page.evaluate(key=>localStorage.removeItem(key),`childgame.academy.${id}.v1`);}
       }
-      await page.locator('[data-action="again"]').tap();const before=await saved();await page.locator('#restart').tap();await page.locator('#cancel').tap();assert.deepEqual(await saved(),before);
-      await page.locator('[data-level="0"]').tap();await page.locator('#confirm').tap();assert.equal((await saved()).level,0);assert.equal((await saved()).index,0);
+      await page.locator('[data-action="again"]').tap();const before=await saved();await (await uxControl(page,'#restart')).tap();await page.locator('#cancel').tap();assert.deepEqual(await saved(),before);
+      await (await uxControl(page,'[data-level="0"]')).tap();await page.locator('#confirm').tap();assert.equal((await saved()).level,0);assert.equal((await saved()).index,0);
       await page.evaluate(key=>localStorage.setItem(key,'{"level":"bad"}'),`childgame.academy.${id}.v1`);await page.reload();assert(await page.locator('[data-action="start"]').isVisible());
       await page.close();
     }

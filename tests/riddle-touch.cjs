@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const test=require('node:test'),assert=require('node:assert/strict');
 const {setup}=require('./helpers/extra-browser.cjs');
 const {ids,game,plan,perform,settle,gesture}=require('./helpers/riddles.cjs');
@@ -6,11 +7,11 @@ const {ids,game,plan,perform,settle,gesture}=require('./helpers/riddles.cjs');
 test('riddles: real swipes push boxes, dragging pours bottles, and one continuous stroke completes a constellation',{timeout:35000},async()=>{
   const h=await setup();try{
     const Box=game('boxtrail'),box=Box.create(9,37),dir=Box.solve(box)[0];
-    await h.install(box);await h.page.locator('#resume').tap();const swipe=gesture('boxtrail');await h.drag(swipe.from,swipe.to);Box.act(box,dir);
+    await h.install(box);await (await uxControl(h.page,'#resume')).tap();const swipe=gesture('boxtrail');await h.drag(swipe.from,swipe.to);Box.act(box,dir);
     assert.equal((await h.snap()).p,box.p);assert.deepEqual((await h.snap()).boxes,box.boxes);await h.page.locator('#undo').tap();assert.equal((await h.snap()).moves,0);
-    const Sort=game('colorsort'),sort=Sort.create(9,37),pour=Sort.solve(sort)[0];await h.install(sort);await h.page.locator('#resume').tap();
+    const Sort=game('colorsort'),sort=Sort.create(9,37),pour=Sort.solve(sort)[0];await h.install(sort);await (await uxControl(h.page,'#resume')).tap();
     await h.drag(Sort.center(sort,pour.from),Sort.center(sort,pour.to));Sort.act(sort,'pour',pour);assert.deepEqual((await h.snap()).bottles,sort.bottles);assert.equal((await h.snap()).moves,1);await settle(h.page);
-    const Star=game('starpath'),star=Star.create(4,37),route=Star.solve(star);await h.install(star);await h.page.locator('#resume').tap();
+    const Star=game('starpath'),star=Star.create(4,37),route=Star.solve(star);await h.install(star);await (await uxControl(h.page,'#resume')).tap();
     const start=await h.point(Star.nodePoint(star,route[0]));await h.page.mouse.move(start.x,start.y);await h.page.mouse.down();
     for(const node of route.slice(1)){const p=await h.point(Star.nodePoint(star,node));await h.page.mouse.move(p.x,p.y,{steps:7});}
     assert.equal((await h.snap()).moves,0,'unreleased drawing remains a preview');await h.page.mouse.up();await h.result();assert.equal((await h.snap()).phase,'won');assert.deepEqual((await h.snap()).path,route);
@@ -20,7 +21,7 @@ test('riddles: real swipes push boxes, dragging pours bottles, and one continuou
 test('riddles: secondary fingers cannot act or take over, cancelled gestures leave the puzzle unchanged',{timeout:60000},async t=>{
   const h=await setup();try{
     for(const id of ids){
-      await h.install(game(id).create(9,37));await h.page.locator('#resume').tap();await settle(h.page);
+      await h.install(game(id).create(9,37));await (await uxControl(h.page,'#resume')).tap();await settle(h.page);
       const report=await h.page.evaluate(({from,to})=>{
         const c=document.querySelector('#board'),r=c.getBoundingClientRect();
         const emit=(type,pointerId,p,isPrimary)=>c.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId,pointerType:'touch',isPrimary,button:0,buttons:type==='pointerup'?0:1,clientX:r.x+p.x/720*r.width,clientY:r.y+p.y/800*r.height}));
@@ -40,15 +41,15 @@ test('riddles: animated feedback finishes, static boards sleep, and reduced moti
   const h=await setup();try{
     await h.page.addInitScript(()=>{window.riddlePaints=0;const set=CanvasRenderingContext2D.prototype.setTransform;CanvasRenderingContext2D.prototype.setTransform=function(...args){if(this.canvas.id==='board')riddlePaints++;return set.apply(this,args);};});
     for(const id of ids){
-      await h.install(game(id).create(9,37));await h.page.locator('#resume').tap();await settle(h.page);await h.page.waitForTimeout(230);
+      await h.install(game(id).create(9,37));await (await uxControl(h.page,'#resume')).tap();await settle(h.page);await h.page.waitForTimeout(230);
       const before=await h.page.evaluate(()=>({state:ExtraGame.snapshot(),paints:riddlePaints}));await h.page.waitForTimeout(160);assert.deepEqual(await h.page.evaluate(()=>({state:ExtraGame.snapshot(),paints:riddlePaints})),before,id+' static puzzle is asleep');
       const actions=plan(id,9);let i=0;while((await h.snap()).moves===before.state.moves){assert.ok(i<actions.length);await perform(h,actions[i++]);}
       assert.equal(await h.page.evaluate(()=>ExtraGame.effects().raf),true,id+' interaction starts animation');
       await h.page.locator('#pause').tap();const frozen=await h.snap();await h.page.waitForTimeout(120);assert.deepEqual(await h.snap(),frozen,id+' pause freezes animation/simulation');
-      await h.page.reload();assert.equal((await h.snap()).moves,frozen.moves);await h.page.locator('#resume').tap();await settle(h.page);
+      await h.page.reload();assert.equal((await h.snap()).moves,frozen.moves);await (await uxControl(h.page,'#resume')).tap();await settle(h.page);
       const fx=await h.page.evaluate(()=>ExtraGame.effects());assert.equal(fx.raf,false);assert.equal(fx.particles,0);assert.equal(fx.rings,0);assert.equal(fx.labels,0);
-      if(id==='colorsort'){assert.equal(await h.page.locator('[data-action="left"]').isDisabled(),false,'bottle buttons re-enable on the final animation frame before sleeping');await h.page.locator('[data-action="left"]').tap();}
-      await h.page.emulateMedia({reducedMotion:'reduce'});await h.install(game(id).create(0,37));await h.page.locator('#resume').tap();
+      if(id==='colorsort'){const current=await h.snap(),G=game(id),move=G.solve(current)[0];await h.tap(G.center(current,move.from));assert.equal((await h.snap()).selected,move.from,'bottles accept the next direct touch after their final animation frame');assert.equal(await h.page.locator('#mechanisms button:visible').count(),0);}
+      await h.page.emulateMedia({reducedMotion:'reduce'});await h.install(game(id).create(0,37));await (await uxControl(h.page,'#resume')).tap();
       for(const a of plan(id,0)){await perform(h,a);await settle(h.page);assert.equal(await h.page.evaluate(()=>ExtraGame.effects().particles),0,id+' reduced motion has no confetti');}
       assert.equal((await h.snap()).phase,'won');await h.page.emulateMedia({reducedMotion:'no-preference'});
       t.diagnostic(id+': sleeps when static, animated action, pause/reopen and reduced-motion win');

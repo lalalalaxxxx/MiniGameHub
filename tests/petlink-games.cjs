@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),os=require('node:os');
 const {chromium,webkit}=require('playwright'),C=require('../assets/js/petlink-core.js'),KEY='childgame.petlink.v1';
 function sameState(actual,expected,message){assert(actual.comboLeft>=0&&actual.comboLeft<=expected.comboLeft+.001);assert.deepEqual({...actual,comboLeft:expected.comboLeft},expected,message);}
@@ -28,7 +29,7 @@ test('Pet browser: touch, route animations, hint/shuffle/undo, saves, layouts an
   try{
     const initial=C.fresh(0,37,'practice');await install(initial);assert.equal(await page.locator('#levels option').count(),12);
     assert.equal(await page.locator('#cells button').count(),24);await page.evaluate(()=>window.originalPetCells=[...document.querySelectorAll('#cells button')]);
-    await page.locator('#hint').tap();const hinted=C.clone(initial);C.useHint(hinted);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),hinted);assert.equal(await page.locator('.hinted').count(),2);
+    await (await uxControl(page,'#hint')).tap();const hinted=C.clone(initial);C.useHint(hinted);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),hinted);assert.equal(await page.locator('.hinted').count(),2);
     const action=C.hint(hinted),expected=C.clone(hinted);assert(C.play(expected,...action.pair).ok);await pair(action.pair);
     assert(await page.evaluate(()=>PetLinkGame.busy()));assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),expected);
     await page.waitForFunction(()=>PetLinkGame.effects().particles>0);const effects=await page.evaluate(()=>PetLinkGame.effects());assert(effects.particles<=96&&effects.rings<=8);
@@ -36,13 +37,13 @@ test('Pet browser: touch, route animations, hint/shuffle/undo, saves, layouts an
     assert(await page.evaluate(()=>originalPetCells.every((el,i)=>el===document.querySelectorAll('#cells button')[i])));
     if(engine===chromium)await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');
     await page.locator('#undo').tap();assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),hinted);
-    await page.locator('#shuffle').tap();await idle();const shuffled=await page.evaluate(()=>PetLinkGame.snapshot());assert.equal(shuffled.shufflesLeft,2);assert(C.hint(shuffled));assert.equal(shuffled.pairs,0);assert.equal(shuffled.score,0);
+    await (await uxControl(page,'#shuffle')).tap();await idle();const shuffled=await page.evaluate(()=>PetLinkGame.snapshot());assert.equal(shuffled.shufflesLeft,2);assert(C.hint(shuffled));assert.equal(shuffled.pairs,0);assert.equal(shuffled.score,0);
     await page.locator('#undo').tap();assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),hinted);
     await pair(action.pair);assert(await page.evaluate(()=>PetLinkGame.busy()));await page.reload();await idle();sameState(await page.evaluate(()=>PetLinkGame.snapshot()),expected,'reload mid-animation saves one complete pair');
-    await page.locator('#restart').tap();await page.locator('#cancel').tap();sameState(await page.evaluate(()=>PetLinkGame.snapshot()),expected);
-    await page.locator('#help').tap();assert(await page.locator('#dialog').evaluate(el=>el.open));await page.locator('#confirm').tap();
-    await page.locator('#levels').selectOption('3');await page.locator('#cancel').tap();assert.equal(await page.locator('#levels').inputValue(),'0');
-    await page.locator('#levels').selectOption('3');await page.locator('#confirm').tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).level,3);
+    await (await uxControl(page,'#restart')).tap();await page.locator('#cancel').tap();sameState(await page.evaluate(()=>PetLinkGame.snapshot()),expected);
+    await (await uxControl(page,'#help')).tap();assert(await page.locator('#dialog').evaluate(el=>el.open));await page.locator('#confirm').tap();
+    await (await uxControl(page,'#levels')).selectOption('3');await page.locator('#cancel').tap();assert.equal(await page.locator('#levels').inputValue(),'0');
+    await (await uxControl(page,'#levels')).selectOption('3');await page.locator('#confirm').tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).level,3);
     for(const index of [0,3,11]){
       await install(C.fresh(index,37,'practice'));
       for(const viewport of [{width:1024,height:650},{width:820,height:560},{width:768,height:1024},{width:390,height:844},{width:375,height:667}]){await page.setViewportSize(viewport);await fit(page,`level ${index} ${viewport.width}x${viewport.height}`);}
@@ -56,7 +57,7 @@ test('Pet browser: touch, route animations, hint/shuffle/undo, saves, layouts an
       assert.equal(state.phase,'won');assert(await page.locator('#result').isVisible());assert.equal(await page.locator('#score').textContent(),String(state.score));
       await page.setViewportSize({width:375,height:667});
       const buttons=await page.locator('#result button:visible').all();for(const button of buttons){const r=await button.boundingBox();assert(r.y>=0&&r.y+r.height<=667);}
-      await page.reload();assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),state);await page.locator('#next').tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).level,(index+1)%12);await page.setViewportSize({width:1024,height:650});
+      await page.reload();assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),state);await (await uxControl(page,'#next')).tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).level,(index+1)%12);await page.setViewportSize({width:1024,height:650});
     }
     assert.deepEqual(T.errors,[]);assert.deepEqual(T.missing,[]);
   }finally{await T.close();}
@@ -65,11 +66,11 @@ test('Pet browser: clock, explicit resume, multi-touch, pause, background, mode 
   const T=await setup(),{page,install,idle}=T;
   try{
     const initial=C.fresh(0,37);await install(initial);assert(await page.evaluate(()=>PetLinkGame.paused()));await page.waitForTimeout(250);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),initial);
-    await page.locator('#resume').tap();await page.waitForFunction(()=>PetLinkGame.snapshot().timeLeft<99.7);await page.locator('#pause').tap();const paused=await page.evaluate(()=>PetLinkGame.snapshot());await page.waitForTimeout(250);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),paused);
-    await page.locator('#pause').tap();await page.locator('#help').tap();const help=await page.evaluate(()=>PetLinkGame.snapshot());await page.waitForTimeout(250);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),help);await page.locator('#confirm').tap();
+    await (await uxControl(page,'#resume')).tap();await page.waitForFunction(()=>PetLinkGame.snapshot().timeLeft<99.7);await page.locator('#pause').tap();const paused=await page.evaluate(()=>PetLinkGame.snapshot());await page.waitForTimeout(250);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),paused);
+    await page.locator('#pause').tap();await (await uxControl(page,'#help')).tap();const help=await page.evaluate(()=>PetLinkGame.snapshot());await page.waitForTimeout(250);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),help);await page.locator('#confirm').tap();
     await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});assert(await page.evaluate(()=>PetLinkGame.paused()));const background=await page.evaluate(()=>PetLinkGame.snapshot());await page.waitForTimeout(250);assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),background);
     await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});assert(await page.evaluate(()=>PetLinkGame.paused()));await page.reload();assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),background);
-    await page.locator('#mode').selectOption('practice');await page.locator('#confirm').tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).timeLeft,null);assert(!(await page.evaluate(()=>PetLinkGame.paused())));
+    await (await uxControl(page,'#mode')).selectOption('practice');await page.locator('#confirm').tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).timeLeft,null);assert(!(await page.evaluate(()=>PetLinkGame.paused())));
     const practice=C.fresh(0,37,'practice');await install(practice);const hint=C.hint(practice);
     await page.evaluate(([a,b])=>{
       const el=document.querySelector(`[data-cell="${a}"]`),other=document.querySelector(`[data-cell="${b}"]`),r=el.getBoundingClientRect(),q=other.getBoundingClientRect();
@@ -78,7 +79,7 @@ test('Pet browser: clock, explicit resume, multi-touch, pause, background, mode 
     },hint.pair);
     assert.deepEqual(await page.evaluate(()=>PetLinkGame.snapshot()),practice,'second finger cannot pair or change the first choice');assert.equal(await page.locator('.selected').getAttribute('data-cell'),String(hint.pair[0]));
     await page.locator(`[data-cell="${hint.pair[1]}"]`).tap();await idle();C.play(practice,...hint.pair);sameState(await page.evaluate(()=>PetLinkGame.snapshot()),practice);
-    const almost=C.fresh(0,37);almost.timeLeft=.1;await install(almost);await page.locator('#resume').tap();await page.waitForFunction(()=>PetLinkGame.snapshot().phase==='lost');assert(await page.locator('#result').isVisible());await page.locator('#retry').tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).timeLeft,100);assert(await page.evaluate(()=>PetLinkGame.paused()));
+    const almost=C.fresh(0,37);almost.timeLeft=.1;await install(almost);await (await uxControl(page,'#resume')).tap();await page.waitForFunction(()=>PetLinkGame.snapshot().phase==='lost');assert(await page.locator('#result').isVisible());await page.locator('#retry').tap();assert.equal((await page.evaluate(()=>PetLinkGame.snapshot())).timeLeft,100);assert(await page.evaluate(()=>PetLinkGame.paused()));
     assert.deepEqual(T.errors,[]);assert.deepEqual(T.missing,[]);
   }finally{await T.close();}
 });

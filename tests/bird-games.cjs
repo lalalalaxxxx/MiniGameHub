@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium,webkit}=require('playwright'),C=require('../assets/js/bird-core.js'),KEY='childgame.birdblast.v2';
 async function setup(){
@@ -19,8 +20,8 @@ function fixture(mode='practice'){
 }
 test('Bird UI: side grabs, live append window, secondary touch, cancelled drag, real effects and persistence',{timeout:90000},async()=>{
  const h=await setup(),{page,snap,install,drag,cell}=h;try{
-  const f=fixture();f.put(63,1);const bird=f.put(56,0);f.put(49,2);f.put(69,3);await install(f.s);await page.locator('#resume').tap();await drag(56,4);assert.equal((await snap()).board[67].uid,bird.uid);assert.equal((await snap()).moves,1);
-  const a=fixture();a.put(63);a.put(64);a.put(66);a.put(67);a.put(69,2);await install(a.s);await page.locator('#resume').tap();
+  const f=fixture();f.put(63,1);const bird=f.put(56,0);f.put(49,2);f.put(69,3);await install(f.s);await (await uxControl(page,'#resume')).tap();await drag(56,4);assert.equal((await snap()).board[67].uid,bird.uid);assert.equal((await snap()).moves,1);
+  const a=fixture();a.put(63);a.put(64);a.put(66);a.put(67);a.put(69,2);await install(a.s);await (await uxControl(page,'#resume')).tap();
   await page.evaluate(()=>{
    const el=i=>document.querySelector(`[data-cell="${i}"]`);
    const point=i=>{const r=el(i).getBoundingClientRect();return[r.x+r.width/2,r.y+r.height/2];};
@@ -30,26 +31,26 @@ test('Bird UI: side grabs, live append window, secondary touch, cancelled drag, 
    p=point(69);q=point(68);pointer('pointerdown',14,69,...p);pointer('pointermove',14,69,...q);pointer('pointercancel',14,69,...q);
   });
   const pending=await snap();assert.equal(pending.moves,2);assert.equal(pending.charges[0].uids.length,4);assert(pending.board[69]);
-  await page.locator('#pause').tap();const frozen=await snap();await page.reload();assert.deepEqual(await snap(),frozen,'reload retains pending match and the remaining append window');assert(await page.evaluate(()=>BirdGame.paused()));await page.locator('#resume').tap();
+  await page.locator('#pause').tap();const frozen=await snap();await page.reload();assert.deepEqual(await snap(),frozen,'reload retains pending match and the remaining append window');assert(await page.evaluate(()=>BirdGame.paused()));await (await uxControl(page,'#resume')).tap();
   await page.waitForFunction(()=>BirdGame.snapshot().score>0);assert((await snap()).board.some(b=>b?.special==='glow'));
   await page.waitForFunction(()=>!BirdGame.busy());assert.equal((await snap()).moves,2);
   const memory=await page.evaluate(()=>({buttons:document.querySelectorAll('#cells button').length,fx:BirdGame.effects()}));assert.equal(memory.buttons,70);assert(memory.fx.particles<=180&&memory.fx.beams<=16);
-  await page.locator('#hint').tap();assert(await page.locator('.hinted').count()>0);
-  await page.locator('#help').tap();const help=await snap();await page.waitForTimeout(200);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
-  await page.locator('#restart').tap();await page.locator('#cancel').tap();assert.equal((await snap()).moves,2);
+  await (await uxControl(page,'#hint')).tap();assert(await page.locator('.hinted').count()>0);
+  await (await uxControl(page,'#help')).tap();const help=await snap();await page.waitForTimeout(200);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
+  await (await uxControl(page,'#restart')).tap();await page.locator('#cancel').tap();assert.equal((await snap()).moves,2);
  }finally{await h.close();}
 });
 test('Bird UI: ice top release and next wave, all modes, timed results, sound and viewport controls',{timeout:120000},async()=>{
  const h=await setup(),{page,snap,install,cell}=h;try{
   const ice=fixture('ice');ice.put(42);ice.put(49);ice.put(56,1);ice.put(43,-1,'',{kind:'ice',hp:1,loot:'clock'});ice.put(57,-1,'',{kind:'ice',hp:1,loot:'egg'});ice.s.next[0].color=0;ice.s.supplyLeft=0;
-  await install(ice.s);await page.locator('#resume').tap();await cell(35).tap();await page.waitForFunction(()=>BirdGame.snapshot().wave===2);assert((await snap()).timeLeft>75);assert.equal((await snap()).moves,1);assert.equal(await page.locator('#cells button').count(),63);
+  await install(ice.s);await (await uxControl(page,'#resume')).tap();await cell(35).tap();await page.waitForFunction(()=>BirdGame.snapshot().wave===2);assert((await snap()).timeLeft>75);assert.equal((await snap()).moves,1);assert.equal(await page.locator('#cells button').count(),63);
   for(const mode of ['classic','pandora','practice','fever','ice']){
-   const s=C.fresh(mode,741);await install(s);await page.locator('#resume').tap();await page.locator('#pause').tap();const stop=await snap();await page.waitForTimeout(180);assert.deepEqual(await snap(),stop);
-   await page.locator('#mode').selectOption(mode==='classic'?'practice':'classic');await page.locator('#cancel').tap();assert.equal((await snap()).mode,mode);
-   await page.locator('#mode').selectOption(mode==='classic'?'practice':'classic');await page.locator('#confirm').tap();assert.equal((await snap()).mode,mode==='classic'?'practice':'classic');
+   const s=C.fresh(mode,741);await install(s);await (await uxControl(page,'#resume')).tap();await page.locator('#pause').tap();const stop=await snap();await page.waitForTimeout(180);assert.deepEqual(await snap(),stop);
+   await (await uxControl(page,'#mode')).selectOption(mode==='classic'?'practice':'classic');await page.locator('#cancel').tap();assert.equal((await snap()).mode,mode);
+   await (await uxControl(page,'#mode')).selectOption(mode==='classic'?'practice':'classic');await page.locator('#confirm').tap();assert.equal((await snap()).mode,mode==='classic'?'practice':'classic');
   }
-  for(const mode of ['pandora','fever','ice']){const s=C.fresh(mode,37);s.timeLeft=.3;await install(s);await page.locator('#resume').tap();await page.waitForFunction(()=>BirdGame.snapshot().phase!=='playing');assert(await page.locator('#overlay').isVisible());await page.locator('#resume').tap();assert.equal((await snap()).phase,'playing');}
-  await page.locator('#pause').tap();await page.locator('#sound').tap();const hasAudio=await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext));if(hasAudio){await page.waitForFunction(()=>['on','off'].includes(document.querySelector('#sound').dataset.audioState));await page.locator('#sound').tap();await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');}
+  for(const mode of ['pandora','fever','ice']){const s=C.fresh(mode,37);s.timeLeft=.3;await install(s);await (await uxControl(page,'#resume')).tap();await page.waitForFunction(()=>BirdGame.snapshot().phase!=='playing');assert(await page.locator('#overlay').isVisible());await (await uxControl(page,'#resume')).tap();assert.equal((await snap()).phase,'playing');}
+  await page.locator('#pause').tap();await (await uxControl(page,'#sound')).tap();const hasAudio=await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext));if(hasAudio){await page.waitForFunction(()=>['on','off'].includes(document.querySelector('#sound').dataset.audioState));await (await uxControl(page,'#sound')).tap();await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');}
   for(const size of [{width:1024,height:650},{width:1180,height:820},{width:820,height:1180},{width:390,height:844},{width:768,height:500}]){
    await page.setViewportSize(size);await page.waitForTimeout(100);const metrics=await page.evaluate(()=>({w:innerWidth,h:innerHeight,sw:document.documentElement.scrollWidth,sh:document.documentElement.scrollHeight,buttons:['pause','hint','shuffle','restart','help','sound'].map(id=>document.getElementById(id).getBoundingClientRect().toJSON()),board:document.querySelector('#board').getBoundingClientRect().toJSON()}));
    assert(metrics.sw<=metrics.w+1&&metrics.sh<=metrics.h+1,JSON.stringify(metrics));for(const r of metrics.buttons)assert(r.x>=0&&r.y>=0&&r.right<=metrics.w+1&&r.bottom<=metrics.h+1,'controls fit the screen');assert(metrics.board.width>170&&metrics.board.height>250);
@@ -61,7 +62,7 @@ test('Bird UI: all powers animate with bounded work; play remains available duri
  const h=await setup(),{page,snap,install}=h;try{
   if(h.engine===chromium){const session=await page.context().newCDPSession(page);await session.send('Emulation.setCPUThrottlingRate',{rate:4});}
   for(const special of ['glow','fire','lightning','whirlwind']){
-   const f=fixture();f.put(63,0,special);f.put(64);f.put(66);if(special!=='whirlwind')f.put(34,2);await install(f.s);await page.locator('#resume').tap();
+   const f=fixture();f.put(63,0,special);f.put(64);f.put(66);if(special!=='whirlwind')f.put(34,2);await install(f.s);await (await uxControl(page,'#resume')).tap();
    await page.evaluate(()=>{window.frameTimes=[];window.oldCells=[...document.querySelectorAll('#cells button')];let last=performance.now();window.collectFrames=true;function sample(t){if(!collectFrames)return;frameTimes.push(t-last);last=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
    await h.drag(66,2);await page.waitForFunction(()=>BirdGame.effects().beams>0);const fx=await page.evaluate(()=>BirdGame.effects());assert(fx.beams<=16&&fx.rings<=16&&fx.particles<=180&&fx.ghosts<=80);
    assert(await page.evaluate(()=>[...document.querySelectorAll('#cells button')].every(el=>!el.disabled)),'effects never disable the board');

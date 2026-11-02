@@ -146,11 +146,12 @@
   $('sound').onclick=()=>{soundOn=audio.toggle();if(soundOn)audio.unlock(true);try{localStorage.setItem('childgame.sound',soundOn?'on':'off');}catch(_){}audio.sync();};
   $('undo').onclick=()=>{cancel();if(!history.length)return;state=JSON.parse(history.pop());category=categories[state.scene][0];picked=selected=null;render();save();hint('回到上一步啦。');};
   $('remove').onclick=()=>{if(!selected)return;change(()=>{if(selected.uid)state.rooms[state.scene]=room().filter(x=>x.uid!==selected.uid);else delete look().slots[selected.slot];selected=null;});};
-  function closeDialog(){$('confirm').hidden=true;$('clear').focus();}
+  function closeDialog(){$('confirm').hidden=true;$('game-more').focus();}
   $('clear').onclick=()=>{cancel();$('confirm').hidden=false;$('cancel-clear').focus();};
   $('cancel-clear').onclick=closeDialog;
   $('confirm-clear').onclick=()=>{change(()=>{state.rooms[state.scene]=[];if(state.scene==='wardrobe')look().slots={};selected=picked=null;});closeDialog();};
   document.addEventListener('keydown',e=>{if($('confirm').hidden)return;if(e.key==='Escape')closeDialog();if(e.key==='Tab'){e.preventDefault();(document.activeElement===$('cancel-clear')?$('confirm-clear'):$('cancel-clear')).focus();}});
+  GameUX.configure({suspend:cancel});
   window.addEventListener('resize',()=>{cancel();render();});
   render();
 })();

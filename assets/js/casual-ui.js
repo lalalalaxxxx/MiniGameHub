@@ -49,7 +49,7 @@
     if(e.type==='cut'){emit(rings,{x:e.x,y:e.y,color:'#fff4c7',life:.3},18);if(!reduced.matches)emit(ropeBits,{...e,life:.55},8);audio.effect('rotate',{volume:.38});}
     if(['lever','swap','pop','land'].includes(e.type))audio.effect(e.type==='lever'&&id==='ropefeast'?'move':'drop',{volume:.35});
     if(e.type==='power'){audio.effect('merge',{volume:.45});announce(id==='goldminer'?'加速收钩！':'彩虹泡泡准备好啦！');}
-    if(e.type==='win'||e.type==='lose'){winAt=vt;resultAt=vt+(reduced.matches?.15:e.type==='win'?1.05:.35);if(e.type==='win'){if(!reduced.matches)for(let i=0;i<40;i++){const a=i*Math.PI*2/40;emit(particles,{x:360,y:id==='ropefeast'?690:330,vx:Math.cos(a)*180,vy:Math.sin(a)*200-130,color:colors[i%colors.length],star:i%3===0,life:1},150);}emit(labels,{x:360,y:250,text:'★  好棒呀！  ★',color:'#ffe7a2',life:1},12);}audio.effect(e.type==='win'?'finish':'over',{volume:.42});save();}
+    if(e.type==='win'||e.type==='lose'){winAt=vt;resultAt=vt+(reduced.matches?.15:e.type==='win'?1.05:.35);if(e.type==='win'){if(!reduced.matches)for(let i=0;i<40;i++){const a=i*Math.PI*2/40;emit(particles,{x:360,y:id==='ropefeast'?690:330,vx:Math.cos(a)*180,vy:Math.sin(a)*200-130,color:colors[i%colors.length],star:i%3===0,life:1},150);}emit(labels,{x:360,y:250,text:'★  好棒呀！  ★',color:'#ffe7a2',life:1},12);}audio.effect(e.type==='win'?'finish':'over',{volume:.42});save();if(e.type==='win'&&s.level<9){const won=s;GameUX.queueNext({button:$('resume'),host:$('overlay'),valid:()=>s===won&&!paused,next:start});}}
   }if(r.events.length)status();}
   function act(type,p={},undoable=true){if(paused||s.phase!=='playing')return false;const before=undoable?C.clone(s):null,r=C.act(s,type,p);if(r.ok){if(before){history.push(before);if(history.length>3)history.shift();}hint=null;consume(r);status();save();wake();}return r.ok;}
   function movingLift(){const l=levelLayout?.lift;return !!(l&&s.riding&&Math.abs(s.liftY-(s.switches[l.key]?l.top:l.bottom))>1);}
@@ -61,15 +61,16 @@
     default:return{a:['星星',`${s.stars} / 3`],b:['操作次数',s.moves],c:['蜗牛状态',movingLift()?'乘升降台':!s.snail.walk?'休息中':s.snail.waiting?'等你帮忙':'向小屋出发'],ratio:s.stars/3,primary:s.snail.walk?'让蜗牛等等':'继续走吧',secondary:'看看提示'};
   }}
   function mechanisms(){const box=$('mechanisms'),config=[];
-    if(id==='bubblepop'){config.push({key:'power',label:`✦ 彩虹泡泡 ${s.rainbows}`,off:!s.rainbows||!!s.shot||s.color===-1});config.push({key:'swap',label:'换下一颗',off:!!s.shot});}
-    if(id==='ropefeast'){s.ropes.forEach((r,i)=>config.push({key:'rope'+i,label:`✂ 绳 ${i+1}`,off:r.cut}));if(s.candy.bubble)config.push({key:'pop',label:'戳破泡泡'});if(s.fan)config.push({key:'fan',label:s.fanOn?'风扇开':'风扇关',on:s.fanOn});}
-    if(id==='snailquest'){levelLayout.switches.forEach((name,i)=>config.push({key:'switch'+i,label:`${['●','◆','▲'][i]} ${name}`,on:s.switches[i]}));config.push({key:'walk',label:s.snail.walk?'等等':'走吧'});}
+    if(id==='bubblepop'){config.push({key:'power',label:`✦ 彩虹泡泡 ${s.rainbows}`,off:!s.rainbows||!!s.shot||s.color===-1});}
+    if(id==='ropefeast'){if(s.fan)config.push({key:'fan',label:s.fanOn?'风扇开':'风扇关',on:s.fanOn});}
+    // Snail switches live on the scene; the walk toggle remains the primary action.
     const signature=config.map(c=>c.key).join('|');if(box.dataset.signature!==signature){box.replaceChildren();for(const c of config){const b=document.createElement('button');b.type='button';b.dataset.mechanism=c.key;box.append(b);}box.dataset.signature=signature;}
     [...box.children].forEach((b,i)=>{const c=config[i];if(b.textContent!==c.label)b.textContent=c.label;b.disabled=paused||s.phase!=='playing'||!!c.off;b.classList.toggle('on',!!c.on);b.setAttribute('aria-pressed',String(!!c.on));});
-    document.querySelector('.side').classList.toggle('has-mechanisms',['bubblepop','ropefeast','snailquest'].includes(id));box.hidden=false;
+    document.querySelector('.side').classList.toggle('has-mechanisms',config.length>0);box.hidden=!config.length;
   }
   function status(){const p=parameters();text('mode-title',s.title||'第 '+(s.level+1)+' 关');text('mode-note',s.tip||M.note);$('levels').value=s.level;
     for(const [key,v]of [['score',p.a],['count',p.b],['target',p.c]]){text(key+'-label',v[0]);text(key,v[1]);}$('progress').style.width=C.clamp(p.ratio*100,0,100)+'%';
+    $('primary').hidden=id==='bubblepop'||id==='ropefeast'||id==='brickball'&&!s.volley;$('secondary').hidden=id==='snailquest'||id==='ropefeast'&&!s.candy.bubble;
     text('primary',p.primary);text('secondary',p.secondary);text('pause',paused?(started?'继续':'开始'):'暂停');$('primary').disabled=paused||s.phase!=='playing';$('secondary').disabled=paused||s.phase!=='playing';$('undo').disabled=paused||!history.length;$('hint').disabled=paused||s.phase!=='playing';
     if(id==='goldminer'){$('primary').disabled||=s.hook.mode==='out'||s.hook.mode==='back'&&(!s.boosts||s.hook.fast);$('secondary').disabled||=!s.hook.item||!s.discards;}
     if(id==='bubblepop'){$('primary').disabled||=!!s.shot;$('secondary').disabled||=!!s.shot;}
@@ -142,13 +143,13 @@
     draw(paused?0:dt);if(now-hudAt>120){hudAt=now;status();}if(now-savedAt>2000&&!paused){savedAt=now;save();}
     if(s.phase!=='playing'&&vt>=resultAt)status();if(!document.hidden&&!paused&&(s.phase==='playing'&&(id==='bubblepop'?!!s.shot:id==='brickball'?!!s.volley||poseMoving:true)||particles.length||ghosts.length||rings.length||labels.length||ropeBits.length||impacts.size||vt<resultAt||vt<messageUntil||vt-shotAt<.16))raf=requestAnimationFrame(loop);else if(!paused){status();idleSaveTimer=setTimeout(()=>{idleSaveTimer=0;save();},200);}
   }
-  function wake(){if(idleSaveTimer){clearTimeout(idleSaveTimer);idleSaveTimer=0;}if(!raf&&!document.hidden){last=0;raf=requestAnimationFrame(loop);}}
+  function wake(){if(idleSaveTimer){clearTimeout(idleSaveTimer);idleSaveTimer=0;}if(!raf&&!document.hidden&&!GameUX.isMenuOpen()){last=0;raf=requestAnimationFrame(loop);}}
   function start(){if(s.phase!=='playing')reset(s.phase==='won'&&s.level<9?s.level+1:s.level);paused=false;started=true;audio.unlock();audio.sync();status();wake();}
-  function pause(){paused=true;pointer=null;audio.sync();status();save();draw();}
+  function pause(){GameUX.cancelNext();cancelAnimationFrame(raf);raf=0;paused=true;pointer=null;audio.sync();status();save();draw();}
   function clearEffects(){aimCache={key:'',points:[]};for(const list of [particles,ghosts,rings,labels,ropeBits])list.length=0;poses.clear();impacts.clear();resultAt=0;winAt=-10;shotAt=-10;lastHit=-10;hitStreak=0;kickUntil=0;}
-  function reset(level){s=C.fresh(id,level);history=[];hint=null;pointer=null;paused=true;started=false;vt=0;messageUntil=0;clearEffects();background();status();fit();save();say(s.tip||M.note);}
-  function undo(){if(!history.length)return;s=history.pop();hint=null;pointer=null;clearEffects();background();status();save();draw();wake();}
-  function dialog(title,body,action){if(idleSaveTimer){clearTimeout(idleSaveTimer);idleSaveTimer=0;}wasPaused=paused;paused=true;pointer=null;pending=action;text('dialog-title',title);text('dialog-text',body);$('cancel').hidden=!action;$('dialog').showModal();audio.sync();status();}
+  function reset(level){GameUX.cancelNext();s=C.fresh(id,level);history=[];hint=null;pointer=null;paused=true;started=false;vt=0;messageUntil=0;clearEffects();background();status();fit();save();say(s.tip||M.note);}
+  function undo(){GameUX.cancelNext();if(!history.length)return;s=history.pop();hint=null;pointer=null;clearEffects();background();status();save();draw();wake();}
+  function dialog(title,body,action){GameUX.cancelNext();if(idleSaveTimer){clearTimeout(idleSaveTimer);idleSaveTimer=0;}wasPaused=paused;paused=true;pointer=null;pending=action;text('dialog-title',title);text('dialog-text',body);$('cancel').hidden=!action;$('dialog').showModal();audio.sync();status();}
   function closeDialog(accept){$('dialog').close();const f=pending;pending=null;if(accept&&f)f();else paused=wasPaused;audio.sync();status();wake();}
   function showHint(){if(paused)return;hint=C.hint(s);if(hint?.message)say(hint.message);else say(hint?'亮点是一个可尝试的方向，自己拖动瞄准再发射。':'等这一轮结束，再看看下一步。');draw();}
   function primary(){if(id==='bubblepop')act('fire',hint||s.aim);else if(id==='brickball')act(s.volley?'recall':'fire',hint||s.aim);else if(id==='goldminer')act(s.hook.mode==='swing'?'fire':'power');else if(id==='ropefeast'){const r=s.ropes.find(r=>!r.cut);if(r)act('cut',{index:r.uid});}else act('walk');}
@@ -167,11 +168,12 @@
   $('resume').onclick=start;$('retry').onclick=()=>{reset(s.level);start();};$('primary').onclick=primary;$('secondary').onclick=secondary;$('pause').onclick=()=>paused?start():pause();$('undo').onclick=undo;$('hint').onclick=showHint;
   $('levels').onchange=()=>{const level=Number($('levels').value);dialog('去另一关？','当前关卡会重新开始，已经得到的星星会保留。',()=>reset(level));$('levels').value=s.level;};
   $('restart').onclick=()=>dialog('重新开始这一关？','本关进度将重置，已经得到的星星记录会保留。',()=>reset(s.level));
-  $('help').onclick=()=>dialog('怎么玩',M.note+'\n\n'+(s.tip||'')+'\n\n'+({bubblepop:'可以交换当前球和下一颗球。彩虹泡泡会选择接触到的同色群。手机上点发射台右边的下一颗也能换球。',brickball:'一轮结束后砖块会下移，并自动补充下一排。碰到 +1 收集更多小球；加速不改变规则，收回会提前结束本轮。',goldminer:'大金块很值钱但比较重。快速收钩和放下重物各有两次机会；放下的物品不计金币。',ropefeast:'可直接划过绳子，或点下方“绳 1 / 绳 2”剪断。泡泡会向上浮；风扇会持续把糖果吹向一边，注意开关时机。',snailquest:'蜗牛遇到缺口或关着的门会等你。站到升降台中央后，再升起平台。同一个开关可能让一座桥打开、另一座关闭。'}[id])+'\n\n暂停、切到后台都不会扣时间。刷新后点击继续。每关可随时重试，也可以撤销最近三次操作。',null);
+  $('help').onclick=()=>dialog('怎么玩',M.note+'\n\n'+(s.tip||'')+'\n\n'+({bubblepop:'可以交换当前球和下一颗球。彩虹泡泡会选择接触到的同色群。手机上点发射台右边的下一颗也能换球。',brickball:'一轮结束后砖块会下移，并自动补充下一排。碰到 +1 收集更多小球；加速不改变规则，收回会提前结束本轮。',goldminer:'大金块很值钱但比较重。快速收钩和放下重物各有两次机会；放下的物品不计金币。',ropefeast:'手指划过绳子即可剪断；直接点泡泡可以戳破。泡泡会向上浮；风扇会持续把糖果吹向一边，注意开关时机。',snailquest:'蜗牛遇到缺口或关着的门会等你。站到升降台中央后，再升起平台。同一个开关可能让一座桥打开、另一座关闭。'}[id])+'\n\n暂停、切到后台都不会扣时间。刷新后点击继续。每关可随时重试，也可以撤销最近三次操作。',null);
   $('cancel').onclick=()=>closeDialog(false);$('confirm').onclick=()=>closeDialog(true);$('dialog').addEventListener('cancel',e=>{e.preventDefault();closeDialog(false);});
   $('sound').onclick=()=>{sound=audio.toggle();try{localStorage.setItem('childgame.sound',sound?'on':'off');}catch{}audio.unlock(true);audio.sync();};
   document.addEventListener('visibilitychange',()=>{if(document.hidden){pause();cancelAnimationFrame(raf);raf=0;}else wake();});window.addEventListener('pagehide',save);window.addEventListener('pageshow',wake);new ResizeObserver(fit).observe(document.querySelector('.stage'));
   $('levels').replaceChildren(...Array.from({length:10},(_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 关`;return o;}));document.documentElement.style.setProperty('--accent',M.color);
+  GameUX.configure({suspend(){pointer=null;cancelAnimationFrame(raf);raf=0;last=0;save();},resume(){audio.sync();wake();}});
   window.CasualGame={snapshot:()=>C.clone(s),paused:()=>paused,effects:()=>({particles:particles.length,ghosts:ghosts.length,rings:rings.length,labels:labels.length,ropeBits:ropeBits.length,impacts:impacts.size,sprites:sprites.size,raf:!!raf}),history:()=>history.length};
   background();status();fit();wake();
 })();

@@ -90,7 +90,7 @@
     for (const cell of m.targets) { const p = point(cell), on = ray.lit.includes(cell), bloom = on ? pulse / .65 : 0; if (on) { c.fillStyle = '#ffdf7920'; c.beginPath(); c.arc(p.x,p.y,48 + bloom * 5,0,7); c.fill(); } rr(c,p.x - 32,p.y - 31,64,70,17,on ? '#fce3a72e' : '#193447'); c.strokeStyle = on ? '#ffe8a4' : '#8eafb8'; c.lineWidth = 3; c.beginPath(); c.roundRect(p.x-32,p.y-31,64,70,17); c.stroke(); rr(c,p.x-25,p.y-39,50,11,4,on ? '#f4d184' : '#70949d'); star(c,p.x,p.y + 1,24 + bloom * 4,on ? '#ffe99c' : '#668b9b'); if (on) { c.fillStyle = '#ae7c3d'; c.beginPath(); c.arc(p.x-6,p.y,2,0,7); c.arc(p.x+6,p.y,2,0,7); c.fill(); } }
     const source = point(m.source[1] * N + m.source[0]); c.save(); c.translate(source.x,source.y); c.rotate(m.source[2]*Math.PI/2); rr(c,-37,-31,65,62,17,'#9c783d'); rr(c,-32,-26,53,50,12,'#f2cc72'); rr(c,-23,-19,34,38,9,'#fff2b0'); c.fillStyle='#ffe69b'; c.beginPath(); c.moveTo(29,-13); c.lineTo(45,0); c.lineTo(29,13); c.fill(); c.restore();
   }
-  function hud(s) { const lit = light(s).lit.length; return { scoreLabel: '星星罐', score: `${lit} / ${MAPS[s.level].targets.length}`, statLabel: '旋转次数', stat: s.moves, goal: '同时点亮所有星星罐', progress: lit / MAPS[s.level].targets.length, message: s.level < 4 ? '点镜子旋转，也可以用下方按钮选择和旋转。' : '蓝色水晶固定不动：一束直行，一束反射。' }; }
+  function hud(s) { const lit = light(s).lit.length; return { scoreLabel: '星星罐', score: `${lit} / ${MAPS[s.level].targets.length}`, statLabel: '旋转次数', stat: s.moves, goal: '同时点亮所有星星罐', progress: lit / MAPS[s.level].targets.length, message: s.level < 4 ? '点镜子旋转，观察光线怎样拐弯。' : '蓝色水晶固定不动：一束直行，一束反射。' }; }
   function controls(s) { return [{ id: 'left', label: '上一面镜子' }, { id: 'rotate', label: `旋转 ${s.selected + 1} 号镜子` }, { id: 'right', label: '下一面镜子' }]; }
   function validate(s) {
     const nat = (v, max) => Number.isInteger(v) && v >= 0 && v <= max, finite = (v, max) => Number.isFinite(v) && v >= 0 && v <= max;
@@ -102,6 +102,6 @@
     if (!won) return s.stars === 0 && s.score === 0;
     return s.moves > 0 && s.stars === (s.moves <= s.par+2 ? 3 : s.moves <= s.par*2+3 ? 2 : 1) && s.score === Math.max(100,1000+s.level*100-Math.max(0,s.moves-s.par)*25);
   }
-  const G = { id: ID, meta: { title: '星光镜子屋', category: '解谜', blurb: '转动银色镜子，把温柔的光送进每一个星星罐。', tags: ['观察','光线','空间思维'], color: '#79bac3', instructions: ['点击银色镜子旋转，让光线同时照到所有星星罐。','石墙会挡光；蓝色水晶固定不动，会把光分成直行和反射两路。','下方大按钮也能选择和旋转镜子；提示会标出下一面要旋转的镜子。'] }, levels: 10, create, act, step, draw, hud, controls, hint, validate, solve, center, trace, layouts: MAPS, needsFrame: s => s.phase === 'playing' && (s.pulse > 0 || s.anims.length > 0) };
+  const G = { id: ID, meta: { title: '星光镜子屋', category: '解谜', blurb: '转动银色镜子，把温柔的光送进每一个星星罐。', tags: ['观察','光线','空间思维'], color: '#79bac3', instructions: ['点击银色镜子旋转，让光线同时照到所有星星罐。','石墙会挡光；蓝色水晶固定不动，会把光分成直行和反射两路。','直接点镜子即可旋转；“更多”里的提示会标出下一面镜子。'] }, levels: 10, create, act, step, draw, hud, controls, hint, validate, solve, center, trace, layouts: MAPS, needsFrame: s => s.phase === 'playing' && (s.pulse > 0 || s.anims.length > 0) };
   (root.ExtraGames || (root.ExtraGames = {}))[ID] = G; if (typeof module !== 'undefined' && module.exports) module.exports = G;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

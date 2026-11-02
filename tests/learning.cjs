@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const C=require('../assets/js/learning-core.js');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),os=require('node:os');
@@ -25,7 +26,7 @@ test('all ten learning games complete all three difficulty levels through their 
     try{
       await page.goto(`http://127.0.0.1:${server.address().port}/games/${id}/index.html`);
       const model=()=>page.evaluate(()=>JSON.parse(JSON.stringify(LearningApp.model)));
-      const act=async(type,value)=>{const locator=page.locator(`[data-action="${type}"]${value===undefined?'':`[data-value="${value}"]`}`);if(await locator.evaluate(e=>e.tagName.toLowerCase()==='g')){await locator.focus();await page.keyboard.press('Enter');}else await locator.tap();};
+      const act=async(type,value)=>{const locator=await uxControl(page,`[data-action="${type}"]${value===undefined?'':`[data-value="${value}"]`}`);if(await locator.evaluate(e=>e.tagName.toLowerCase()==='g')){await locator.focus();await page.keyboard.press('Enter');}else await locator.tap();};
       const idle=()=>page.waitForFunction(()=>!LearningApp.busy,null,{timeout:15000});
       const before=await model();
       const initialQuestion=C.detective(0,await page.evaluate(()=>LearningApp.seed),0);
@@ -35,7 +36,7 @@ test('all ten learning games complete all three difficulty levels through their 
       if(id==='rhythm')first.rhythm=['pad',before.sequence[0]];
       await act(...first[id]);const partial=await model();assert.notDeepEqual(partial,before);
       await page.reload();assert.deepEqual(await model(),partial);await page.locator('#undo').tap();assert.deepEqual(await model(),before);
-      await page.locator('#help').tap();assert(await page.locator('#dialog').evaluate(e=>e.open));await page.locator('#confirm').tap();
+      await (await uxControl(page,'#help')).tap();assert(await page.locator('#dialog').evaluate(e=>e.open));await page.locator('#confirm').tap();
       if(id==='tangram'){
         await act('select',1);await act('place',0);assert.equal((await model()).placed[0],1);assert(await page.locator('[data-action="select"][data-value="1"]').isDisabled());assert(!await page.locator('[data-action="select"][data-value="0"]').isDisabled());await page.locator('#undo').tap();await page.locator('#undo').tap();
         const source=await page.locator('[data-action="select"][data-value="0"]').boundingBox();
@@ -60,7 +61,7 @@ test('all ten learning games complete all three difficulty levels through their 
           if(l===0){await act('mode','free');for(let empty=0;empty<2;empty++){await act('record');await act('record');assert(!await page.evaluate(()=>LearningApp.transient.recording));}await act('record');await act('pad',0);await page.waitForTimeout(90);await act('pad',1);await act('pad',2);await act('record');assert.equal((await model()).recording.length,3);assert((await model()).recording[1].time>(await model()).recording[0].time);await page.reload();assert.equal((await model()).recording.length,3);await act('play');await idle();await act('mode','learn');}
           if(l===0){
             await act('listen');await act('stop');assert(!await page.evaluate(()=>LearningApp.busy));const stopped=await page.evaluate(()=>window.__toneStarts);await page.waitForTimeout(800);assert.equal(await page.evaluate(()=>window.__toneStarts),stopped);
-            if(await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext))){await page.waitForFunction(()=>document.getElementById('sound').dataset.audioState==='on');await page.locator('#sound').tap();const silent=await page.evaluate(()=>window.__toneStarts);await act('pad',m.sequence[0]);assert.equal(await page.evaluate(()=>window.__toneStarts),silent);await page.locator('#sound').tap();}
+            if(await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext))){await page.waitForFunction(()=>document.getElementById('sound').dataset.audioState==='on');await (await uxControl(page,'#sound')).tap();const silent=await page.evaluate(()=>window.__toneStarts);await act('pad',m.sequence[0]);assert.equal(await page.evaluate(()=>window.__toneStarts),silent);await (await uxControl(page,'#sound')).tap();}
           }
           await act('listen');await idle();for(const pad of m.sequence)await act('pad',pad);
         }
@@ -77,14 +78,14 @@ test('all ten learning games complete all three difficulty levels through their 
           if(id==='bridge'){await act('test');await idle();}if(id==='rhythm')await act('pad',m.sequence.at(-1));
           assert(await page.locator('#success').isVisible());
         }
-        if(l<2)await page.locator('#next').tap();
+        if(l<2)await (await uxControl(page,'#next')).tap();
       }
       await page.screenshot({path:path.join(os.tmpdir(),`learning-${id}.png`),fullPage:true});
       for(const size of [{width:820,height:1180},{width:390,height:844}]){await page.setViewportSize(size);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${id} has no horizontal overflow`);}
-      await page.locator('#restart').tap();assert(await page.locator('#success').isHidden());
+      await (await uxControl(page,'#restart')).tap();assert(await page.locator('#success').isHidden());
       const clean=await model();
       if(id==='pipes')await act('rotate',0);else if(id==='tangram')await act('rotate');else if(id==='market')await act('add',clean.list[0].id);else if(id==='robot')await act('command','left');else if(id==='bento')await act('add','apple');else if(id==='shadow'){const q=C.detective(2,await page.evaluate(()=>LearningApp.seed),0);await act('answer',q.target.id);}else if(id==='patterns'){const q=C.pattern(2,await page.evaluate(()=>LearningApp.seed),0);await act('answer',q.answer);}else if(id==='memory')await act('flip',0);else if(id==='bridge')await act('deck',0);else await act('pad',clean.sequence[0]);
-      const unfinished=await model();await page.locator('#restart').tap();assert(await page.locator('#dialog').evaluate(e=>e.open));await page.locator('#cancel').tap();assert.deepEqual(await model(),unfinished);await page.locator('#restart').tap();await page.locator('#confirm').tap();assert(await page.locator('#success').isHidden());
+      const unfinished=await model();await (await uxControl(page,'#restart')).tap();assert(await page.locator('#dialog').evaluate(e=>e.open));await page.locator('#cancel').tap();assert.deepEqual(await model(),unfinished);await (await uxControl(page,'#restart')).tap();await page.locator('#confirm').tap();assert(await page.locator('#success').isHidden());
       await page.evaluate(id=>localStorage.setItem('childgame.learning.'+id+'.v1','{"level":99,"seed":"bad","actions":[null]}'),id);await page.reload();assert.equal(await page.evaluate(()=>LearningApp.level),0);
       assert.deepEqual(errors,[]);
     }finally{await context.close();}

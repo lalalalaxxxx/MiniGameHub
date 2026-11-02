@@ -9,17 +9,20 @@
   const activities=window.AcademyActivities;
   function prepareWork(){if(config.kind&&state.index<6){const raw=state.work;state.work=activities.restore(config.kind,list[state.index],raw);if(state.solved&&(!activities.won(config.kind,list[state.index],state.work)||JSON.stringify(raw)!==JSON.stringify(state.work)))state.solved=false;}}
   prepareWork();
-  const voice=new Audio();voice.preload='auto';let voiceEpoch=0;
+  const voice=new Audio();voice.preload='auto';let voiceEpoch=0,voiceKind='';
   const audio=createGameAudio({game:id,music:false,isEnabled:()=>sound,isPlaying:()=>false,isPaused:()=>$('dialog').open});
-  function stopVoice(){voiceEpoch++;voice.pause();voice.removeAttribute('src');voice.load();const status=$('voice-status');if(status)status.textContent='可以反复听';}
+  function stopVoice(){GameUX.cancelNext();voiceEpoch++;voice.pause();voice.removeAttribute('src');voice.load();const status=$('voice-status');if(status)status.textContent='可以反复听';}
   function say(type='prompt') {
-    stopVoice();if(!sound){$('feedback').textContent='声音已关闭，点右上角开启声音后再听。';return;}
+    stopVoice();voiceKind=type;if(!sound){if(type==='explain')queueQuestion(readingTime());else $('feedback').textContent='声音已关闭，可以在“更多”里开启，也可以看题目继续玩。';return;}
     const question=list[state.index];if(!question||!state.started||document.hidden)return;
     const epoch=voiceEpoch;voice.src=`../../assets/audio/academy/${question.id}-${type}.mp3`;
     const status=$('voice-status');if(status)status.textContent='正在播放…';
-    voice.play().then(()=>{if(epoch!==voiceEpoch)return;if(status)status.textContent='正在播放…';}).catch(()=>{if(epoch!==voiceEpoch)return;if(status)status.textContent='点听题目重试';$('feedback').textContent='这段语音暂时没能播放，可以点“听题目”重试；也可以看提示继续玩。';});
+    voice.play().then(()=>{if(epoch!==voiceEpoch)return;if(status)status.textContent='正在播放…';}).catch(()=>{if(epoch!==voiceEpoch)return;if(status)status.textContent='点听题目重试';$('feedback').textContent='这段语音暂时没能播放，可以点“听题目”重试；也可以看提示继续玩。';if(type==='explain')queueQuestion(readingTime());});
   }
-  voice.onended=()=>{const el=$('voice-status');if(el)el.textContent='听完啦，可以再听一次';};
+  voice.onended=()=>{const el=$('voice-status');if(el)el.textContent='听完啦，可以再听一次';if(voiceKind==='explain')queueQuestion(1800);};
+  function readingTime(){return Math.max(3600,Math.min(12000,(list[state.index]?.explain.length||0)*170));}
+  function queueQuestion(delay){if(!state.solved||state.index>=6)return;const current=state,index=state.index;GameUX.queueNext({button:$('next-question'),host:$('activity').querySelector('.answer-note'),valid:()=>state===current&&state.index===index&&state.solved,next:advanceQuestion,delay,text:state.index===5?'六站完成啦，马上领取贴纸…':'答对啦，马上去下一站…'});}
+  function advanceQuestion(){if(!state.solved||state.index>=6)return;stopVoice();state.index++;state.solved=false;state.cargo=0;delete state.work;prepareWork();hint=false;wrong=null;message='';save();render();if(state.index<6){$('listen').focus();say();}else{$('finish-title').focus();audio.effect('finish',{volume:.2});}}
   function save(){try{localStorage.setItem(key,JSON.stringify(state));$('save-status').textContent='进度已保存 · 随时可以休息';}catch{$('save-status').textContent='暂时无法保存，关闭页面会丢失进度';}}
   function crates(n){return `${Array.from({length:Math.floor(n/10)},()=>'<span class="bundle" aria-label="十箱">10</span>').join('')}${Array.from({length:n%10},()=>'<span class="crate" aria-label="一箱"></span>').join('')}`;}
   function diagram(q) {
@@ -56,6 +59,7 @@
     stopVoice();pending=()=>reset(level);$('dialog-title').textContent='重新出发吗？';$('dialog-text').textContent='当前这轮任务会重新开始。也可以继续完成它。';$('cancel').hidden=false;$('confirm').textContent='重新开始';$('dialog').showModal();$('cancel').focus();
   }
   let drag=null,suppressClick=0;
+  function cancelDrag(){const current=drag;drag=null;if(!current)return;current.button.classList.remove('dragging');try{current.button.releasePointerCapture(current.id);}catch{}}
   function workAction(action,value){
     if(!config.kind||state.solved||state.index===6)return;
     const beforeWork=JSON.stringify(state.work);
@@ -67,7 +71,7 @@
   $('activity').addEventListener('pointerdown',event=>{
     const button=event.target.closest('[data-action="w-add"]');
     if(!button||button.disabled||drag||!event.isPrimary)return;
-    drag={id:event.pointerId,x:event.clientX,y:event.clientY,value:button.dataset.value,button,moved:false};button.setPointerCapture(event.pointerId);
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,value:button.dataset.value,button,moved:false};try{button.setPointerCapture(event.pointerId);}catch{}
   });
   $('activity').addEventListener('pointermove',event=>{
     if(!drag||drag.id!==event.pointerId)return;
@@ -78,7 +82,7 @@
     const current=drag;drag=null;current.button.classList.remove('dragging');
     if(current.moved){suppressClick=Date.now()+400;if(document.elementFromPoint(event.clientX,event.clientY)?.closest('.assembly-target'))workAction('w-add',current.value);}
   });
-  for(const name of ['pointercancel','lostpointercapture'])$('activity').addEventListener(name,event=>{if(drag&&event.pointerId===drag.id){drag.button.classList.remove('dragging');drag=null;}});
+  for(const name of ['pointercancel','lostpointercapture'])$('activity').addEventListener(name,event=>{if(drag&&event.pointerId===drag.id)cancelDrag();});
   $('activity').addEventListener('click',event=>{
     if(drag||Date.now()<suppressClick)return;
     const b=event.target.closest('button[data-action]');if(!b||b.disabled)return;
@@ -88,13 +92,13 @@
     if(action==='listen'){say();return;}
     if(action==='explain'){say('explain');return;}
     if(action==='hint'){hint=true;render();say('hint');$('activity').querySelector('[data-action="hint"]').focus();return;}
-    if(action==='next'&&state.solved){stopVoice();state.index++;state.solved=false;state.cargo=0;delete state.work;prepareWork();hint=false;wrong=null;message='';save();render();if(state.index<6){$('listen').focus();say();}else{$('finish-title').focus();audio.effect('finish',{volume:.2});}return;}
+    if(action==='next'&&state.solved){advanceQuestion();return;}
     if(state.solved||state.index===6)return;
     if(action.startsWith('w-')&&action!=='w-check'){workAction(action,value);return;}
     if(action==='cargo'){const n=state.cargo+Number(value);if(n<0||n>(state.level?100:10))return;state.cargo=n;audio.effect('drop',{volume:voice.paused?.18:.05});message='货物调整好了，装好后点“发车检查”。';save();render();const target=$('activity').querySelector(`[data-action="cargo"][data-value="${value}"]`);if(!target.disabled)target.focus();return;}
     if(action==='choose'||action==='check'||action==='w-check'){
       stopVoice();const correct=action==='w-check'?activities.won(config.kind,q,state.work):action==='check'?state.cargo===q.answer:value===q.answer;
-      if(correct){state.solved=true;wrong=null;message='找到答案啦！听听解释，再去下一站。';save();render();$('next-question').focus();GameFeedback.celebrate($('activity').querySelector('.stage'));if(id==='mathtrain')GameFeedback.animate($('activity').querySelector('.train'),[{translate:'0px 0px'},{translate:'30px 0px',opacity:.3},{translate:'0px 0px',opacity:1}],{duration:650});audio.effect('collect',{volume:.07});say('explain');}
+      if(correct){state.solved=true;wrong=null;message='找到答案啦！听完解释后会自动继续，也可以留在这里再看看。';save();render();$('next-question').focus();GameFeedback.celebrate($('activity').querySelector('.stage'));if(id==='mathtrain')GameFeedback.animate($('activity').querySelector('.train'),[{translate:'0px 0px'},{translate:'30px 0px',opacity:.3},{translate:'0px 0px',opacity:1}],{duration:650});audio.effect('collect',{volume:.07});say('explain');}
       else{wrong=value;hint=true;message=id==='mathtrain'?'还需要调整一下货物。看看提示，再数一数。':'再观察一下，看看提示，还可以继续选。';render();say('hint');const target=action==='w-check'?$('activity').querySelector('[data-action="w-check"]'):action==='check'?$('activity').querySelector('[data-action="check"]'):[...$('activity').querySelectorAll('[data-action="choose"]')].find(el=>el.dataset.value===value);target?.focus();GameFeedback.pulse(target,false);}
     }
   });
@@ -104,6 +108,7 @@
   $('cancel').onclick=()=>{pending=null;$('dialog').close();};$('dialog').addEventListener('cancel',()=>{pending=null;});
   $('confirm').onclick=()=>{const fn=pending;pending=null;$('dialog').close();fn?.();};
   $('sound').onclick=()=>{sound=audio.toggle();stopVoice();if(sound){audio.unlock(true);say();}try{localStorage.setItem('childgame.sound',sound?'on':'off');}catch{}audio.sync();};
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopVoice();});window.addEventListener('pagehide',stopVoice);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopVoice();cancelDrag();}});window.addEventListener('pagehide',()=>{stopVoice();cancelDrag();});
+  GameUX.configure({suspend(){stopVoice();cancelDrag();},resume(){audio.sync();}});
   render();save();
 })();

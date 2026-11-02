@@ -22,3 +22,5 @@ for(const [id,title,blurb,tags,color,emoji]of games){
 const file=path.join(root,'games/manifest.json'),old=JSON.parse(fs.readFileSync(file,'utf8')).filter(g=>!games.some(([id])=>g.id===id));
 fs.writeFileSync(file,JSON.stringify([...games.map(([id,title,blurb,tags])=>({id,title,blurb,tags,category:'休闲',cover:`games/${id}/cover.svg`,entry:`games/${id}/index.html`})),...old],null,2)+'\n');
 console.log('Generated four cozy games, covers and lobby entries.');
+
+require('node:child_process').execFileSync(process.platform==='win32'?'python':'python3',[require('node:path').join(__dirname,'build_game_ux.py')],{stdio:'inherit'});

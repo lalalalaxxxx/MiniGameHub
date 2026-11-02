@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -121,7 +122,7 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
         throw error;
       });
       assert.equal(await page.locator('body').getAttribute('data-test-release'), 'A');
-      await page.locator(game === 'quietbook' ? '[data-preset="picnic"]' : game === 'whack' ? '#mainAction' : '#restart').click();
+      await (await uxControl(page,game === 'quietbook' ? '[data-preset="picnic"]' : game === 'whack' ? '#mainAction' : '#restart')).click();
       if (game === 'snake') await page.keyboard.press('ArrowUp');
       await page.waitForFunction(state => document.querySelector('#sound').dataset.audioState === state, supportsAudio ? 'on' : 'unsupported');
       await page.close();

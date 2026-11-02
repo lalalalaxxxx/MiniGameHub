@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const E=require('../games/fruitcut/engine.js'),fs=require('fs'),path=require('path'),http=require('http'),os=require('os');
 const {chromium,webkit}=require('playwright');
@@ -29,8 +30,8 @@ test('Fruit cut browser: swipe scoring, multitouch isolation, pause, records, re
     for(let i=0;i<8&&(await snap()).score===0;i++){await cut();await page.waitForTimeout(100);}assert((await snap()).score>0);
     await page.locator('#pause').tap();let s=await snap();assert.equal(s.status,'paused');await page.waitForTimeout(200);assert.equal((await snap()).time,s.time);
     await page.locator('#play').tap();assert.equal((await snap()).status,'playing');
-    const old=(await snap()).score;await page.locator('#restart').tap();assert(await page.locator('#confirm-dialog').evaluate(el=>el.open));await page.locator('#cancel').tap();assert.equal((await snap()).score,old);
-    await page.locator('#restart').tap();await page.locator('#confirm').tap();assert.equal((await snap()).score,0);assert(Number(await page.locator('#best').textContent())>0);
+    const old=(await snap()).score;await (await uxControl(page,'#restart')).tap();assert(await page.locator('#confirm-dialog').evaluate(el=>el.open));await page.locator('#cancel').tap();assert.equal((await snap()).score,old);
+    await (await uxControl(page,'#restart')).tap();await page.locator('#confirm').tap();assert.equal((await snap()).score,0);assert(Number(await page.locator('#best').textContent())>0);
     if(engine===chromium){
       await page.waitForFunction(()=>FruitCut.snapshot().fruits.some(f=>f.y<400));
       const cdp=await context.newCDPSession(page),box=await page.locator('#game').boundingBox();s=await snap();const v=s.view;
@@ -40,13 +41,13 @@ test('Fruit cut browser: swipe scoring, multitouch isolation, pause, records, re
       await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{...p1,y:p1.y-5},p2]});assert.equal((await snap()).score,0);
       await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});assert.equal((await snap()).pointers,0);await cdp.detach();
     }
-    await page.locator('[data-mode="challenge"]').tap();await page.locator('#confirm').tap();assert.equal((await snap()).mode,'challenge');assert.equal(await page.locator('#best').textContent(),'0');
+    await (await uxControl(page,'[data-mode="challenge"]')).tap();await page.locator('#confirm').tap();assert.equal((await snap()).mode,'challenge');assert.equal(await page.locator('#best').textContent(),'0');
     await page.waitForFunction(()=>FruitCut.snapshot().fruits.some(f=>f.y<400));await page.locator('#pause').tap();
-    for(const viewport of [{width:820,height:1180},{width:390,height:844},{width:1180,height:820}]){await page.setViewportSize(viewport);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert((await page.locator('#restart').boundingBox()).height>=44);assert((await page.locator('#game').boundingBox()).height>=360);}
+    for(const viewport of [{width:820,height:1180},{width:390,height:844},{width:1180,height:820}]){await page.setViewportSize(viewport);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert((await page.locator('#game-more').boundingBox()).height>=44);assert((await page.locator('#game').boundingBox()).height>=360);}
     await page.locator('#play').tap();await page.waitForTimeout(200);await page.screenshot({path:path.join(os.tmpdir(),'fruitcut-preview.png'),fullPage:true});
-    await page.locator('#sound').tap();assert.equal(await page.locator('#sound').getAttribute('data-audio-state'),'off');await page.locator('#sound').tap();
+    await (await uxControl(page,'#sound')).tap();assert.equal(await page.locator('#sound').getAttribute('data-audio-state'),'off');await (await uxControl(page,'#sound')).tap();
     await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal((await snap()).status,'paused');
-    await page.locator('#restart').tap();await page.locator('#cancel').tap();assert.equal((await snap()).status,'paused');
+    await (await uxControl(page,'#restart')).tap();await page.locator('#cancel').tap();assert.equal((await snap()).status,'paused');
     await page.reload();assert.equal((await snap()).status,'ready');assert(Number(await page.locator('#best').textContent())>0);
     await page.addInitScript(()=>localStorage.setItem('childgame.fruitcut.best.v1','{"relax":"broken","challenge":-1}'));await page.reload();assert.equal(await page.locator('#best').textContent(),'0');
     await page.clock.install();await page.locator('#play').tap();await page.clock.runFor(61000);assert.equal((await snap()).status,'over');assert.equal(await page.locator('#time').textContent(),'0');assert(await page.locator('#overlay').isVisible());await page.locator('#play').tap();assert.equal((await snap()).status,'playing');assert.equal((await snap()).score,0);

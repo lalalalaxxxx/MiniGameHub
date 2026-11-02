@@ -26,7 +26,9 @@
     if(bar.getAttribute('aria-valuenow')!==value)bar.setAttribute('aria-valuenow',value);if(bar.getAttribute('aria-valuetext')!==description)bar.setAttribute('aria-valuetext',description);
   }
   function stopClock(){clearTimeout(clockTimer);clockTimer=0;lastClock=0;}
-  function syncClock(){const active=!paused&&!busy&&!document.hidden&&!$('dialog').open&&s.phase==='playing'&&(s.timeLeft!==null||s.comboLeft>0);if(!active)stopClock();else if(!clockTimer){if(!lastClock)lastClock=performance.now();clockTimer=setTimeout(tickClock,100);}}
+  function syncClock(){const active=!paused&&!busy&&!document.hidden&&!$('dialog').open&&!GameUX.isMenuOpen()&&s.phase==='playing'&&(s.timeLeft!==null||s.comboLeft>0);if(!active)stopClock();else if(!clockTimer){if(!lastClock)lastClock=performance.now();clockTimer=setTimeout(tickClock,100);}}
+  let earnedWin=false;
+  function offerAdvance(){if(!earnedWin||busy||s.phase!=='won')return;earnedWin=false;if(s.level>=11)return;const won=s;GameUX.queueNext({button:$('next'),host:$('result'),valid:()=>s===won&&!paused,next:()=>{reset(s.level+1);if(paused)pause();}});}
   function status(){
     const cfg=C.level(s.level);text('level-title',`${s.level+1} / 12 · ${cfg.name}`);text('flow',C.flows[cfg.flow]);
     text('level-note',cfg.flow==='none'?'最多两个拐角，也能从棋盘外围绕行。':`配对后${C.flows[cfg.flow]}，看看新的相遇路线。`);
@@ -47,7 +49,7 @@
     // Leave one remaining tile in the keyboard tab order after a pair disappears.
     const focused=cells.findIndex(el=>el.tabIndex===0&&!el.disabled),first=s.board.findIndex(Boolean);
     if(focused<0)cells.forEach((el,i)=>el.tabIndex=i===first?0:-1);
-    clock();document.querySelector('.pet-clock').classList.toggle('urgent',s.timeLeft!==null&&s.timeLeft<=20);syncClock();
+    clock();document.querySelector('.pet-clock').classList.toggle('urgent',s.timeLeft!==null&&s.timeLeft<=20);syncClock();offerAdvance();
   }
   function build(){
     width=(s.cols+2)*100;height=(s.rows+2)*100;
@@ -111,7 +113,7 @@
     if(selected<0){selected=i;audio.effect('move',{volume:.15});status();requestDraw();return;}
     const before=C.clone(s),result=C.play(s,selected,i);
     if(!result.ok){selected=i;say(result.reason==='different'?'这两只不一样，再找找同样的小伙伴。':'这条路被挡住啦，试试不超过两个拐角的路线。');audio.effect('rotate',{volume:.13});status();requestDraw();return;}
-    history.push(before);history=history.slice(-24);save();record();
+    history.push(before);history=history.slice(-24);save();record();earnedWin=s.phase==='won';
     flash(`${s.combo>1?`连消 ×${s.combo} · `:''}+${result.earned}${result.bonus?`  +${Number(result.bonus.toFixed(2))}秒`:''}`);
     say(result.automatic?'暂时没有配对，已免费重排。提示和重排次数都保留。':result.path.length>2?`绕过 ${result.path.length-2} 个拐角，找到好朋友啦！`:'一条直线，找到好朋友啦！');animate(result.frames);
   }
@@ -128,13 +130,13 @@
     if(step){event.preventDefault();let n=i+step;while(n>=0&&n<cells.length&&(Math.abs(step)===s.cols||Math.floor(n/s.cols)===Math.floor(i/s.cols))){if(!cells[n].disabled){cells.forEach((el,j)=>el.tabIndex=j===n?0:-1);cells[n].focus();break;}n+=step;}}
     if(event.key==='Escape'){selected=-1;hinted=null;status();requestDraw();}
   });
-  function reset(level=s.level,mode=s.mode){pointer=null;s=C.fresh(level,undefined,mode);history=[];selected=-1;hinted=null;paused=mode==='timed';started=false;clearTimeout(messageTimer);text('board-message','');populate();finish();build();status();save();lastClock=performance.now();say('先找相邻的小伙伴，也可以沿棋盘外侧绕行。');audio.sync();}
-  function ask(title,description,fn){pointer=null;finish();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();stopClock();audio.sync();}
+  function reset(level=s.level,mode=s.mode){GameUX.cancelNext();earnedWin=false;pointer=null;s=C.fresh(level,undefined,mode);history=[];selected=-1;hinted=null;paused=mode==='timed';started=false;clearTimeout(messageTimer);text('board-message','');populate();finish();build();status();save();lastClock=performance.now();say('先找相邻的小伙伴，也可以沿棋盘外侧绕行。');audio.sync();}
+  function ask(title,description,fn){GameUX.cancelNext();earnedWin=false;pointer=null;finish();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();stopClock();audio.sync();}
   function pause(){if(s.phase!=='playing')return;pointer=null;finish();paused=!paused;started=true;lastClock=performance.now();status();draw();audio.sync();}
   $('pause').onclick=pause;$('resume').onclick=pause;
   $('hint').onclick=()=>{if(paused||busy)return;const found=C.useHint(s);if(found){hinted=found;selected=-1;save();status();draw();audio.effect('collect',{volume:.2});say('这两个小伙伴可以连接，看看亮起的路线。');}};
   $('shuffle').onclick=()=>{if(paused||busy)return;const before=C.clone(s),result=C.shuffle(s);if(result.ok){history.push(before);history=history.slice(-24);save();say('换好位置了，空位和剩余宠物都保留。');animate(result.frames);}};
-  $('undo').onclick=()=>{if(!history.length)return;pointer=null;finish();s=history.pop();selected=-1;hinted=null;lastClock=performance.now();save();finish();say('已回到上一步，换一条路线试试。');};
+  $('undo').onclick=()=>{if(!history.length)return;GameUX.cancelNext();earnedWin=false;pointer=null;finish();s=history.pop();selected=-1;hinted=null;lastClock=performance.now();save();finish();say('已回到上一步，换一条路线试试。');};
   $('result-undo').onclick=()=>$('undo').onclick();$('retry').onclick=()=>reset();$('next').onclick=()=>reset((s.level+1)%12);
   $('restart').onclick=()=>ask('重新开始这一关？','本关会重新排列，已经完成的关卡记录会保留。',()=>reset());
   $('levels').onchange=event=>{const n=Number(event.target.value);event.target.value=s.level;if(n!==s.level)ask('切换关卡？','当前这一关会重新开始。',()=>reset(n));};
@@ -160,6 +162,7 @@
     if(s.phase!=='playing'){save();finish();audio.effect('over',{volume:.35});}
     if(saveClock>=2||combo!==s.combo){save();saveClock=0;}syncClock();
   }
+  GameUX.configure({suspend(){pointer=null;finish();stopClock();},resume(){lastClock=performance.now();syncClock();requestDraw();}});
   window.PetLinkGame={snapshot:()=>C.clone(s),busy:()=>busy,paused:()=>paused,effects:()=>({particles:particles.length,rings:rings.length,sprites:sprites.size,peak:fxPeak,raf:!!raf}),scheduling:()=>({clock:!!clockTimer})};
   populate();build();status();save();draw();
 })();

@@ -8,11 +8,11 @@
   let s=C.fresh(id),sound=true,history=[],tab='puzzle',selected=-1,hinted=[],seedType=0,decorType=0,fishType=0,editing=false,selectedFish=null,pending=null,message='',drag=null,suppress=0;
   try{s=C.restore(id,JSON.parse(localStorage.getItem(key)));sound=localStorage.getItem('childgame.sound')!=='off';}catch{}
   const audio=createGameAudio({game:id,music:false,isEnabled:()=>sound,isPlaying:()=>true,isPaused:()=>$('dialog').open});
-  const pond=id==='aquarium'?createAquarium({state:()=>s,paused:()=>editing||$('dialog').open,eat:type=>audio.effect(type===5||type===6?'drop':'collect',{volume:.45,rate:.9+Math.random()*.2})}):null;
+  const pond=id==='aquarium'?createAquarium({state:()=>s,paused:()=>editing||$('dialog').open||GameUX.isMenuOpen(),eat:type=>audio.effect(type===5||type===6?'drop':'collect',{volume:.45,rate:.9+Math.random()*.2})}):null;
   function save(){try{localStorage.setItem(key,JSON.stringify(s));$('save-status').textContent='进度已保存 · 随时可以休息';}catch{$('save-status').textContent='暂时无法保存，关闭页面会丢失进度';}}
-  function change(fn,undo=true){const before={state:C.clone(s),albumIndex},result=fn();if(result===false)return false;if(undo)history.push(before);else history=[];history=history.slice(-24);if(s.won)history=[];selected=-1;hinted=[];save();render();audio.effect(s.won?'finish':id==='icecream'?'drop':id==='toyblast'||id==='fruitgarden'&&tab==='puzzle'?'clear':'collect',{volume:.24});if(s.won)GameFeedback.celebrate($('activity').querySelector('.success'));return true;}
+  function change(fn,undo=true){const before={state:C.clone(s),albumIndex},result=fn();if(result===false)return false;if(undo)history.push(before);else history=[];history=history.slice(-24);if(s.won)history=[];selected=-1;hinted=[];save();render();audio.effect(s.won?'finish':id==='icecream'?'drop':id==='toyblast'||id==='fruitgarden'&&tab==='puzzle'?'clear':'collect',{volume:.24});if(s.won){GameFeedback.celebrate($('activity').querySelector('.success'));if(id==='toyblast'||id==='fruitgarden'){const won=s;GameUX.queueNext({button:$('activity').querySelector('[data-action=next]'),host:$('activity').querySelector('.success'),valid:()=>s===won&&s.won&&tab==='puzzle',next:resetPuzzle});}}return true;}
   function ask(title,text,fn){pending=fn;$('dialog-title').textContent=title;$('dialog-text').textContent=text;$('cancel').hidden=!fn;$('confirm').textContent=fn?'确定':'知道啦';$('dialog').showModal();pond?.suspend();stopGardenTimer();(fn?$('cancel'):$('confirm')).focus();}
-  function resetPuzzle(){C.puzzle(s,id==='fruitgarden');history=[];selected=-1;hinted=[];save();render();}
+  function resetPuzzle(){GameUX.cancelNext();C.puzzle(s,id==='fruitgarden');history=[];selected=-1;hinted=[];save();render();}
   const b=(action,value,text,extra='')=>`<button data-action="${action}" ${value===null?'':`data-value="${value}"`} ${extra}>${text}</button>`;
   const chosen=on=>`aria-pressed="${on}"`;
   function goals(){const icons=id==='toyblast'?toy:fruit;return `<div class="goals">${s.targets.map((v,i)=>`<div class="goal"><span aria-hidden="true">${icons[v]}</span><strong>${Math.min(s.goal,s.progress[i])} / ${s.goal}</strong></div>`).join('')}</div>`;}
@@ -41,7 +41,7 @@
   function feed(x=50,y=40){if(performance.now()-feedAt<200)return;feedAt=performance.now();if(pond.feed(x,y))$('feedback').textContent='点心撒好啦，看看谁先吃到！';}
   function action(action,value,event){const n=Number(value);
     if(action==='tile'){tile(n);return;}
-    if(action==='tab'){tab=value;selected=-1;hinted=[];history=[];message='';render();return;}
+    if(action==='tab'){GameUX.cancelNext();tab=value;selected=-1;hinted=[];history=[];message='';render();return;}
     if(action==='hint'){hinted=id==='toyblast'?s.board.map((_,i)=>C.group(s.board,i)).find(g=>g.length>=2)||[]:C.move(s.board,s.special)||[];message='亮起来的格子可以试一试。';selection();return;}
     if(action==='shuffle'){change(()=>{C.generate(s,id==='fruitgarden');});message='换好了一个可以继续玩的排列。';render();return;}
     if(action==='next'){resetPuzzle();return;}
@@ -83,10 +83,11 @@
   $('dialog').addEventListener('close',()=>{pond?.wake();syncGardenTimer();});
   $('sound').onclick=()=>{sound=audio.toggle();if(sound)audio.unlock(true);try{localStorage.setItem('childgame.sound',sound?'on':'off');}catch{}audio.sync();};
   // Growth is derived from saved planting times; never refresh the DOM under a finger.
-  function gardenActive(){return id==='fruitgarden'&&tab==='garden'&&gardenGrowing&&!document.hidden&&!$('dialog').open&&!drag&&!activePointers.size;}
+  function gardenActive(){return !GameUX.isMenuOpen()&&id==='fruitgarden'&&tab==='garden'&&gardenGrowing&&!document.hidden&&!$('dialog').open&&!drag&&!activePointers.size;}
   function stopGardenTimer(){clearTimeout(gardenTimer);gardenTimer=0;}
   function syncGardenTimer(){if(!gardenActive())stopGardenTimer();else if(!gardenTimer)gardenTimer=setTimeout(gardenTick,1000);}
   function gardenTick(){gardenTimer=0;if(!gardenActive())return;const plots=$('activity').querySelectorAll('.plot');for(const [i,p]of s.plots.entries()){if(!p)continue;const el=plots[i],g=C.growth(p);if(g>=1&&!el.querySelector('[data-action="harvest"]')){render();break;}if(g<1){const line=el.querySelector('p'),value=`生长中 · ${Math.floor(g*100)}%`;if(line.textContent!==value)line.textContent=value;}}syncGardenTimer();}
   document.addEventListener('visibilitychange',()=>{drag=null;activePointers.clear();if(!document.hidden&&id==='fruitgarden'&&tab==='garden')render();else syncGardenTimer();});window.addEventListener('pagehide',()=>{drag=null;activePointers.clear();stopGardenTimer();});window.addEventListener('pageshow',()=>{if(id==='fruitgarden'&&tab==='garden')render();});
+  GameUX.configure({suspend(){drag=null;pond?.suspend();stopGardenTimer();},resume(){pond?.wake();syncGardenTimer();}});
   window.CozyGame={snapshot:()=>C.clone(s),aquarium:()=>pond?.snapshot(),scheduling:()=>pond?.scheduling()||({garden:!!gardenTimer})};render();save();
 })();

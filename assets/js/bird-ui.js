@@ -141,12 +141,13 @@
     draw(paused?0:dt);if(now-hudAt>100){hudAt=now;status(false);}if(now-saveAt>2000&&!paused&&s.phase==='playing'){saveAt=now;save();}
     if(needsFrame())raf=requestAnimationFrame(loop);
   }
-  function needsFrame(){return !document.hidden&&!paused&&!$('dialog').open&&(s.phase==='playing'||particles.length||rings.length||beams.length||ghosts.length);}
+  function needsFrame(){return !GameUX.isMenuOpen()&&!document.hidden&&!paused&&!$('dialog').open&&(s.phase==='playing'||particles.length||rings.length||beams.length||ghosts.length);}
   // A paused board still needs one paint after layout/resize; never advance simulation here.
   function paint(){paintRaf=0;draw();}
   function requestPaint(){if(!paintRaf&&!document.hidden)paintRaf=requestAnimationFrame(paint);}
   function stop(){if(raf)cancelAnimationFrame(raf);if(paintRaf)cancelAnimationFrame(paintRaf);raf=paintRaf=0;last=0;}
   function wake(){if(!raf&&needsFrame()){last=0;raf=requestAnimationFrame(loop);}}
+  GameUX.configure({suspend(){drag=null;selected=null;stop();save();},resume(){last=0;status();wake();requestPaint();}});
   function start(){if(s.phase!=='playing')reset(s.mode,s.pace);paused=false;started=true;audio.unlock();audio.sync();status();last=0;wake();}
   function pause(){paused=true;drag=null;selected=null;stop();audio.sync();status();draw();save();}
   function reset(mode,pace){s=C.fresh(mode,undefined,pace);selected=null;drag=null;hints=[];poses.clear();for(const list of [particles,rings,beams,ghosts])list.length=0;vtime=0;announcementUntil=0;paused=true;started=false;drawBackground();syncPoses();status();fit();save();say(notes[s.mode]);}

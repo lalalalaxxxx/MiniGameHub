@@ -1,11 +1,12 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {setup}=require('./helpers/extra-browser.cjs'),{zumaTurn,slingTurn,bomberTurn}=require('./helpers/extra-arcade.js');
 const keys=['up','right','down','left'];
 for(const id of ['zumapath','slingblocks','bombergarden','tankguard'])test('Extra arcade UI: '+id+' real opening level, result and next level',{timeout:240000},async()=>{
  const h=await setup(),{page,install,snap}=h,G=require('../assets/js/extras/'+id+'.js');
  try{
-  await install(G.create(0,37));await page.locator('#resume').tap();
+  await install(G.create(0,37));await (await uxControl(page,'#resume')).tap();
   if(id==='zumapath'){
    for(let i=0;i<65&&(await snap()).phase==='playing';i++){
     const s=await snap(),turn=zumaTurn(G,s);if(!turn){await page.waitForTimeout(700);continue;}
@@ -33,6 +34,6 @@ for(const id of ['zumapath','slingblocks','bombergarden','tankguard'])test('Extr
     });await page.waitForTimeout(50);
    }
   }
-  await h.result();assert((await snap()).score>0);await h.capture(id+'-result');await page.reload();assert.equal((await snap()).phase,'won');await page.locator('#resume').tap();assert.equal((await snap()).level,1);assert.equal((await snap()).phase,'playing');assert(!(await page.locator('#overlay').isVisible()));
+  await h.result();assert((await snap()).score>0);await h.capture(id+'-result');await page.reload();assert.equal((await snap()).phase,'won');await (await uxControl(page,'#resume')).tap();assert.equal((await snap()).level,1);assert.equal((await snap()).phase,'playing');assert(!(await page.locator('#overlay').isVisible()));
  }finally{await h.close();}
 });

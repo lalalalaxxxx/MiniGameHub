@@ -1,0 +1,29 @@
+html,body{touch-action:pan-x pan-y;overscroll-behavior:none}
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,[contenteditable=true]{-webkit-user-select:text;user-select:text}
+button,a,select,summary,[role=button]{touch-action:manipulation}
+img,svg{-webkit-user-drag:none}
+.game-ux .ux-more{position:relative;z-index:100;flex:none;min-width:58px;min-height:44px;padding:8px 12px;font:inherit;font-size:14px}
+.game-ux .ux-menu{box-sizing:border-box;width:min(440px,calc(100vw - 24px));max-height:calc(100dvh - 32px);padding:20px;border:1px solid #c8d8cd;border-radius:22px;background:#fffdf5;color:#304f4b;overflow:auto;touch-action:pan-y;box-shadow:0 18px 70px #253f4340}
+.game-ux .ux-menu::backdrop{background:#173c4659}
+.game-ux .ux-menu h2{margin:0 0 16px;font-size:21px}
+.game-ux .ux-tool-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.game-ux .ux-menu button,.game-ux .ux-menu select{box-sizing:border-box;min-height:44px;min-width:0;max-width:100%;padding:10px 12px;border:1px solid #c6d8cc;border-radius:12px;font:inherit;font-size:15px;line-height:1.4;background:#edf4e7;color:#304f4b;white-space:normal}
+.game-ux .ux-menu button:disabled{opacity:.45}
+.game-ux .ux-menu select{font-size:16px}
+.game-ux.ux-tools-open main *,.game-ux.ux-tools-open main *::before,.game-ux.ux-tools-open main *::after{animation-play-state:paused!important}
+.game-ux .ux-tool-group{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;margin:4px 0}
+.game-ux .ux-tool-group select{flex:1}.game-ux .ux-tool-group button{flex:1}
+.game-ux .ux-menu-footer{position:sticky;bottom:-20px;margin-top:16px;padding:12px 0 0;background:#fffdf5;display:flex;justify-content:flex-end}
+.game-ux .ux-menu-footer button{background:#d8e9d5}
+.game-ux :is(.actions,.action-row,.tools,.bottom,.top-controls,.toolbar,.mechanisms):empty{display:none}
+.game-ux [data-ux-auto=true]{display:none!important}
+.game-ux .ux-next{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 12px;margin:8px 0 0;font-size:14px;line-height:1.5}
+.game-ux .ux-next button{min-height:44px;padding:7px 12px;font-size:13px;background:transparent;color:inherit;border:1px solid currentColor;border-radius:12px;box-shadow:none}
+.game-ux #mechanisms[data-count="0"]{display:none}
+.game-ux .side .intro{padding:0;margin:0 0 8px;background:none;border:0}
+.game-ux .side .intro .eyebrow,.game-ux .side #mode-note{display:none}
+.game-ux .side .intro h2{margin:0;font-size:18px}
+.game-ux .side #best{font-size:11px}
+.game-ux .guide [data-action=hint],.game-ux .side [data-action=hint]{font-size:13px;min-height:44px;padding:8px 12px}
+@media(prefers-reduced-motion:reduce){.game-ux .ux-next{animation:none}}

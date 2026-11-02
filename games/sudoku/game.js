@@ -35,14 +35,14 @@
     if(focusBoard&&selected>=0)$('board').querySelector(`[data-cell="${selected}"]`).focus({preventScroll:true});
   }
   function select(i){selected=i;pendingHint=null;render();}
-  function change(fn){history.push({values:state.values.slice(),notes:state.notes.map(a=>a.slice())});if(history.length>100)history.shift();fn();pendingHint=null;checked=false;save();render();if(complete()){say('完成啦！你让每个数字都找到了自己的位置。');audio.effect('finish',{volume:.3});}else audio.effect('move',{volume:.2});}
+  function change(fn){GameUX.cancelNext();history.push({values:state.values.slice(),notes:state.notes.map(a=>a.slice())});if(history.length>100)history.shift();fn();pendingHint=null;checked=false;save();render();if(complete()){say('完成啦！你让每个数字都找到了自己的位置。');audio.effect('finish',{volume:.3});const won=state;GameUX.queueNext({button:$('next'),host:$('success'),valid:()=>state===won&&complete(),next:()=>newPuzzle(state.mode),text:'全部正确，马上准备下一题…'});}else audio.effect('move',{volume:.2});}
   function put(value,asHint=false){
     if(selected<0){say('先点棋盘上的一个空格吧。');return;}if(state.givens[selected]){say('深色数字是题目线索，请选择一个空格。');return;}
     if(pencil&&!asHint){if(state.values[selected]){say('这个格已经有数字，擦除后才能记草稿。');return;}change(()=>{const notes=state.notes[selected];state.notes[selected]=notes.includes(value)?notes.filter(v=>v!==value):[...notes,value].sort();});say('草稿只是记下可能的数字，再点一次可以取消。');return;}
     change(()=>{state.values[selected]=value;state.notes[selected]=[];for(const p of E.peers(selected,size()))state.notes[p]=state.notes[p].filter(v=>v!==value);});
     if(!complete())say(conflicts().size?'有重复的数字啦。看看标着 ! 的格子，它们不能在同一行、列或小宫重复。':'继续找一找：哪一行或哪一宫只差一个数字？');
   }
-  function newPuzzle(mode){state=fresh(mode);state.values=state.givens.slice();state.notes=state.values.map(()=>[]);history=[];selected=-1;pencil=false;checked=false;pendingHint=null;save();render();say('新题准备好了，先从空格最少的一行开始吧。');}
+  function newPuzzle(mode){GameUX.cancelNext();state=fresh(mode);state.values=state.givens.slice();state.notes=state.values.map(()=>[]);history=[];selected=-1;pencil=false;checked=false;pendingHint=null;save();render();say('新题准备好了，先从空格最少的一行开始吧。');}
   function showDialog(title,text,action){dialogAction=action;$('dialog-title').textContent=title;$('dialog-text').textContent=text;$('cancel').hidden=!action;$('confirm').textContent=action?'换一道题':'我知道啦';$('dialog').showModal();(action?$('cancel'):$('confirm')).focus();}
   function requestNew(mode){if(!complete()&&state.values.some((v,i)=>v!==state.givens[i])||state.notes.some(a=>a.length))showDialog('换一道题吗？','当前题目的进度会被替换。也可以继续完成这一题。',()=>newPuzzle(mode));else newPuzzle(mode);}
   $('board').onclick=e=>{const b=e.target.closest('[data-cell]');if(b)select(Number(b.dataset.cell));};
@@ -60,7 +60,7 @@
     if(wrong>=0){selected=wrong;checked=true;render();say('先检查这个标着 ! 的格子，它与题目线索对不上。擦掉它后，再来找提示。');return;}
     const step=E.next(state.values,size());if(!step){say('试试检查一下已填的数字。');return;}
     selected=step.index;pendingHint=step;render();
-    say(step.kind==='排除'?`看选中的格子：同一行、列和小宫已经排除了其他数字，只能填 ${step.value}。想好了，再点下面的按钮填入。`:`观察这个格子所在的${step.kind}：数字 ${step.value} 只能放在这里。想好了，再点下面的按钮填入。`);
+    say(step.kind==='排除'?`看选中的格子：同一行、列和小宫已经排除了其他数字，只能填 ${step.value}。想好了，可以在数字区填入，或从“更多”再次打开提示填入。`:`观察这个格子所在的${step.kind}：数字 ${step.value} 只能放在这里。想好了，再点下面的按钮填入。`);
   };
   $('restart').onclick=$('next').onclick=()=>requestNew(state.mode);
   $('rules').onclick=()=>showDialog('数独怎么玩？',`① 点一个空格，再点下方的数字。\n② 每一行、每一列、每个粗线小宫，都要有 1～${size()}，不能重复。\n③ 深色数字是题目给的，不能改。相同图形代表相同数字。\n④ 不确定时可以用「草稿」记下可能的数；「提示」会解释下一步。\n慢慢想，没有时间限制。`,null);

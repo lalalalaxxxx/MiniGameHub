@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium,webkit}=require('playwright'),C=require('../assets/js/defense-core.js'),B=require('./defense-strategy.cjs'),plans=require('./defense-hard.json');
 test('Challenge balance: passive play fails, mixed strategy wins, both expert campaigns are achievable',()=>{
@@ -31,7 +32,7 @@ test('Challenge browser: default mode, wave forecasts, enemy identities, paused 
   const page=await browser.newPage({viewport:{width:1024,height:650},serviceWorkers:'block'}),base=`http://127.0.0.1:${server.address().port}/`,errors=[];page.on('pageerror',e=>errors.push(e.message));
   for(const id of ['gardenwatch','toydefense']){
    await page.goto(base+`games/${id}/index.html`);assert.equal(await page.locator('#difficulty').inputValue(),'normal');assert.match(await page.locator('#wave').textContent(),/10/);
-   await page.locator('#difficulty').selectOption('hard');await page.locator('#confirm').click();assert.match(await page.locator('#wave').textContent(),/12/);
+   await (await uxControl(page,'#difficulty')).selectOption('hard');await page.locator('#confirm').click();assert.match(await page.locator('#wave').textContent(),/12/);
    const s=C.fresh(id,'hard');for(let wave=0;wave<12;wave++){
     for(const [op,cell,type]of plans[id][wave])assert(op==='b'?C.build(s,cell,type):C.upgrade(s,cell));C.start(s);
     while(s.phase==='running'&&(wave<11||!s.enemies.some(e=>e.kind==='boss')))C.tick(s,.1);

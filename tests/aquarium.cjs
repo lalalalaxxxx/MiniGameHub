@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium,webkit}=require('playwright');
 test('Aquarium: swimming, feeding, surface birds, pause, persistence and bounded food',{timeout:90000},async()=>{
@@ -21,7 +22,7 @@ test('Aquarium: swimming, feeding, surface birds, pause, persistence and bounded
   let sawBite=false,maxSpeed=0,minSpeed=100;
   for(let i=0;i<45;i++){await page.clock.runFor(200);const s=await snap();sawBite ||=s.animals.some(a=>a.bite>0);for(const a of s.animals){const speed=Math.hypot(a.vx,a.vy);maxSpeed=Math.max(speed,maxSpeed);if(a.bite>0)minSpeed=Math.min(speed,minSpeed);}}
   assert((await snap()).eaten>0);assert(sawBite);assert(maxSpeed>8);assert(minSpeed<maxSpeed);
-  await page.locator('#help').click();const paused=await snap();await page.clock.runFor(1000);assert.deepEqual(await snap(),paused);await page.locator('#confirm').click();
+  await (await uxControl(page,'#help')).click();const paused=await snap();await page.clock.runFor(1000);assert.deepEqual(await snap(),paused);await page.locator('#confirm').click();
   const before=await snap();await page.locator('[data-action=theme][data-value="1"]').click();const after=await snap();assert(Math.abs(before.animals[0].x-after.animals[0].x)<2);
   for(let i=0;i<9;i++){await page.clock.runFor(210);await page.locator('[data-action=feed]').click();}assert((await snap()).food.length<=60);
   await page.clock.runFor(26000);assert.equal((await snap()).food.length,0);

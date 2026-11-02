@@ -19,3 +19,5 @@ for (const [id, title] of games) {
 const manifest = path.join(root, 'games/manifest.json'), old = JSON.parse(fs.readFileSync(manifest, 'utf8')).filter(g => !games.some(([id]) => g.id === id));
 fs.writeFileSync(manifest, JSON.stringify([...games.map(([id, title, blurb, tags]) => ({ id, title, blurb, tags, category: '塔防', cover: `games/${id}/cover.svg`, entry: `games/${id}/index.html` })), ...old], null, 2) + '\n');
 console.log('Generated two defense games and lobby entries.');
+
+require('node:child_process').execFileSync(process.platform==='win32'?'python':'python3',[require('node:path').join(__dirname,'build_game_ux.py')],{stdio:'inherit'});

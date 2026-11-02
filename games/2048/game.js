@@ -233,6 +233,7 @@ function finishMove(plan, token) {
     mode = "win";
     gameAudio.effect("clear");
     showOverlay("拼出来啦", "你已经得到 2048，还可以继续拼更大的数字。", true);
+    GameUX.queueNext({button:continueBtn,valid:()=>mode==='win',next:continuePlay,text:'拼出 2048 啦，马上继续挑战更大的数字…'});
   } else if (!canMove()) {
     mode = "over";
     gameAudio.effect("over");
@@ -274,6 +275,7 @@ function move(direction) {
 }
 
 function fresh() {
+  GameUX.cancelNext();
   generation += 1;
   grid = Array.from({ length: 4 }, () => Array(4).fill(null));
   mode = "play";
@@ -334,7 +336,8 @@ againBtn.addEventListener("click", () => {
   fresh();
 });
 
-continueBtn.addEventListener("click", () => {
+function continuePlay() {
+  GameUX.cancelNext();
   hideOverlay();
   mode = "play";
   if (!canMove()) {
@@ -343,7 +346,8 @@ continueBtn.addEventListener("click", () => {
     showOverlay("没有空格啦", "再来一局，试试不同的顺序。", false);
   }
   gameAudio.sync();
-});
+}
+continueBtn.addEventListener("click", continuePlay);
 
 soundBtn.addEventListener("click", () => {
   soundOn = gameAudio.toggle();

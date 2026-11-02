@@ -39,3 +39,5 @@ const entries=Object.entries(data).map(([id,g])=>({id,title:g.title,blurb:g.subt
 fs.writeFileSync(manifestPath,JSON.stringify([...entries,...old],null,2)+'\n');
 fs.writeFileSync(path.join(root,'tools/academy-speech.json'),JSON.stringify(speech,null,2)+'\n');
 console.log(`Generated ${entries.length} games and ${speech.length} narration segments.`);
+
+require('node:child_process').execFileSync(process.platform==='win32'?'python':'python3',[require('node:path').join(__dirname,'build_game_ux.py')],{stdio:'inherit'});

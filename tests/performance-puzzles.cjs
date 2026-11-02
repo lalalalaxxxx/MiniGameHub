@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const D=require('../assets/js/defense-core.js'),B=require('../assets/js/bird-core.js'),P=require('../assets/js/petlink-core.js');
 const {setup}=require('./helpers/extra-browser.cjs');
@@ -53,7 +54,7 @@ test('puzzle performance: bird and defenses stop paused/hidden frames and resume
       const saved=await h.page.evaluate(()=>window.BirdGame?.snapshot()||DefenseGame.snapshot());
       const stopped=await measured(h.page);assert.equal(stopped.frames,0,id+' pause');assert.equal(stopped.writes,0,id+' paused save');
       assert.deepEqual(await h.page.evaluate(()=>window.BirdGame?.snapshot()||DefenseGame.snapshot()),saved);
-      await h.page.locator('#pause').click();await h.page.locator('#help').click();
+      await h.page.locator('#pause').click();await (await uxControl(h.page,'#help')).click();
       assert.equal((await measured(h.page)).frames,0,id+' help pauses RAF');
       await h.page.locator('#confirm').click();assert((await measured(h.page)).frames>0,id+' help resumes RAF');
       await hidden(h.page,true);assert.equal((await measured(h.page)).frames,0,id+' hidden');
@@ -76,7 +77,7 @@ test('puzzle performance: aquarium retains full swimming but suspends edit/help/
     const edited=await h.page.evaluate(()=>CozyGame.aquarium());assert.equal((await measured(h.page)).frames,0,'editing stops RAF');
     assert.deepEqual(await h.page.evaluate(()=>CozyGame.aquarium()),edited,'food and swimming freeze together');
     await h.page.locator('[data-action=edit-tank]').click();assert((await measured(h.page)).frames>0);
-    await h.page.locator('#help').click();assert.equal((await measured(h.page)).frames,0,'help stops RAF');
+    await (await uxControl(h.page,'#help')).click();assert.equal((await measured(h.page)).frames,0,'help stops RAF');
     await h.page.locator('#confirm').click();assert((await measured(h.page)).frames>0);
     await hidden(h.page,true);assert.equal((await measured(h.page)).frames,0);
     await hidden(h.page,false);const resumed=await measured(h.page);assert(resumed.frames>0&&resumed.frames<40,'one aquarium RAF after visibility restore');
@@ -111,7 +112,7 @@ test('puzzle performance: demand clocks survive mode changes, drag, animation, h
     await h.page.goto(h.base+'games/candyland/index.html');
     const ticking=()=>h.page.evaluate(()=>MatchGame.scheduling().clock);
     assert.equal(await ticking(),false,'untimed levels have no interval');
-    await h.page.locator('#levels').selectOption('7');await h.page.locator('#confirm').click();assert.equal(await ticking(),true);
+    await (await uxControl(h.page,'#levels')).selectOption('7');await h.page.locator('#confirm').click();assert.equal(await ticking(),true);
     await h.page.locator('[data-cell="0"]').dispatchEvent('pointerdown',{pointerId:71,isPrimary:true,button:0,clientX:50,clientY:50});
     assert.equal(await ticking(),false,'clock does not poll during a held drag');
     await h.page.locator('[data-cell="0"]').dispatchEvent('pointercancel',{pointerId:71,isPrimary:true});assert.equal(await ticking(),true,'cancelled drag wakes the clock');
@@ -120,19 +121,19 @@ test('puzzle performance: demand clocks survive mode changes, drag, animation, h
     assert(await h.page.evaluate(()=>MatchGame.busy()));assert.equal(await ticking(),false,'animation pauses clock work');
     await h.page.waitForFunction(()=>!MatchGame.busy());assert.equal(await ticking(),true,'animation completion wakes timer');
     const time=await h.page.evaluate(()=>MatchGame.snapshot().timeLeft);await h.page.waitForFunction(time=>MatchGame.snapshot().timeLeft<time-.1,time);
-    await h.page.locator('#help').click();assert.equal(await ticking(),false);await h.page.locator('#confirm').click();
+    await (await uxControl(h.page,'#help')).click();assert.equal(await ticking(),false);await h.page.locator('#confirm').click();
     // Native dialog.close() queues its close event; wait for that lifecycle callback.
     await h.page.waitForFunction(()=>MatchGame.scheduling().clock,null,{timeout:2000});assert.equal(await ticking(),true);
     await h.page.locator('#pause').click();assert.equal(await ticking(),false);await h.page.locator('#pause').click();assert.equal(await ticking(),true);
     await hidden(h.page,true);assert.equal(await ticking(),false);await hidden(h.page,false);assert.equal(await ticking(),false);
     await h.page.locator('#pause').click();assert.equal(await ticking(),true);
-    await h.page.locator('#levels').selectOption('0');await h.page.locator('#confirm').click();assert.equal(await ticking(),false);
+    await (await uxControl(h.page,'#levels')).selectOption('0');await h.page.locator('#confirm').click();assert.equal(await ticking(),false);
 
     await h.page.goto(h.base+'games/fruitgarden/index.html');
     const growing=()=>h.page.evaluate(()=>CozyGame.scheduling().garden);
     assert.equal(await growing(),false);await h.page.locator('[data-action=tab][data-value=garden]').first().click();assert.equal(await growing(),false,'empty garden has no timer');
     await h.page.locator('[data-action=plant][data-value="0"]').click();assert.equal(await growing(),true);
-    await h.page.locator('#help').click();assert.equal(await growing(),false);await h.page.locator('#confirm').click();await h.page.waitForFunction(()=>CozyGame.scheduling().garden,null,{timeout:2000});assert.equal(await growing(),true);
+    await (await uxControl(h.page,'#help')).click();assert.equal(await growing(),false);await h.page.locator('#confirm').click();await h.page.waitForFunction(()=>CozyGame.scheduling().garden,null,{timeout:2000});assert.equal(await growing(),true);
     await h.page.locator('[data-action=tab][data-value=puzzle]').first().click();assert.equal(await growing(),false);
     await h.page.locator('[data-action=tab][data-value=garden]').first().click();assert.equal(await growing(),true);
     await h.page.clock.install();await hidden(h.page,true);assert.equal(await growing(),false);

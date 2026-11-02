@@ -25,9 +25,11 @@
     let scale = 1;
     // Preserve usable touch targets while fitting the surrounding illustration/text.
     for (let i = 0; i < 6; i++) {
+      const previous = scale;
       const natural = Math.max(main.scrollHeight, main.getBoundingClientRect().height);
       scale = Math.min(1, available / Math.max(1, natural));
       main.style.setProperty('--screen-scale', String(Math.max(.1, scale)));
+      if (i > 0 && Math.abs(previous - scale) < .001) break;
     }
     main.style.width = `${width}px`; main.style.zoom = String(Math.max(.1, scale));
   }

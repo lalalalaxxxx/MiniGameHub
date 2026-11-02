@@ -81,7 +81,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
   }
 
   function audible() {
-    return !leaving && !document.hidden && isEnabled() && !isPaused();
+    return !leaving && !document.hidden && isEnabled() && !isPaused() && !window.GameUX?.isMenuOpen();
   }
 
   function stopMusic() {
@@ -216,6 +216,7 @@ window.createGameAudio = function ({ game, isPlaying, isEnabled, isPaused = () =
     });
   }
   document.addEventListener("visibilitychange", () => { sync(); queueMicrotask(sync); });
+  window.addEventListener("gameux:menu", sync);
   window.addEventListener("blur", () => queueMicrotask(sync));
   // Dialog state and automatic game transitions notify the mixer directly;
   // idle lessons and paused games must not wake the main thread every 100 ms.

@@ -23,3 +23,5 @@ const aliases={zumapath:['祖玛','Zuma'],slingblocks:['愤怒的小鸟','弹弓
 Object.assign(aliases,{mirrorlight:['镜子','光线','反射'],firefly:['萤火虫','点灯','翻灯'],boxtrail:['推箱子','Sokoban','搬箱子'],colorsort:['倒水','分色','瓶子','Water Sort'],starpath:['一笔画','连线','星座']});
 fs.writeFileSync(file,JSON.stringify([...entries.map(m=>({id:m.id,title:m.title,blurb:m.blurb,category:riddles.includes(m.id)?'解谜':({'冒险闯关':'冒险','物理':'益智','解谜':'益智','创意建造':'益智','策略经营':'策略'}[m.category]||m.category),tags:[...new Set([...(m.tags||[]),...(aliases[m.id]||[])])],cover:`games/${m.id}/cover.svg`,entry:`games/${m.id}/index.html`})),...old],null,2)+'\n');
 console.log(`Generated ${entries.length} extra game pages, covers and lobby entries.`);
+
+require('node:child_process').execFileSync(process.platform==='win32'?'python':'python3',[require('node:path').join(__dirname,'build_game_ux.py')],{stdio:'inherit'});

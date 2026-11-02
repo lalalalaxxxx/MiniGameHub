@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium,webkit}=require('playwright'),C=require('../assets/js/defense-core.js');
 test('Busy scenes retain actors, avoid repeated fitting and bound decorative work',{timeout:60000},async()=>{
@@ -61,7 +62,7 @@ test('Busy scenes retain actors, avoid repeated fitting and bound decorative wor
    await page.evaluate(()=>{window.originalStage=document.querySelector('.stage');window.originalSide=document.querySelector('.side');});
    await page.locator(`[data-action=${action}]`).click();await page.waitForTimeout(160);
    assert(await page.evaluate(()=>LearningApp.busy&&originalStage===document.querySelector('.stage')&&originalSide===document.querySelector('.side')),`${id} moves only the actor`);
-   await page.locator('#help').click();assert.equal(await page.evaluate(()=>LearningApp.busy),false,'dialog cancels pending playback');
+   await (await uxControl(page,'#help')).click();assert.equal(await page.evaluate(()=>LearningApp.busy),false,'dialog cancels pending playback');
   }
   assert.deepEqual(errors,[]);
  }finally{await browser.close();await new Promise(r=>server.close(r));}

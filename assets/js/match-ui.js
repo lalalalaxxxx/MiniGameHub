@@ -16,7 +16,7 @@
   A.setTheme(id); view = clone(s);
   const timed = () => s.phase === 'playing' && (s.timeLeft != null || bird && s.mode === 'classic');
   function stopClock(){clearTimeout(clockTimer);clockTimer=0;lastClock=0;}
-  function syncClock(){if(document.hidden||paused||$('dialog').open||busy||drag||!timed())stopClock();else if(!clockTimer){if(!lastClock)lastClock=performance.now();clockTimer=setTimeout(tickClock,200);}}
+  function syncClock(){if(GameUX.isMenuOpen()||document.hidden||paused||$('dialog').open||busy||drag||!timed())stopClock();else if(!clockTimer){if(!lastClock)lastClock=performance.now();clockTimer=setTimeout(tickClock,200);}}
   // Restored timed rounds wait for a deliberate resume, including standalone Safari.
   paused = timed();
   const audio = createGameAudio({game:id,music:false,isEnabled:()=>sound,isPlaying:()=>s.phase==='playing',isPaused:()=>paused||$('dialog').open});
@@ -42,6 +42,8 @@
     })); $('levels').value=s.level;
     if($('mode')) $('mode').value=s.mode||'practice';
   }
+  let earnedWin=false;
+  function offerAdvance(){if(!earnedWin||busy||s.phase!=='won')return;earnedWin=false;if(s.level>=11)return;const won=s;GameUX.queueNext({button:$('next'),host:$('result'),valid:()=>s===won&&!paused,next:()=>reset(s.level+1)});}
   function status(boardChanged=true) {
     const conf=cfg(),shown=busy&&active?.frame.stats?{...s,...active.frame.stats}:s;
     text('level-title',`${s.level+1} / 12 · ${conf.name}`);
@@ -71,7 +73,7 @@
       text('result-text',s.phase==='won'?`获得 ${s.score} 分${s.level===11?' · 十二关都体验过后，还可以挑战更高分。':'，准备好再出发吧。'}`:`这次获得 ${s.score} 分。调整顺序，特殊组合会很有帮助。`);
       text('next',s.level<11?'下一关 →':'回到第一关');$('next').hidden=s.phase!=='won';
     }
-    if(boardChanged)updateCells();syncClock();
+    if(boardChanged)updateCells();syncClock();offerAdvance();
   }
   function updateCells() {
     for(let i=0;i<49;i++) {
@@ -197,7 +199,7 @@
         playFrames([{...swap,kind:'swap'},{...before,kind:'swap'}]);
       }else{status();requestDraw();}return;
     }
-    history.push(before);history=history.slice(-24);save();saveWin();
+    history.push(before);history=history.slice(-24);save();saveWin();earnedWin=s.phase==='won';
     say(s.phase==='won'?'完成啦！可以继续下一关。':bird?'选中最顶端的小鸟，再放到另一列顶部。':'组合特殊图块，可以触发更大的爆破。');
     playFrames(result.frames);audio.effect('move',{volume:.24});
   }
@@ -242,11 +244,11 @@
     if(step){event.preventDefault();const n=i+step;if(n>=0&&n<49&&(Math.abs(step)===7||Math.floor(n/7)===Math.floor(i/7))){cells[i].tabIndex=-1;cells[n].tabIndex=0;cells[n].focus();}}
     if(event.key==='Escape'){selected=-1;status();requestDraw();}
   });
-  function ask(title,description,fn) {cancelDrag();finishAnimation();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();stopClock();audio.sync();}
-  function reset(level=s.level,mode=s.mode) {cancelDrag();s=bird?C.fresh(id,level,undefined,mode):C.fresh(id,level);history=[];selected=-1;hints=[];paused=false;lastResult='';save();populateLevels();finishAnimation();say('准备好了就开始吧。');}
+  function ask(title,description,fn) {GameUX.cancelNext();earnedWin=false;cancelDrag();finishAnimation();pending=fn;text('dialog-title',title);text('dialog-text',description);$('cancel').hidden=!fn;text('confirm',fn?'确定':'知道啦');$('dialog').showModal();stopClock();audio.sync();}
+  function reset(level=s.level,mode=s.mode) {GameUX.cancelNext();earnedWin=false;cancelDrag();s=bird?C.fresh(id,level,undefined,mode):C.fresh(id,level);history=[];selected=-1;hints=[];paused=false;lastResult='';save();populateLevels();finishAnimation();say('准备好了就开始吧。');}
   $('hint').onclick=()=>{if(busy||paused)return;const move=C.hint(s);if(move){hints=move;selected=-1;say(bird?'亮起的小鸟可以移到提示列顶部。':'试着交换亮起的两个位置。');status();requestDraw();}else say('暂时没有可用的组合，可以点“换个排列”。');};
   $('shuffle').onclick=()=>{if(busy||paused)return;const before=clone(s),result=C.shuffle(s);if(result.ok){history.push(before);history=history.slice(-24);save();playFrames(result.frames);say('换好了排列，目标进度和特殊图块都保留。');}};
-  $('undo').onclick=()=>{if(!history.length)return;cancelDrag();finishAnimation();s=history.pop();selected=-1;hints=[];lastResult='';save();finishAnimation();say('已回到上一步，可以换一种走法。');};
+  $('undo').onclick=()=>{if(!history.length)return;GameUX.cancelNext();earnedWin=false;cancelDrag();finishAnimation();s=history.pop();selected=-1;hints=[];lastResult='';save();finishAnimation();say('已回到上一步，可以换一种走法。');};
   if($('result-undo'))$('result-undo').onclick=()=>$('undo').onclick();
   $('restart').onclick=()=>ask('重新开始这一关？','本关会重新排列，已经完成的关卡记录会保留。',()=>reset());
   $('retry').onclick=()=>reset();$('next').onclick=()=>reset((s.level+1)%12);
@@ -266,10 +268,11 @@
     if(document.hidden||paused||$('dialog').open||busy||drag||!timed())return;
     const before=bird?clone(s):null,phase=s.phase,result=C.tick(s,dt);clockSave+=dt;
     if(result?.frames?.length){view=before;playFrames(result.frames);save();}
-    else if(s.phase!==phase){save();saveWin();finishAnimation();audio.effect(s.phase==='won'?'finish':'over',{volume:.4});}
+    else if(s.phase!==phase){earnedWin=s.phase==='won';save();saveWin();finishAnimation();audio.effect(s.phase==='won'?'finish':'over',{volume:.4});}
     else status(false);
     if(clockSave>=2){save();clockSave=0;}syncClock();
   }
+  GameUX.configure({suspend(){cancelDrag();finishAnimation();stopClock();},resume(){lastClock=performance.now();syncClock();requestDraw();}});
   window.MatchGame={snapshot:()=>clone(s),busy:()=>busy,paused:()=>paused,effects:()=>({particles:particles.length,rings:rings.length,beams:beams.length,sprites:sprites.size}),scheduling:()=>({clock:!!clockTimer,raf:!!raf})};
   populateLevels();status();save();draw();requestDraw();say(paused?'欢迎回来，点“继续”恢复这一局。':bird?'拖动最顶端的小鸟，放到另一列顶部。':'交换相邻图块，试试特殊组合的威力。');
 })();

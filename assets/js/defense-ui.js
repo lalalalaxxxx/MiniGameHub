@@ -72,7 +72,7 @@
   $('dialog').addEventListener('close', wake);
   $('sound').onclick = () => { sound = audio.toggle(); if (sound) audio.unlock(true); try { localStorage.setItem('childgame.sound', sound ? 'on' : 'off'); } catch {} audio.sync(); };
   function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; }
-  function needsFrame() { return !paused && !$('dialog').open && !document.hidden && (activeRound() || s.phase === 'ready' && s.towers.length > 0 || fx.bursts.length || Object.keys(fx.shots).length || Object.keys(fx.hurt).length); }
+  function needsFrame() { return !GameUX.isMenuOpen() && !paused && !$('dialog').open && !document.hidden && (activeRound() || s.phase === 'ready' && s.towers.length > 0 || fx.bursts.length || Object.keys(fx.shots).length || Object.keys(fx.hurt).length); }
   function wake() { if (!raf && needsFrame()) { last = 0; raf = requestAnimationFrame(frame); } }
   function suspend() { if (activeRound()) paused = true; stop(); save(); status(); }
   document.addEventListener('visibilitychange', () => { if (document.hidden) suspend(); else wake(); });
@@ -99,6 +99,7 @@
     }
     if (needsFrame()) raf = requestAnimationFrame(frame);
   }
+  GameUX.configure({suspend(){stop();save();},resume(){wake();}});
   window.DefenseGame = { effects: () => C.clone(fx), snapshot: () => C.clone(s), paused: () => paused, scheduling: () => ({raf: !!raf}) };
   render(); save(); say(paused ? '欢迎回来，进度保留好了。点“继续”再玩。' : '先选伙伴，再点空地。准备好了再开始，不用着急。'); wake();
 })();

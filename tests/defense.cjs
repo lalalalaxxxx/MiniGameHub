@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const { test } = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http'), os = require('node:os');
 const { chromium, webkit } = require('playwright'), C = require('../assets/js/defense-core.js');
@@ -67,23 +68,23 @@ test('Defense touch flows: full games, paused restore, upgrades, dialogs, layout
     const snap = () => page.evaluate(() => DefenseGame.snapshot()), cell = n => page.locator(`[data-cell="${n}"]`);
     for (const id of ['gardenwatch', 'toydefense']) {
       await page.goto(`http://127.0.0.1:${server.address().port}/games/${id}/index.html`);
-      assert.equal(await page.locator('.cell').count(), 40);await page.locator('#difficulty').selectOption('easy');await page.locator('#confirm').tap();
+      assert.equal(await page.locator('.cell').count(), 40);await (await uxControl(page,'#difficulty')).selectOption('easy');await page.locator('#confirm').tap();
       await page.locator('[data-type="1"]').tap(); await cell(placements(id)[0]).tap(); assert.equal((await snap()).towers[0].type, 1);
       await page.locator('#upgrade').tap(); assert.equal((await snap()).towers[0].level, 2); await page.locator('#sell').tap(); assert.equal((await snap()).towers.length, 0);
-      await page.locator('#restart').tap(); await page.locator('#confirm').tap();
+      await (await uxControl(page,'#restart')).tap(); await page.locator('#confirm').tap();
       for (const at of placements(id)) await cell(at).tap();
       await page.locator('#start').tap(); await page.clock.runFor(2400);
       if(id==='gardenwatch'){assert((await snap()).projectiles.length>0);assert(await page.locator('.projectile').count()>0);assert.equal(await page.locator('#actors line').count(),0);assert(Number(await cell(0).locator('.defender').getAttribute('data-frame'))>=4);}
       await page.locator('#pause').tap(); const paused = await snap(), pausedFX=await page.evaluate(()=>DefenseGame.effects()); await page.clock.runFor(2000); assert.deepEqual(await snap(), paused);assert.deepEqual(await page.evaluate(()=>DefenseGame.effects()),pausedFX);
       await page.reload(); assert.deepEqual(await snap(), paused); assert(await page.evaluate(() => DefenseGame.paused())); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused);
-      await page.locator('#help').tap(); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused); await page.locator('#confirm').tap();
-      await page.locator('#pause').tap(); await page.locator('#speed').tap();
+      await (await uxControl(page,'#help')).tap(); await page.clock.runFor(1000); assert.deepEqual(await snap(), paused); await page.locator('#confirm').tap();
+      await page.locator('#pause').tap(); await (await uxControl(page,'#speed')).tap();
       for (let wave = 1; wave <= 6; wave++) {
         if (wave > 1) {
           if(wave===2){
             await page.locator('#pause').tap();const rest=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),rest);
             await page.reload();assert(await page.evaluate(()=>DefenseGame.paused()));assert.deepEqual(await snap(),rest);
-            await page.locator('#pause').tap();await page.locator('#speed').tap();await page.locator('#help').tap();const help=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
+            await page.locator('#pause').tap();await (await uxControl(page,'#speed')).tap();await (await uxControl(page,'#help')).tap();const help=await snap();await page.clock.runFor(12000);assert.deepEqual(await snap(),help);await page.locator('#confirm').tap();
           }
           for (const at of placements(id)) { await cell(at).tap(); while (await page.locator('#upgrade').isEnabled()) await page.locator('#upgrade').tap(); }
           await page.clock.runFor(4000);assert.equal((await snap()).phase,'ready');
@@ -93,13 +94,13 @@ test('Defense touch flows: full games, paused restore, upgrades, dialogs, layout
         assert.equal((await snap()).phase, wave === 6 ? 'won' : 'ready');
       }
       assert(await page.locator('#finish').isVisible()); const completed = await snap(); await page.reload(); assert.deepEqual(await snap(), completed);
-      await page.locator('#restart').tap(); await page.locator('#cancel').tap(); assert.deepEqual(await snap(), completed);
-      await page.locator('#difficulty').selectOption('normal'); await page.locator('#cancel').tap(); assert.equal((await snap()).difficulty, 'easy');
-      await page.locator('#difficulty').selectOption('normal'); await page.locator('#confirm').tap(); assert.equal((await snap()).difficulty, 'normal'); assert.equal((await snap()).wave, 0);
+      await (await uxControl(page,'#restart')).tap(); await page.locator('#cancel').tap(); assert.deepEqual(await snap(), completed);
+      await (await uxControl(page,'#difficulty')).selectOption('normal'); await page.locator('#cancel').tap(); assert.equal((await snap()).difficulty, 'easy');
+      await (await uxControl(page,'#difficulty')).selectOption('normal'); await page.locator('#confirm').tap(); assert.equal((await snap()).difficulty, 'normal'); assert.equal((await snap()).wave, 0);
       for (const at of placements(id)) await cell(at).tap(); await page.locator('#start').tap(); await page.clock.runFor(1500); await page.locator('#pause').tap();
       for (const viewport of [{ width: 820, height: 1180 }, { width: 390, height: 844 }, { width: 1180, height: 820 }]) { await page.setViewportSize(viewport); assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)); const box = await cell(0).boundingBox(); assert(box.width >= 40); }
       await page.screenshot({ path: path.join(os.tmpdir(), `defense-${id}.png`), fullPage: true });
-      await page.locator('#sound').tap(); await page.locator('#sound').tap();
+      await (await uxControl(page,'#sound')).tap(); await (await uxControl(page,'#sound')).tap();
       console.log(`PASS ${id}: six waves through touch UI and paused persistence`);
     }
     await ctx.addInitScript(() => { Storage.prototype.getItem = () => { throw Error('blocked'); }; Storage.prototype.setItem = () => { throw Error('blocked'); }; });

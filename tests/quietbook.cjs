@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
@@ -65,10 +66,10 @@ test('quiet book complete wardrobe, dining, home, touch, saving and layout check
     await page.screenshot({path:path.join(require('node:os').tmpdir(),'quietbook-outfit.png')});
     const savedLooks=(await saved()).looks;await page.reload();await page.locator('#face').tap();await page.locator('#undo').tap();assert.deepEqual((await saved()).looks,savedLooks);
     // Clear affects only the active character and can be undone; dialog traps focus.
-    await page.locator('#clear').tap();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-clear');
+    await (await uxControl(page,'#clear')).tap();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-clear');
     await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'cancel-clear');
     await page.keyboard.press('Escape');assert(await page.locator('#confirm').isHidden());
-    await page.locator('#clear').tap();await page.locator('#confirm-clear').tap();assert.deepEqual((await saved()).looks['snow:1'].slots,{});assert.deepEqual((await saved()).looks['garden:0'],savedLooks['garden:0']);
+    await (await uxControl(page,'#clear')).tap();await page.locator('#confirm-clear').tap();assert.deepEqual((await saved()).looks['snow:1'].slots,{});assert.deepEqual((await saved()).looks['garden:0'],savedLooks['garden:0']);
     await page.locator('#undo').tap();assert.deepEqual((await saved()).looks,savedLooks);
     for(const scene of ['dining','home']){
       await page.locator(`[data-scene="${scene}"]`).tap();
@@ -94,7 +95,7 @@ test('quiet book complete wardrobe, dining, home, touch, saving and layout check
     }
     console.log('PASS every food/drink/plate/toy/decoration/blanket, three-bite feeding, posture, lights, clear and keyboard controls');
     const supportsAudio=await page.evaluate(()=>!!(window.AudioContext||window.webkitAudioContext));
-    if(supportsAudio){await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');await page.locator('#sound').tap();assert.equal(await page.locator('#sound').getAttribute('data-audio-state'),'off');await page.reload();assert.equal(await page.locator('#sound').getAttribute('data-audio-state'),'off');await page.locator('#sound').tap();await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');}
+    if(supportsAudio){await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');await (await uxControl(page,'#sound')).tap();assert.equal(await page.locator('#sound').getAttribute('data-audio-state'),'off');await page.reload();assert.equal(await page.locator('#sound').getAttribute('data-audio-state'),'off');await (await uxControl(page,'#sound')).tap();await page.waitForFunction(()=>document.querySelector('#sound').dataset.audioState==='on');}
     await page.locator('[data-preset="day"]').tap();assert.equal((await saved()).scene,'wardrobe');
     await page.locator('[data-preset="picnic"]').tap();
     await page.locator('[data-item="apple"]').tap();await tap(530,420);
@@ -122,8 +123,8 @@ test('quiet book complete wardrobe, dining, home, touch, saving and layout check
       assert.deepEqual(await saved(),before);
     }
     from=await pos(390,530);await page.mouse.move(from.x,from.y);await page.mouse.down();await page.mouse.move(5,5);await page.mouse.up();assert.deepEqual(await saved(),before);
-    await page.locator('#clear').tap();await page.locator('#cancel-clear').tap();assert.deepEqual(await saved(),before);
-    await page.locator('#clear').tap();await page.locator('#confirm-clear').tap();assert.equal((await saved()).rooms.home.length,0);
+    await (await uxControl(page,'#clear')).tap();await page.locator('#cancel-clear').tap();assert.deepEqual(await saved(),before);
+    await (await uxControl(page,'#clear')).tap();await page.locator('#confirm-clear').tap();assert.equal((await saved()).rooms.home.length,0);
     await page.locator('#undo').click();assert.deepEqual(await saved(),before);
     await page.reload();assert.deepEqual(await saved(),before);
     await tap(390,530);await page.locator('#remove').tap();assert.equal((await saved()).rooms.home.length,before.rooms.home.length-1);

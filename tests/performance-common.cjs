@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {setup}=require('./helpers/extra-browser.cjs');
@@ -48,9 +49,9 @@ test('Sudoku keeps focused cells and number buttons while editing and changing n
     await h.page.locator(`[data-cell="${i}"]`).tap();await h.page.locator('#notes').tap();await h.page.locator(`[data-number="${s.solution[i]}"]`).tap();
     await h.page.locator('#notes').tap();await h.page.locator(`[data-number="${s.solution[i]}"]`).tap();await h.page.locator('#undo').tap();
     assert(await h.page.evaluate(()=>savedCells.every((el,i)=>el===document.querySelector('#board').children[i])&&savedNumbers.every((el,i)=>el===document.querySelector('#numbers').children[i])));
-    await h.page.locator('[data-mode="easy"]').tap();await h.page.locator('#confirm').tap();
+    await (await uxControl(h.page,'[data-mode="easy"]')).tap();await h.page.locator('#confirm').tap();
     assert.equal(await h.page.locator('[data-cell]').count(),36);assert.equal(await h.page.locator('[data-number]').count(),6);
-    await h.page.locator('#symbols').tap();assert.equal(await h.page.locator('#numbers small').count(),0);
+    await (await uxControl(h.page,'#symbols')).tap();assert.equal(await h.page.locator('#numbers small').count(),0);
   }finally{await h.close();}
 });
 

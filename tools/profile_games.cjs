@@ -30,7 +30,7 @@ async function main(){
    await page.waitForTimeout(350);const active=await sample(1000);
    let rest='idle';const pause=page.locator('#pause').first();
    if(await pause.isVisible().catch(()=>false)&&await pause.isEnabled()&&/暂停/.test(await pause.textContent())){await pause.click();rest='paused';}
-   else{const help=page.locator('#help,#rules').first();if(await help.isVisible().catch(()=>false)&&await help.isEnabled()){await help.click();rest='help';}}
+   else{const help=page.locator('#help,#rules').first();if(await help.count()&&await help.isEnabled()){if(!await help.isVisible()&&await page.locator('#game-more').count())await page.locator('#game-more').click();if(await help.isVisible()){await help.click();rest='help';}}}
    await page.waitForTimeout(450);const idle=await sample(650);
    await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});await page.waitForTimeout(100);const hidden=await sample(500);
    report.games.push({id:game.id,rest,active,idle,hidden,errors:[...errors]});console.log(`${game.id}: active ${active.taskMs}ms, ${rest} RAF ${idle.raf}, hidden RAF ${hidden.raf}/timers ${hidden.timers}`);

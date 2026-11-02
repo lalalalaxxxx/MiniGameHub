@@ -1,3 +1,4 @@
+const {uxControl}=require('./helpers/game-ux.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),os=require('node:os');
 const {chromium,webkit}=require('playwright');
@@ -41,14 +42,14 @@ test('Five games: full touch play at both ages, drag/cancel, retry, save, sound 
       const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));const key=`childgame.academy.${id}.v1`,url=`http://127.0.0.1:${server.address().port}/games/${id}/index.html`;
       const saved=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key),button=(action,value)=>page.locator(`[data-action="${action}"]${value===undefined?'':`[data-value="${value}"]`}`);
       for(const level of [0,1]){
-        await page.goto(url);if(level)await page.locator('[data-level="1"]').tap();await button('start').tap();let s=await saved();assert.equal(s.level,level);const qs=C.questions(config,level,s.seed),kind=config.kind;
+        await page.goto(url);if(level)await (await uxControl(page,'[data-level="1"]')).tap();await button('start').tap();let s=await saved();assert.equal(s.level,level);const qs=C.questions(config,level,s.seed),kind=config.kind;
         for(let i=0;i<6;i++){
           const q=qs[i];assert.equal((await saved()).index,i);
           if(i===0){
             await page.locator('#listen').tap();if(engine===chromium)await page.waitForFunction(()=>window.__voice.currentTime>0&&!window.__voice.paused);
-            await page.locator('#sound').tap();assert(await page.evaluate(()=>window.__voice.paused));await page.locator('#sound').tap();
-            await page.locator('#help').tap();assert(await page.locator('#dialog').evaluate(el=>el.open));assert(await page.evaluate(()=>window.__voice.paused));await page.locator('#confirm').tap();
-            const old=await saved();await page.locator('#restart').tap();await page.locator('#cancel').tap();assert.deepEqual(await saved(),old);
+            await (await uxControl(page,'#sound')).tap();assert(await page.evaluate(()=>window.__voice.paused));await (await uxControl(page,'#sound')).tap();
+            await (await uxControl(page,'#help')).tap();assert(await page.locator('#dialog').evaluate(el=>el.open));assert(await page.evaluate(()=>window.__voice.paused));await page.locator('#confirm').tap();
+            const old=await saved();await (await uxControl(page,'#restart')).tap();await page.locator('#cancel').tap();assert.deepEqual(await saved(),old);
             // Pointer drag inserts only once; dropping outside leaves the state unchanged.
             if(kind==='build'||kind==='sentence'){
               const box=await button('w-add',0).boundingBox(),target=await page.locator('.assembly-target').boundingBox();
@@ -89,12 +90,12 @@ test('Five games: full touch play at both ages, drag/cancel, retry, save, sound 
           if(i===0){const old=await saved();await page.reload();assert.deepEqual(await saved(),old);}
           if(i===1){for(const viewport of [{width:820,height:1180},{width:390,height:844},{width:1180,height:820}]){await page.setViewportSize(viewport);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert((await page.locator('#listen').boundingBox()).height>=44);}
             await page.screenshot({path:path.join(os.tmpdir(),`${id}-${level}.png`),fullPage:true});}
-          await page.locator('#next-question').tap();
+          await (await uxControl(page,'#next-question')).tap();
         }
         assert(await page.locator('#finish-title').isVisible());await button('sticker',3).tap();await page.reload();assert.equal((await saved()).sticker,3);
         if(!level)await page.evaluate(key=>localStorage.removeItem(key),key);
       }
-      await button('again').tap();await page.locator('[data-level="0"]').tap();await page.locator('#confirm').tap();assert.equal((await saved()).level,0);
+      await button('again').tap();await (await uxControl(page,'[data-level="0"]')).tap();await page.locator('#confirm').tap();assert.equal((await saved()).level,0);
       await page.evaluate(key=>{const s=JSON.parse(localStorage.getItem(key));s.work={selected:[999],time:NaN,counts:[999]};s.solved=true;localStorage.setItem(key,JSON.stringify(s));},key);await page.reload();assert.equal((await saved()).solved,false);
       await page.evaluate(key=>localStorage.setItem(key,'broken'),key);await page.reload();assert(await button('start').isVisible());
       await page.close();console.log(`PASS ${id}: both ages, six-stage completion and persistence`);

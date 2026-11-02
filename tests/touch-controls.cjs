@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { setup } = require('./helpers/extra-browser.cjs');
@@ -14,7 +15,7 @@ async function center(page, selector) {
   return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, width: rect.width, height: rect.height };
 }
 function runningCar() { const g = games.buildracer, s = g.create(0, 37); for (const [type, p] of assembleActions()) g.act(s, type, p); assert.equal(s.mode, 'run'); return s; }
-async function start(ui, id, state) { await ui.install(state || games[id].create(0, 37)); await ui.page.locator('#resume').click(); await ui.page.waitForFunction(() => typeof ExtraGame.inputs === 'function'); }
+async function start(ui, id, state) { await ui.install(state || games[id].create(0, 37)); await (await uxControl(ui.page,'#resume')).click(); await ui.page.waitForFunction(() => typeof ExtraGame.inputs === 'function'); }
 async function expectInputs(page, expected) { const want = expected.slice().sort(); await page.waitForFunction(want => JSON.stringify(ExtraGame.inputs().slice().sort()) === JSON.stringify(want), want, { timeout: 1500 }); assert.deepEqual(await inputs(page), want); }
 
 // Chromium uses browser-delivered, trusted touch input, including genuine capture,
@@ -74,7 +75,7 @@ test('touch pad: tank moves and shoots together, outside capture steers and paus
   await driver.move(1, stick); await expectInputs(ui.page, ['fire']);
   await driver.move(1, { x: stick.x, y: stick.y - stick.height * .35 }); await expectInputs(ui.page, ['fire', 'up']);
   await ui.page.locator('#pause').click(); await expectInputs(ui.page, []); assert.equal(await ui.page.evaluate(() => ExtraGame.paused()), true); assert.deepEqual((await ui.snap()).held, []);
-  await driver.up(1); await driver.up(2); await ui.page.locator('#resume').click(); await expectInputs(ui.page, []);
+  await driver.up(1); await driver.up(2); await (await uxControl(ui.page,'#resume')).click(); await expectInputs(ui.page, []);
   const stopped = (await ui.snap()).player; await ui.page.waitForTimeout(120); const still = (await ui.snap()).player; assert.equal(still.x, stopped.x); assert.equal(still.y, stopped.y);
   await driver.down(1, stick); await driver.move(1, { x: stick.x + stick.width * .35, y: stick.y }); await driver.down(2, fire); await expectInputs(ui.page, ['fire', 'right']);
   await ui.page.setViewportSize({ width: 768, height: 1024 }); await expectInputs(ui.page, []); assert.deepEqual((await ui.snap()).held, [], 'rotation cancels old coordinates instead of leaving steering stuck'); await driver.up(1); await driver.up(2);
@@ -115,8 +116,8 @@ test('touch pad: keyboard and touch ownership are merged, cancelling one source 
   await ui.page.keyboard.down('ArrowRight'); await driver.cancel(); await expectInputs(ui.page, ['right']); assert.equal((await ui.snap()).keys.right, true);
   await ui.page.keyboard.up('ArrowRight'); await expectInputs(ui.page, []);
   await ui.page.keyboard.down('ArrowLeft'); await driver.down(1, stick); await driver.move(1, right); await ui.page.evaluate(() => window.dispatchEvent(new Event('blur'))); await expectInputs(ui.page, []); assert.equal(await ui.page.evaluate(() => ExtraGame.paused()), true);
-  await ui.page.keyboard.up('ArrowLeft'); await driver.up(1); await ui.page.locator('#resume').click(); await expectInputs(ui.page, []);
-  await ui.page.locator('#levels').focus(); await ui.page.keyboard.down('ArrowRight'); await expectInputs(ui.page, []); await ui.page.keyboard.up('ArrowRight');
+  await ui.page.keyboard.up('ArrowLeft'); await driver.up(1); await (await uxControl(ui.page,'#resume')).click(); await expectInputs(ui.page, []);
+  await (await uxControl(ui.page,'#levels')).focus(); await ui.page.keyboard.down('ArrowRight'); await expectInputs(ui.page, []); await ui.page.keyboard.up('ArrowRight');
   await driver.close();
 });
 
@@ -129,7 +130,7 @@ test('touch pad: iPad landscape, portrait and phone layouts keep controls reacha
       const layout = await ui.page.evaluate(() => {
         const rect = element => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom }; };
         const visible = element => { const r = element.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(element).visibility !== 'hidden'; };
-        const elements = [...document.querySelectorAll('#touch-controls .touch-action, #touch-controls [data-touch-stick], #pause, #help')].filter(visible);
+        const elements = [...document.querySelectorAll('#touch-controls .touch-action, #touch-controls [data-touch-stick], #pause, #game-more')].filter(visible);
         const notes = ['feedback', 'touch-note'].map(id => document.getElementById(id)).filter(element => element && visible(element) && element.textContent.trim()).map(rect);
         return { width: innerWidth, height: innerHeight, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, board: rect(document.querySelector('#board')), notes, controls: elements.map(element => ({ name: element.dataset.action || element.id || 'stick', stick: element.hasAttribute('data-touch-stick'), ...rect(element) })), actions: [...document.querySelectorAll('#touch-controls .touch-action')].filter(visible).map(rect), stick: [...document.querySelectorAll('#touch-controls [data-touch-stick]')].filter(visible).map(rect) };
       });

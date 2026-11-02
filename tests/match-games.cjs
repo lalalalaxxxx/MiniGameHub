@@ -1,4 +1,5 @@
 'use strict';
+const {uxControl}=require('./helpers/game-ux.cjs');
 
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
@@ -109,7 +110,7 @@ test('Match games: real opening levels, touch input, invalid moves, progress, sa
       assert.equal(await page.locator('#cells [data-cell]').count(),49);
       assert.equal(await page.locator('#levels option').count(),12);
       assert(await page.locator('#board').evaluate(el=>el instanceof HTMLCanvasElement&&el.width>0&&el.height>0));
-      await page.locator('#hint').tap();assert.deepEqual(await snapshot(),initial,'hint never consumes a move');
+      await (await uxControl(page,'#hint')).tap();assert.deepEqual(await snapshot(),initial,'hint never consumes a move');
       const expected=clone(initial),move=C.hint(initial);assert(move&&C.play(expected,...move).ok);
       await dragMove(move);
       assert(await page.evaluate(()=>MatchGame.busy()),`${id}: normal-motion action has animated feedback`);
@@ -123,17 +124,17 @@ test('Match games: real opening levels, touch input, invalid moves, progress, sa
 
       const invalid=invalidMove(C,initial);assert(invalid);
       await tapMove(invalid);assert.deepEqual(await snapshot(),initial,'invalid swap returns pieces without spending a move');
-      await page.locator('#shuffle').tap();await waitIdle();const shuffled=await snapshot();
+      await (await uxControl(page,'#shuffle')).tap();await waitIdle();const shuffled=await snapshot();
       for(const key of ['movesLeft','movesUsed','score','collected','rescued','clearedCovers','clearedLocks','goals'])assert.deepEqual(shuffled[key],initial[key],`shuffle preserves ${key}`);
       assert.deepEqual(shuffled.board.map(p=>p.uid).sort((a,b)=>a-b),initial.board.map(p=>p.uid).sort((a,b)=>a-b));
       assert(C.hint(shuffled),'shuffle must leave a playable board');
       await page.locator('#undo').tap();assert.deepEqual(await snapshot(),initial);
 
       await tapMove(move);const saved=await snapshot();await page.reload();await waitIdle();assert.deepEqual(await snapshot(),saved);
-      await page.locator('#restart').tap();assert(await page.locator('#dialog').evaluate(el=>el.open));await page.locator('#cancel').tap();assert.deepEqual(await snapshot(),saved);
-      await page.locator('#help').tap();assert(await page.locator('#dialog').evaluate(el=>el.open));await page.locator('#confirm').tap();assert.deepEqual(await snapshot(),saved);
-      await page.locator('#levels').selectOption('2');await page.locator('#cancel').tap();assert.deepEqual(await snapshot(),saved);assert.equal(await page.locator('#levels').inputValue(),String(saved.level));
-      await page.locator('#levels').selectOption('2');await page.locator('#confirm').tap();assert.equal((await snapshot()).level,2);assert.equal((await snapshot()).movesUsed,0);
+      await (await uxControl(page,'#restart')).tap();assert(await page.locator('#dialog').evaluate(el=>el.open));await page.locator('#cancel').tap();assert.deepEqual(await snapshot(),saved);
+      await (await uxControl(page,'#help')).tap();assert(await page.locator('#dialog').evaluate(el=>el.open));await page.locator('#confirm').tap();assert.deepEqual(await snapshot(),saved);
+      await (await uxControl(page,'#levels')).selectOption('2');await page.locator('#cancel').tap();assert.deepEqual(await snapshot(),saved);assert.equal(await page.locator('#levels').inputValue(),String(saved.level));
+      await (await uxControl(page,'#levels')).selectOption('2');await page.locator('#confirm').tap();assert.equal((await snapshot()).level,2);assert.equal((await snapshot()).movesUsed,0);
       for(const viewport of [{width:1024,height:650},{width:820,height:560},{width:768,height:1024},{width:390,height:844}]){await page.setViewportSize(viewport);await fits(`${id} ${viewport.width}x${viewport.height}`);}
       await page.setViewportSize({width:1024,height:650});
 
@@ -143,9 +144,9 @@ test('Match games: real opening levels, touch input, invalid moves, progress, sa
       for(const action of plan.moves)await tapMove(action);
       assert.deepEqual(await snapshot(),plan.finished);assert.equal((await snapshot()).phase,'won');
       assert.equal(await page.locator('#score').textContent(),String(plan.finished.score),'HUD reaches the exact final score');
-      assert(await page.locator('#result').isVisible());assert(await page.locator('#next').isVisible());await fits(`${id} won`);
+      assert(await page.locator('#result').isVisible());assert(await page.locator('.ux-next').isVisible());assert.equal(await page.evaluate(()=>GameUX.transitioning()),true);await fits(`${id} won`);
       await page.reload();await waitIdle();assert.deepEqual(await snapshot(),plan.finished);
-      await page.locator('#next').tap();assert.equal((await snapshot()).level,1);assert.equal((await snapshot()).phase,'playing');
+      await (await uxControl(page,'#next')).tap();assert.equal((await snapshot()).level,1);assert.equal((await snapshot()).phase,'playing');
       await page.emulateMedia({reducedMotion:'no-preference'});
     }
     assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
@@ -211,7 +212,7 @@ test('Candy timed round: restore, explicit pause, help, reload and timeout prese
     await page.locator('#pause').tap();await page.waitForFunction(()=>MatchGame.snapshot().timeLeft<89.7);
     await page.locator('#pause').tap();const paused=await snapshot();
     await page.waitForTimeout(300);assert.deepEqual(await snapshot(),paused,'pause freezes time and board');
-    await page.locator('#pause').tap();await page.locator('#help').tap();const help=await snapshot();
+    await page.locator('#pause').tap();await (await uxControl(page,'#help')).tap();const help=await snapshot();
     await page.waitForTimeout(300);assert.deepEqual(await snapshot(),help,'reading instructions freezes the clock');
     await page.locator('#confirm').tap();await page.waitForFunction(previous=>MatchGame.snapshot().timeLeft<previous-.15,help.timeLeft);
     await page.reload();await page.waitForFunction(()=>window.MatchGame&&!MatchGame.busy());

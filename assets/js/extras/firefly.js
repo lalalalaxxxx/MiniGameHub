@@ -88,6 +88,6 @@
     if(!won)return s.stars===0&&s.score===0;
     return s.moves>0&&s.stars===(s.moves<=s.par+2?3:s.moves<=s.par*2+3?2:1)&&s.score===Math.max(100,1000+s.level*100-Math.max(0,s.moves-s.par)*25);
   }
-  const G={id:ID,meta:{title:'萤火灯阵',category:'解谜',blurb:'点亮小萤火虫和它的邻居，让整片夜色闪起星光。',tags:['逻辑','规律','观察'],color:'#b4c786',instructions:['点击一只萤火虫，自己和上下左右的伙伴都会改变亮暗。斜角不会改变。','星星表示亮着，月牙表示睡着。让所有伙伴同时亮起来就过关。','同一格点两次会恢复原样。没有倒计时，可用提示、撤销和下方大按钮。']},levels:10,create,act,step,draw,hud,controls,hint,validate,solve,center,influence,layouts:LEVELS,needsFrame:s=>s.phase==='playing'&&s.anims.length>0};
+  const G={id:ID,meta:{title:'萤火灯阵',category:'解谜',blurb:'点亮小萤火虫和它的邻居，让整片夜色闪起星光。',tags:['逻辑','规律','观察'],color:'#b4c786',instructions:['点击一只萤火虫，自己和上下左右的伙伴都会改变亮暗。斜角不会改变。','星星表示亮着，月牙表示睡着。让所有伙伴同时亮起来就过关。','同一格点两次会恢复原样。没有倒计时，可以撤销，也能从“更多”查看提示。']},levels:10,create,act,step,draw,hud,controls,hint,validate,solve,center,influence,layouts:LEVELS,needsFrame:s=>s.phase==='playing'&&s.anims.length>0};
   (root.ExtraGames||(root.ExtraGames={}))[ID]=G;if(typeof module!=='undefined'&&module.exports)module.exports=G;
 })(typeof globalThis!=='undefined'?globalThis:this);
