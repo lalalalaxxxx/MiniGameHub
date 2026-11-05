@@ -13,7 +13,7 @@ def build():
     for folder in ('assets', 'games'):
         files.extend(p for p in (ROOT / folder).rglob('*') if p.suffix in EXTENSIONS and p.is_file())
     assets = [{'path': p.relative_to(ROOT).as_posix(), 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}
-              for p in sorted(files)]
+              for p in sorted(files, key=lambda p: p.relative_to(ROOT).as_posix())]
     template = (ROOT / 'tools/service-worker.template.js').read_text(encoding='utf-8')
     manifest = json.dumps(assets, ensure_ascii=False, separators=(',', ':'))
     version = hashlib.sha256((manifest + template).encode()).hexdigest()[:16]

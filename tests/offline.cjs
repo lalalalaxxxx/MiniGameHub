@@ -14,6 +14,16 @@ const assets = JSON.parse(generated.match(/^const ASSETS = (.+);$/m)[1]);
 const template = fs.readFileSync(path.join(root, 'tools/service-worker.template.js'), 'utf8');
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
+test('offline release uses portable path ordering and exact public file hashes', () => {
+  const paths = assets.map(asset => asset.path);
+  assert.deepEqual(paths, [...paths].sort(), 'Windows and Linux must generate the same release');
+  assert.equal(new Set(paths).size, paths.length);
+  for (const asset of assets) assert.equal(hash(fs.readFileSync(path.join(root, asset.path))), asset.sha256, asset.path);
+  assert(paths.includes('games/pvz/media/lawn.jpg'));
+  assert(paths.some(file => file.startsWith('games/pvz/media/runtime/') && file.endsWith('.webp')));
+  assert(!paths.some(file => file.includes('/.cache/') || file.startsWith('games/pvz/media/original/actors-')));
+});
+
 function release(label) {
   const files = new Map(assets.map(({ path: file }) => {
     let bytes = fs.readFileSync(path.join(root, file));
