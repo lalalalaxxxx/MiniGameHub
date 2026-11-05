@@ -1,5 +1,20 @@
 [
   {
+    "id": "pvz",
+    "title": "植物大战僵尸",
+    "blurb": "收集阳光、搭配植物，在白天、夜晚、泳池、浓雾和屋顶守住庭院。",
+    "category": "塔防",
+    "tags": [
+      "策略",
+      "植物",
+      "僵尸",
+      "初代",
+      "触屏"
+    ],
+    "cover": "games/pvz/cover.png",
+    "entry": "games/pvz/index.html"
+  },
+  {
     "id": "mirrorlight",
     "title": "星光镜子屋",
     "blurb": "转动银色镜子，把温柔的光送进每一个星星罐。",

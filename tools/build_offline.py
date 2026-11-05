@@ -5,7 +5,7 @@ import hashlib
 import json
 
 ROOT = Path(__file__).resolve().parents[1]
-EXTENSIONS = {'.html', '.js', '.css', '.json', '.svg', '.png', '.mp3', '.wav'}
+EXTENSIONS = {'.html', '.js', '.css', '.json', '.svg', '.png', '.jpg', '.webp', '.mp3', '.wav'}
 
 
 def build():

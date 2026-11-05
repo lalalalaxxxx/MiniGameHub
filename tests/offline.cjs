@@ -87,7 +87,7 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
     // Windows Playwright WebKit omits Web Audio. Still verify every cached sound
     // byte in that engine; Chromium (and WebKit builds with audio) also decode it.
     const supportsAudio = await lobby.evaluate(() => !!(window.AudioContext || window.webkitAudioContext));
-    const audioFiles = assets.filter(asset => asset.path.startsWith('assets/audio/'));
+    const audioFiles = assets.filter(asset => /\.(mp3|wav)$/.test(asset.path));
     assert(await lobby.evaluate(async ({ base, audioFiles }) => {
       for (const asset of audioFiles) {
         const response = await fetch(base + asset.path + '?v=retro-1');
@@ -115,6 +115,21 @@ test('complete offline install, all games/audio, atomic updates, failed update, 
     for (const game of games) {
       const page = await context.newPage();
       await page.goto(base + `games/${game}/index.html?v=old-bookmark`);
+      if (game === 'pvz') {
+        await page.waitForFunction(() => window.PVZGame?.ready());
+        await page.locator('#adventure').tap();
+        await page.waitForFunction(() => PVZGame.ready() && !PVZGame.paused());
+        await page.locator('#cards [data-plant=peashooter]').tap();
+        const board = await page.locator('#board').boundingBox();
+        const p = await page.evaluate(() => PVZGame.point(2, 1));
+        await page.touchscreen.tap(board.x + p.x / 1100 * board.width, board.y + p.y / 700 * board.height);
+        assert.equal(await page.evaluate(() => PVZGame.snapshot().plants.length), 1);
+        assert.equal(await page.evaluate(() => PVZGame.effects().contextLost), false);
+        if (supportsAudio) await page.waitForFunction(() => window.__audioDecoded === 15);
+        assert.equal(await page.locator('body').getAttribute('data-test-release'), 'A');
+        await page.close();
+        continue;
+      }
       const expectedAudio = game === 'birdblast' ? 16 : ['snake','2048','tetris','whack','shooter','racing','watermelon'].includes(game) ? 13 : 12;
       if (supportsAudio) await page.waitForFunction(count => window.__audioDecoded === count, expectedAudio).catch(async error => {
         console.error(game, await page.evaluate(() => ({ decoded: window.__audioDecoded, errors: window.__audioDecodeErrors,
