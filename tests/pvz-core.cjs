@@ -22,7 +22,7 @@ test('PvZ: armor, piercing fumes, slowing peas and lobbed butter',()=>{
  const roof=arena(49,['cabbagepult']);put(roof,'cabbagepult',2,1);const target=C.spawn(roof,'door',2,7);advance(roof,1);assert(target.hp<270);assert.equal(target.armor,1100);
 });
 test('PvZ: mines arm before triggering, squash jumps and chomper digests',()=>{
- const s=arena(9,['potatomine']);const mine=put(s,'potatomine',2,3);const z=C.spawn(s,'zombie',2,3.9);advance(s,.2);assert(z.hp>0);mine.age=14;advance(s,.2);assert(!s.zombies.length);assert(!s.plants.length);
+ const s=arena(9,['potatomine']);const mine=put(s,'potatomine',2,3);const z=C.spawn(s,'zombie',2,3.9);advance(s,.2);assert(z.hp>0);mine.age=14;advance(s,.2);assert(z.hp>0);mine.age=15;advance(s,.1);assert(!s.zombies.length);assert(!s.plants.length);
  const q=arena(24,['squash']);put(q,'squash',0,3);C.spawn(q,'bucket',0,4);advance(q,.8);assert(!q.zombies.length);assert(!q.plants.length);
  const c=arena(9,['chomper']);const p=put(c,'chomper',2,3);C.spawn(c,'zombie',2,3.9);advance(c,.1);assert(!c.zombies.length);assert(p.cd>40);
 });

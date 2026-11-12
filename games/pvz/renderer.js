@@ -15,7 +15,7 @@ window.createPVZRenderer = function (canvas) {
     const keys=new Set(['sun','zombie-walk','zombie-eat','zombie-die']);
     const types=[...s.deck,...s.plants.map(p=>p.type),...(s.deck.includes('imitater')?[s.imitate]:[]),...(info.mode==='normal'?[]:C.available(s.level))];
     for(const type of types){const art=C.plants[type]?.art||type;for(const k of Object.keys(catalog.animations))if(k===art||k.startsWith(art+'-'))keys.add(k);}
-    const enemyTypes=new Set([...C.enemyPool(s),'flag',...s.zombies.map(z=>z.type)]);
+    const enemyTypes=new Set([...C.enemyPool(s),'flag',...s.zombies.map(z=>z.type),...s.spawnQueue.map(z=>z.type)]);
     if(enemyTypes.has('dancer'))enemyTypes.add('backup');
     if(enemyTypes.has('gargantuar')||info.mode==='boss'){enemyTypes.add('gargantuar');enemyTypes.add('imp');}
     if(info.pool)for(const type of ['ducky1','ducky2','ducky3'])enemyTypes.add(type);
@@ -60,7 +60,7 @@ window.createPVZRenderer = function (canvas) {
   function shadow(x,y,w=28){ctx.fillStyle='#15210e35';ctx.beginPath();ctx.ellipse(x,y,w,9,0,0,Math.PI*2);ctx.fill();}
   function plantName(p){
     let name=C.plants[p.type].art||p.type;
-    if(p.type==='potatomine'&&p.age<14)name+='-unarmed';
+    if(p.type==='potatomine'&&p.age<C.balance.mineArm)name+='-unarmed';
     else if(p.type==='sunshroom'&&p.age>120)name+='-big';
     else if(p.type==='scaredyshroom'&&p.scared)name+='-scared';
     else if(p.type==='chomper'&&p.cd>1)name+=p.attack>0?'-bite':'-digest';
@@ -79,6 +79,7 @@ window.createPVZRenderer = function (canvas) {
     if(p.type==='cobcannon'&&p.cd===0){circle(x+25,y-60,9,'#ffdf57');}
   }
   function zombieName(z){
+    if(z.headless)return catalog.animations[z.type+'-headless']?z.type+'-headless':'zombie-headless';
     let type=z.type;if(['cone','bucket','door'].includes(type)&&z.armor===0)type='zombie';
     if(type==='football'&&z.armor===0)type='football-bare';
     if(type==='newspaper'&&z.armor===0)type='newspaper-mad';
@@ -142,6 +143,7 @@ window.createPVZRenderer = function (canvas) {
     for(const ball of s.bossBalls){const im=bossImages.get(ball.type==='fire'?'ZOMBIE_BOSS_FIREBALL':'ZOMBIE_BOSS_ICEBALL');if(im){ctx.save();ctx.translate(px(ball.x),py(ball.row)-35);ctx.rotate(ball.age*2);ctx.drawImage(im,-40,-40,80,80);ctx.restore();}}
     for(const sun of s.suns)if(sun.currency==='coin')ctx.drawImage(stills['coin-silver'],px(sun.x)-17,py(sun.y)-52,34,34);else sprite('sun',px(sun.x),py(sun.y)-35,s.time,Math.min(1.1,.8+sun.value/100));
     ctx.fillStyle='#e3dfb8';ctx.font='bold 17px sans-serif';ctx.textAlign='right';ctx.fillText(info.name,1080,132);
+    if(s.waveWarning){ctx.fillStyle='#302317e8';ctx.fillRect(290,116,510,35);ctx.fillStyle='#ffdf88';ctx.textAlign='center';ctx.font='bold 20px sans-serif';ctx.fillText(`${s.wave+1===info.waves?'最后一波':'一大波僵尸'} · ${Math.max(1,Math.ceil(s.waveIn))} 秒后到达`,545,141);}
     const progress=info.mode==='boss'?1-(s.zombies.find(z=>z.type==='boss')?.hp??40000)/40000:s.wave/info.waves;
     ctx.fillStyle='#17261c';ctx.fillRect(868,656,210,17);ctx.fillStyle='#8db145';ctx.fillRect(871,659,204*Math.max(0,Math.min(1,progress)),11);ctx.strokeStyle='#ceb788';ctx.strokeRect(868,656,210,17);ctx.textAlign='left';
     if(s.phase==='ready'){ctx.fillStyle='#15251c55';ctx.fillRect(0,110,W,H-110);}

@@ -10,7 +10,7 @@ function fixture(level,deck){const s=C.fresh(level,42,deck);C.start(s);s.sun=200
 test('PvZ touch: first level, genuine projectile combat, win reward and automatic next level',{timeout:120000},async()=>{
  const h=await setup();try{await h.page.clock.install();await boot(h);await h.page.locator('#adventure').tap();await h.page.waitForFunction(()=>!PVZGame.paused());await h.page.locator('#cards [data-plant=peashooter]').tap();await tap(h,2,1);assert.equal((await snap(h)).plants.length,1);assert.equal((await snap(h)).sun,50);
  await h.page.clock.runFor(23000);assert((await snap(h)).zombies.length);assert.equal(await h.page.evaluate(()=>PVZGame.effects().contextLost),false);const pixel=await h.page.evaluate(()=>Array.from(document.getElementById('board').getContext('2d').getImageData(220,210,1,1).data));assert(pixel[1]>pixel[0],'lawn is visibly rendered');await h.capture('pvz-day');
- await h.page.clock.runFor(55000);assert.equal((await snap(h)).phase,'won');assert.equal(await h.page.locator('#result').isVisible(),true);assert.equal(await h.page.evaluate(()=>GameUX.transitioning()),true);
+ for(let n=0;n<90&&(await snap(h)).phase==='running';n++)await h.page.clock.runFor(1000);assert.equal((await snap(h)).phase,'won');assert.equal(await h.page.locator('#result').isVisible(),true);assert.equal(await h.page.evaluate(()=>GameUX.transitioning()),true);
  await h.page.clock.runFor(5500);await h.page.waitForFunction(()=>PVZGame.ready()&&PVZGame.snapshot().level===2);assert.equal((await snap(h)).phase,'running');assert((await snap(h)).deck.includes('sunflower'));
  }finally{await h.close();}
 });
@@ -64,5 +64,16 @@ test('PvZ: pool touch layering, roof, fog, special stages and boss resources ren
 });
 test('PvZ: all tablet orientations fit and menus retain finger-sized targets',{timeout:60000},async()=>{
  const h=await setup();try{await boot(h,fixture(9,['peashooter','sunflower','wallnut','potatomine','repeater','cherrybomb']));for(const viewport of [{width:1180,height:820},{width:1024,height:650},{width:768,height:1024},{width:820,height:560},{width:390,height:844}]){await h.page.setViewportSize(viewport);await h.page.waitForTimeout(100);const result=await h.page.evaluate(()=>{const r=document.getElementById('stage').getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,sw:document.documentElement.scrollWidth,sh:document.documentElement.scrollHeight};});assert(result.x>=-1&&result.y>=-1&&result.right<=viewport.width+1&&result.bottom<=viewport.height+1,JSON.stringify(result));assert(result.sw<=viewport.width&&result.sh<=viewport.height);await h.page.locator('#game-more').tap();assert(await h.page.locator('#game-tools').isVisible());await h.page.locator('#game-tools-close').tap();}
+ }finally{await h.close();}
+});
+
+test('PvZ classic warning and headless animation render; pause and reload preserve the countdown',{timeout:60000},async()=>{
+ const h=await setup();try{
+  await h.page.clock.install();const s=fixture(9,['peashooter']);s.wave=9;s.waveIn=.05;
+  const z=C.spawn(s,'zombie',2,5);z.hp=80;C.spawn(s,'cone',1,6);C.spawn(s,'bucket',3,6);
+  await boot(h,s);await h.page.clock.runFor(500);const state=await snap(h);assert.equal(state.waveWarning,true);assert(state.zombies.some(z=>z.headless));assert.equal(state.wave,9);assert.equal(await h.page.evaluate(()=>PVZGame.effects().contextLost),false);await h.capture('pvz-classic-warning');
+  await h.page.locator('#pause').tap();const paused=await snap(h);await h.page.clock.runFor(10000);assert.deepEqual(await snap(h),paused);
+  await h.page.reload();await h.page.waitForFunction(()=>PVZGame.ready());await h.page.locator('#continue').tap();await h.page.waitForFunction(()=>PVZGame.ready());assert.deepEqual(await snap(h),paused);assert.equal(await h.page.evaluate(()=>PVZGame.paused()),true);
+  await h.page.locator('#pause').tap();await h.page.clock.runFor(7500);assert.equal((await snap(h)).wave,10);assert.equal((await snap(h)).waveWarning,false);
  }finally{await h.close();}
 });
