@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#fbf7ed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="软软游戏屋">
+  <link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../assets/css/game-ux.css">
+  <link rel="stylesheet" href="game.css">
+  <title>颜色变变变 · 软软游戏屋</title>
+</head>
+<body data-game="colormix">
+  <header class="topbar">
+    <a class="pill" href="../../index.html">‹ 回大厅</a>
+    <div class="brand"><span class="brand-mark" aria-hidden="true">✿</span><div><p>小小调色师的魔法屋</p><h1>颜色变变变</h1></div></div>
+    <div class="top-actions"><button id="book-button" type="button">📖 图鉴 <span id="book-count">0</span></button><button id="sound" type="button">开启声音</button></div>
+  </header>
+  <nav id="modes" class="modes" aria-label="选择玩法"></nav>
+  <main class="studio">
+    <section class="story" aria-labelledby="mode-title">
+      <div class="story-top"><div><p class="eyebrow" id="chapter">COLOR PLAY / 01</p><h2 id="mode-title">小熊颜料店</h2></div><span id="progress" class="progress"></span></div>
+      <div class="request"><span id="customer" aria-hidden="true">🐻</span><div><h3 id="mission"></h3><p id="instruction"></p></div><button id="listen" class="listen" type="button" aria-label="听听任务">♫</button></div>
+      <div id="scene" class="scene" aria-label="颜色小舞台"></div>
+      <div id="target" class="target"></div>
+      <div id="story-footer" class="story-footer"></div>
+    </section>
+    <section class="workbench" aria-labelledby="bench-title">
+      <div class="bench-top"><h2 id="bench-title">我的调色台</h2><span>点一点，也能拖进碗里</span></div>
+      <div id="palette" class="palette" aria-label="选择颜料"></div>
+      <div id="recipe" class="recipe" aria-label="当前配方"></div>
+      <div class="bowl-wrap"><button id="bowl" class="bowl" type="button" aria-label="搅拌颜料"><svg viewBox="0 0 320 175" aria-hidden="true"><ellipse cx="160" cy="152" rx="116" ry="12" fill="#456b5b" opacity=".08"/><path d="M42 60 Q48 150 160 153 Q272 150 278 60" fill="#f5eee0" stroke="#c9bda7" stroke-width="3"/><ellipse cx="160" cy="60" rx="118" ry="42" fill="#fffaf2" stroke="#c9bda7" stroke-width="3"/><ellipse id="paint" cx="160" cy="60" rx="104" ry="31" fill="#e7e6dc"/><g id="paint-drops"></g><path id="swirl" d="M99 59 C99 30 227 33 227 62 C227 88 124 85 124 61 C124 48 192 48 192 61" fill="none" stroke="#fff" opacity=".6" stroke-width="5" stroke-linecap="round"/><g class="spoon"><path d="M180 57 L252 8" stroke="#b78a62" stroke-width="15" stroke-linecap="round"/><ellipse cx="177" cy="59" rx="23" ry="10" fill="#d6ad7f" transform="rotate(-32 177 59)"/></g><circle cx="143" cy="122" r="4" fill="#7f7566"/><circle cx="177" cy="122" r="4" fill="#7f7566"/><path d="M151 132 Q160 140 169 132" fill="none" stroke="#7f7566" stroke-width="3" stroke-linecap="round"/></svg><span id="bowl-label">等你放进第一滴颜色</span></button></div>
+      <div class="mix-tools"><button id="undo" type="button">↶ 少一滴</button><button id="empty-bowl" type="button">洗洗碗</button><button id="stir" class="primary" type="button">✦ 搅一搅</button></div>
+      <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+      <button id="apply" class="apply" type="button" disabled>用这个颜色</button>
+      <button id="next" class="apply" type="button" hidden>下一位小客人 →</button>
+      <div id="transition"></div>
+    </section>
+  </main>
+  <footer class="page-footer"><span>红 + 黄 = 橙 · 黄 + 蓝 = 绿 · 蓝 + 红 = 紫</span><span id="save-status">发现和进度会自动保存</span></footer>
+  <button id="hint" type="button">💡 看看配方提示</button><button id="restart" type="button">重新玩当前玩法</button><button id="help" type="button">怎么玩</button>
+  <dialog id="book-dialog" aria-labelledby="book-title"><div class="dialog-heading"><div><p class="eyebrow">MY COLOR COLLECTION</p><h2 id="book-title">我的颜色朋友</h2></div><button type="button" data-close aria-label="关闭图鉴">✕</button></div><p>每次搅拌都可能遇见新朋友。卡片上记着你第一次发现它的配方。</p><div id="collection" class="collection"></div><button type="button" data-close class="primary">继续调颜色</button></dialog>
+  <dialog id="help-dialog" aria-labelledby="help-title"><h2 id="help-title">欢迎来到彩虹魔法屋</h2><p>① 看任务，点音符可以听一听。<br>② 点颜料，或把颜料拖进碗里。<br>③ 搅一搅，再用新颜色完成任务。</p><p>颜料店：调色后给礼物上色。<br>彩虹小镇：点选灰色物件，逐个找回颜色。<br>颜色侦探：先补出缺少的颜色，再挑战选两种。<br>实验室：最多放八滴，自由发现颜色朋友。<br>深浅变变变：加入一至三滴白色，配出目标深浅。</p><p>混错没关系，可以少一滴，或者洗洗碗。没有倒计时，也不扣分。</p><p class="small">这里使用简化的红黄蓝颜料配方；真实颜料的结果会因材料和用量而不同。</p><button type="button" data-close class="primary">开始玩吧</button></dialog>
+  <dialog id="restart-dialog" aria-labelledby="restart-title"><h2 id="restart-title">从第一关重新开始？</h2><p>只重置当前玩法。其他玩法和颜色图鉴都会保留。</p><div class="dialog-actions"><button type="button" data-close>继续玩</button><button id="confirm-restart" class="primary" type="button">重新开始</button></div></dialog>
+  <div id="drag-ghost" aria-hidden="true" hidden></div>
+  <script src="../../assets/js/game-ux.js"></script>
+  <script src="../../assets/js/audio.js"></script>
+  <script src="core.js"></script>
+  <script src="art.js"></script>
+  <script src="game.js"></script>
+  <script src="../../assets/js/offline.js"></script>
+</body>
+</html>

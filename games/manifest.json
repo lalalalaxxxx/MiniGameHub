@@ -1,5 +1,14 @@
 [
   {
+    "id": "colormix",
+    "title": "颜色变变变",
+    "blurb": "调出新的颜色，接小熊订单、修复彩虹小镇，发现属于你的颜色朋友。",
+    "category": "学习",
+    "tags": ["颜色", "混色", "颜料", "调色", "彩虹", "侦探", "实验室", "深浅"],
+    "cover": "games/colormix/cover.svg",
+    "entry": "games/colormix/index.html"
+  },
+  {
     "id": "pvz",
     "title": "植物大战僵尸",
     "blurb": "收集阳光、搭配植物，在白天、夜晚、泳池、浓雾和屋顶守住庭院。",
