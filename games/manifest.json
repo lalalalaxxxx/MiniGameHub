@@ -1,5 +1,21 @@
 [
   {
+    "id": "sheepguard",
+    "title": "小羊守护队",
+    "blurb": "摆好小围栏，堵住大灰狼的路，再带每只小羊安心回家。",
+    "category": "解谜",
+    "tags": [
+      "小羊",
+      "大灰狼",
+      "围栏",
+      "守护",
+      "护送",
+      "路线"
+    ],
+    "cover": "games/sheepguard/cover.svg",
+    "entry": "games/sheepguard/index.html"
+  },
+  {
     "id": "colormix",
     "title": "颜色变变变",
     "blurb": "调出新的颜色，接小熊订单、修复彩虹小镇，发现属于你的颜色朋友。",
